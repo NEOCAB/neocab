@@ -1,0 +1,290 @@
+import { useState } from 'react';
+import type { AbcdNotes, BloodGasCord, Num, Transport } from '../../domain/types';
+import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
+import {
+  ABCD_LABELS,
+  CHECKLIST_LABELS,
+  CHECKLIST_STATUS_OPTIONS,
+  CORTICO_OPTIONS,
+  HOSPITAL_SUGGESTIONS,
+  SEX_OPTIONS,
+  VITAMIN_K_OPTIONS,
+  YES_NO_UNKNOWN_OPTIONS,
+} from '../../domain/labels';
+import { doseWeight, postmenstrualAge, transportDate } from '../../domain/calc';
+import { formatNum } from '../../domain/num';
+import { formatLocalDate } from '../../domain/time';
+import { DateField, DateTimeField, NumberField, Section, Segmented, SelectField, TextArea, TextField, TimeField } from '../fields';
+import { useTimeZone } from '../context';
+
+export type Update = (fn: (t: Transport) => Transport) => void;
+export interface SectionProps {
+  t: Transport;
+  update: Update;
+}
+
+export function ChildSection({ t, update }: SectionProps) {
+  const tz = useTimeZone();
+  const c = t.child;
+  const set = <K extends keyof Transport['child']>(k: K, v: Transport['child'][K]) => update((x) => ({ ...x, child: { ...x.child, [k]: v } }));
+  const td = transportDate(t, tz);
+  const pma = postmenstrualAge(c, td);
+  return (
+    <Section id="s1" title="1 Basisgegevens kind">
+      <div className="grid">
+        <TextField label="Naam kind" value={c.name} onChange={(v) => set('name', v)} />
+        <TextField label="LUMC-patiëntnummer" value={c.patientNumber} onChange={(v) => set('patientNumber', v)} inputMode="numeric" hint="Wordt als tekst bewaard; voorloopnullen blijven behouden." />
+        <SelectField label="Geslacht" value={c.sex} onChange={(v) => set('sex', v)} options={SEX_OPTIONS} />
+        <DateField label="Geboortedatum" value={c.birthDate} onChange={(v) => set('birthDate', v)} />
+        <TimeField label="Geboortetijd" value={c.birthTime} onChange={(v) => set('birthTime', v)} />
+      </div>
+      <fieldset className="group">
+        <legend>Zwangerschapsduur bij geboorte</legend>
+        <div className="grid two">
+          <NumberField label="Weken" value={c.gestationalAgeWeeks} onChange={(v) => set('gestationalAgeWeeks', v)} unit="wk" rules={{ min: 0, integer: true }} />
+          <NumberField label="Dagen" value={c.gestationalAgeDays} onChange={(v) => set('gestationalAgeDays', v)} unit="d" rules={{ min: 0, max: 6, integer: true }} />
+        </div>
+      </fieldset>
+      <div className="computed" aria-live="polite">
+        <div>
+          <strong>Postmenstruele leeftijd:</strong>{' '}
+          {pma ? (
+            <>
+              {pma.weeks}+{pma.days} weken <span className="muted">(zwangerschapsduur + kalenderdagen tot transportdatum {formatLocalDate(td)} = datum verwijzing)</span>
+            </>
+          ) : (
+            <span className="muted">wordt berekend zodra zwangerschapsduur (weken én dagen), geboortedatum en datum verwijzing bekend zijn</span>
+          )}
+        </div>
+        {pma && (
+          <div>
+            <strong>Postnatale leeftijd:</strong> {pma.postnatalDays} {pma.postnatalDays === 1 ? 'dag' : 'dagen'}
+          </div>
+        )}
+      </div>
+      <div className="grid">
+        <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0 }} />
+        <NumberField label="Huidig gewicht" value={c.currentWeightGram} onChange={(v) => set('currentWeightGram', v)} unit="g" rules={{ min: 0 }} />
+        <DateField label="Weegdatum huidig gewicht" value={c.currentWeightDate} onChange={(v) => set('currentWeightDate', v)} todayButton />
+      </div>
+      <DoseWeightField child={c} setOverride={(v) => set('doseWeightOverrideGram', v)} />
+    </Section>
+  );
+}
+
+function DoseWeightField({ child, setOverride }: { child: Transport['child']; setOverride: (v: Num) => void }) {
+  const dw = doseWeight(child);
+  const [editing, setEditing] = useState(false);
+  const manualUi = dw.manual || editing;
+  const autoText = dw.auto !== null ? formatNum(dw.auto, 'g') : null;
+  return (
+    <div className="dose-weight">
+      {manualUi ? (
+        <NumberField
+          label="Doseergewicht (handmatig)"
+          value={child.doseWeightOverrideGram}
+          onChange={setOverride}
+          unit="g"
+          rules={{ min: 0 }}
+          allowUnknown={false}
+          hint={`Handmatige waarde blijft behouden als gewichten veranderen. Automatisch berekend: ${autoText ?? 'leeg (geen gewicht bekend)'}.`}
+        />
+      ) : (
+        <div className="field">
+          <span className="field-label" id="dose-weight-label">
+            Doseergewicht
+          </span>
+          <output className="readonly-value" aria-labelledby="dose-weight-label">
+            {autoText ?? <span className="muted">leeg (geen gewicht bekend)</span>}
+          </output>
+          <div className="field-hint">Automatisch: het hoogste van geboortegewicht en huidig gewicht.</div>
+        </div>
+      )}
+      {manualUi ? (
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => {
+            setEditing(false);
+            setOverride(null);
+          }}
+        >
+          Automatisch berekende waarde gebruiken
+        </button>
+      ) : (
+        <button type="button" className="secondary" onClick={() => setEditing(true)}>
+          Handmatig aanpassen
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function ReferralSection({ t, update }: SectionProps) {
+  const r = t.referral;
+  const set = <K extends keyof Transport['referral']>(k: K, v: Transport['referral'][K]) => update((x) => ({ ...x, referral: { ...x.referral, [k]: v } }));
+  return (
+    <Section id="s2" title="2 Verwijzing en bestemming">
+      <div className="grid">
+        <DateTimeField label="Datum en tijd verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} hint="Deze datum geldt als transportdatum voor de postmenstruele leeftijd." />
+        <TextField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} list={HOSPITAL_SUGGESTIONS} hint="Kies uit de lijst of typ vrij." />
+        <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
+        <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
+        <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
+        <TextField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} list={HOSPITAL_SUGGESTIONS} />
+        <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
+      </div>
+      <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
+    </Section>
+  );
+}
+
+function CordGas({ legend, value, onChange }: { legend: string; value: BloodGasCord; onChange: (v: BloodGasCord) => void }) {
+  return (
+    <fieldset className="group">
+      <legend>{legend}</legend>
+      <div className="grid three">
+        <NumberField label="pH" value={value.ph} onChange={(v) => onChange({ ...value, ph: v })} rules={{ min: 0 }} />
+        <NumberField label="BE" value={value.be} onChange={(v) => onChange({ ...value, be: v })} unit="mmol/L" />
+        <NumberField label="Lactaat" value={value.lactate} onChange={(v) => onChange({ ...value, lactate: v })} unit="mmol/L" rules={{ min: 0 }} />
+      </div>
+    </fieldset>
+  );
+}
+
+export function BirthSection({ t, update }: SectionProps) {
+  const b = t.birth;
+  const set = <K extends keyof Transport['birth']>(k: K, v: Transport['birth'][K]) => update((x) => ({ ...x, birth: { ...x.birth, [k]: v } }));
+  const apgar = { min: 0, max: 10, integer: true };
+  return (
+    <Section id="s3" title="3 Zwangerschap en geboorte">
+      <TextArea label="Maternale en antenatale voorgeschiedenis" value={b.maternalHistory} onChange={(v) => set('maternalHistory', v)} />
+      <Segmented legend="Antenatale corticosteroïden" value={b.antenatalCorticosteroids} onChange={(v) => set('antenatalCorticosteroids', v)} options={CORTICO_OPTIONS} />
+      <Segmented legend="Antenataal magnesiumsulfaat" value={b.antenatalMagnesium} onChange={(v) => set('antenatalMagnesium', v)} options={YES_NO_UNKNOWN_OPTIONS} />
+      <TextArea label="Reanimatie bij geboorte" value={b.resuscitation} onChange={(v) => set('resuscitation', v)} />
+      <fieldset className="group">
+        <legend>Apgarscores</legend>
+        <div className="grid three">
+          <NumberField label="1 minuut" value={b.apgar1} onChange={(v) => set('apgar1', v)} rules={apgar} />
+          <NumberField label="5 minuten" value={b.apgar5} onChange={(v) => set('apgar5', v)} rules={apgar} />
+          <NumberField label="10 minuten" value={b.apgar10} onChange={(v) => set('apgar10', v)} rules={apgar} />
+        </div>
+      </fieldset>
+      <CordGas legend="Arterieel navelstrengbloedgas" value={b.cordArterial} onChange={(v) => set('cordArterial', v)} />
+      <CordGas legend="Veneus navelstrengbloedgas" value={b.cordVenous} onChange={(v) => set('cordVenous', v)} />
+      <Segmented legend="Vitamine K" value={b.vitaminK} onChange={(v) => set('vitaminK', v)} options={VITAMIN_K_OPTIONS} />
+      {b.vitaminK === 'anders' && <TextField label="Vitamine K: anders, namelijk" value={b.vitaminKOther} onChange={(v) => set('vitaminKOther', v)} />}
+    </Section>
+  );
+}
+
+function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void }) {
+  return (
+    <div className="abcd">
+      {ABCD_KEYS.map((k) => (
+        <TextArea key={k} label={ABCD_LABELS[k]} value={notes[k]} onChange={(v) => onChange({ ...notes, [k]: v })} rows={2} />
+      ))}
+    </div>
+  );
+}
+
+export function ReferralConditionSection({ t, update }: SectionProps) {
+  const rc = t.referralCondition;
+  return (
+    <Section id="s4" title="4 Toestand bij verwijzing">
+      <AbcdFields notes={rc.notes} onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))} />
+      <TextArea label="Advies bij verwijzing (optioneel)" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
+    </Section>
+  );
+}
+
+export function TeamAssessmentSection({ t, update }: SectionProps) {
+  const a = t.teamAssessment;
+  const set = <K extends keyof Transport['teamAssessment']>(k: K, v: Transport['teamAssessment'][K]) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, [k]: v } }));
+  return (
+    <Section id="s5" title="5 Onderzoek door transportteam" intro="Eigen onderzoek van het transportteam; de informatie bij verwijzing (sectie 4) blijft ongewijzigd bewaard.">
+      <DateTimeField label="Datum en tijd aankomst bij het verwijzende ziekenhuis" value={a.arrivedAt} onChange={(v) => set('arrivedAt', v)} />
+      <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} />
+      <TextArea label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
+      <TextArea label="Stabilisatieplan" value={a.stabilisationPlan} onChange={(v) => set('stabilisationPlan', v)} />
+      <DateTimeField label="Laatste voeding" value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} />
+    </Section>
+  );
+}
+
+export function OtherDiagnosticsSection({ t, update }: SectionProps) {
+  return (
+    <Section id="s7" title="7 Overige diagnostiek">
+      <TextArea label="Overige laboratoriumuitslagen" value={t.otherLabs} onChange={(v) => update((x) => ({ ...x, otherLabs: v }))} />
+      <TextArea label="Beeldvorming en overige onderzoeken" value={t.imaging} onChange={(v) => update((x) => ({ ...x, imaging: v }))} />
+    </Section>
+  );
+}
+
+export function ProceduresSection({ t, update }: SectionProps) {
+  return (
+    <Section id="s11" title="11 Procedures en gebeurtenissen">
+      <TextArea label="Procedures en gebeurtenissen" value={t.proceduresAndEvents} onChange={(v) => update((x) => ({ ...x, proceduresAndEvents: v }))} rows={5} />
+    </Section>
+  );
+}
+
+export function ParentsSection({ t, update }: SectionProps) {
+  return (
+    <Section id="s12" title="12 Ouders en gezin">
+      <TextArea label="Ouders en gezin" value={t.parentsAndFamily} onChange={(v) => update((x) => ({ ...x, parentsAndFamily: v }))} rows={4} hint="Telefoonnummers van ouders vult u in bij de checklist (sectie 13, punt 5)." />
+    </Section>
+  );
+}
+
+export function ChecklistSection({ t, update }: SectionProps) {
+  const setPhones = (phones: string[]) => update((x) => ({ ...x, parentPhones: phones }));
+  return (
+    <Section id="s13" title="13 Checklist voor vertrek">
+      <ol className="checklist">
+        {CHECKLIST_KEYS.map((k) => (
+          <li key={k}>
+            <Segmented
+              legend={CHECKLIST_LABELS[k]}
+              value={t.checklist[k]}
+              allowClear={false}
+              onChange={(v) => update((x) => ({ ...x, checklist: { ...x.checklist, [k]: v || 'nog_niet' } }))}
+              options={CHECKLIST_STATUS_OPTIONS}
+              className={`status-${t.checklist[k]}`}
+            />
+            {k === 'ouders' && (
+              <fieldset className="group phones">
+                <legend>Telefoonnummers ouders</legend>
+                {t.parentPhones.map((p, i) => (
+                  <div className="phone-row" key={i}>
+                    <TextField label={`Telefoonnummer ${i + 1}`} type="tel" value={p} onChange={(v) => setPhones(t.parentPhones.map((q, j) => (j === i ? v : q)))} />
+                    {t.parentPhones.length > 1 && (
+                      <button type="button" className="link-button danger" onClick={() => setPhones(t.parentPhones.filter((_, j) => j !== i))} aria-label={`Telefoonnummer ${i + 1} verwijderen`}>
+                        Verwijderen
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className="secondary" onClick={() => setPhones([...t.parentPhones, ''])}>
+                  + Telefoonnummer toevoegen
+                </button>
+              </fieldset>
+            )}
+          </li>
+        ))}
+      </ol>
+    </Section>
+  );
+}
+
+export function ClosureSection({ t, update }: SectionProps) {
+  const c = t.closure;
+  const set = <K extends keyof Transport['closure']>(k: K, v: Transport['closure'][K]) => update((x) => ({ ...x, closure: { ...x.closure, [k]: v } }));
+  return (
+    <Section id="s14" title="14 Afsluiting transport">
+      <DateTimeField label="Vertrek van cotside" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
+      <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
+      <DateTimeField label="Aankomst ontvangend centrum" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
+    </Section>
+  );
+}
