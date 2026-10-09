@@ -1,29 +1,23 @@
-import type { AbcdNotes, BloodGasCord, Num, Transport, TubeVersion } from '../domain/types';
+import type { AbcdNotes, BloodGasCord, Measurement, Num, Transport, TubeVersion } from '../domain/types';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../domain/types';
 import {
   ABCD_LABELS,
   CHECKLIST_LABELS,
   CHECKLIST_STATUS_OPTIONS,
   CORTICO_OPTIONS,
-  GAS_FIELDS,
-  GAS_TYPE_OPTIONS,
   LINE_TYPE_LABELS,
-  MONITOR_FIELDS,
-  PHASE_OPTIONS,
-  RESP_MODE_LABELS,
   SEX_OPTIONS,
   TUBE_ROUTE_OPTIONS,
   VITAMIN_K_OPTIONS,
   YES_NO_UNKNOWN_OPTIONS,
-  isInvasive,
   optionLabel,
-  respFieldsFor,
   tubeDepthLabel,
 } from '../domain/labels';
 import { formatNum } from '../domain/num';
 import { compareInstants, DEFAULT_TIME_ZONE, formatInstant, formatLocalDate } from '../domain/time';
 import { doseWeight, formatGestation, postmenstrualAge, transportDate } from '../domain/calc';
-import { sortedMeasurements, sortedRates, sortedVersions, tubeAt } from '../domain/timeline';
+import { sortedRates, sortedVersions } from '../domain/timeline';
+import { GAS_TYPE_LEGEND, TIMELINE_GROUP_LABELS, hasGas, timelineTable } from '../domain/timelineTable';
 
 export type ReportRow =
   | { type: 'kv'; label: string; value: string }
@@ -31,8 +25,28 @@ export type ReportRow =
   | { type: 'sub'; text: string }
   | { type: 'note'; text: string };
 
+export interface ReportTableColumn {
+  /** Korte kop. */
+  header: string;
+  /** Volledige naam (e-mailtekst). */
+  fullLabel: string;
+  unit: string;
+  /** Identificatiekolom (#, tijd, fase): wordt bij opsplitsen van brede tabellen herhaald. */
+  keyColumn: boolean;
+  /** Kolomgroep (bovenste kopregel), bijv. "Ademhalingsondersteuning". */
+  group: string;
+}
+
+/** Tabel: elke rij is één record (bijv. één meetmoment). Lege cel = '' (niet ingevuld). */
+export interface ReportTable {
+  columns: ReportTableColumn[];
+  rows: string[][];
+}
+
 export interface ReportBlock {
   title?: string;
+  /** Tabelblok; `rows` is dan leeg. */
+  table?: ReportTable;
   /** Kaart-blok (meetmoment, infuus, ...): bij voorkeur niet over een pagina verdelen. */
   card?: boolean;
   rows: ReportRow[];
@@ -172,44 +186,15 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: '5 Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 6 Tijdlijn
+  // 6 Tijdlijn: één tabel, elke rij is één meetmoment
   {
-    const blocks: ReportBlock[] = [];
-    sortedMeasurements(t.measurements).forEach((m, idx) => {
-      const b = new RowBuilder();
-      const mode = m.resp.mode;
-      if (mode) {
-        b.sub('Ademhalingsondersteuning');
-        const kind = mode === 'geen' ? '' : isInvasive(mode) ? ' (invasief)' : ' (non-invasief)';
-        b.kv('Modaliteit', `${RESP_MODE_LABELS[mode]}${kind}`);
-        const settings = m.resp.settingsByMode[mode] ?? {};
-        for (const fdef of respFieldsFor(mode)) b.num(fdef.label.replace(/ \(optioneel\)$/, ''), settings[fdef.key] ?? null, fdef.unit);
-        if (isInvasive(mode)) {
-          const tube = tubeAt(t.tubes, m.at);
-          b.kv('Endotracheale tube', tube ? tubeSummary(tube.version, timeZone) : 'geen tubegegevens geregistreerd voor dit tijdstip');
-        }
-      }
-      const monitor = new RowBuilder();
-      for (const fdef of MONITOR_FIELDS) monitor.num(fdef.label, m.monitor[fdef.key], fdef.unit);
-      if (monitor.rows.length) {
-        b.sub('Monitorgegevens');
-        b.rows.push(...monitor.rows);
-      }
-      const gas = new RowBuilder();
-      for (const fdef of GAS_FIELDS) gas.num(fdef.label, m.gas.values[fdef.key], fdef.unit);
-      if (gas.rows.length || m.gas.type) {
-        b.sub('Bloedgas');
-        b.kv('Afnametijd', fi(m.gas.sampledAt)).kv('Afnametype', optionLabel(GAS_TYPE_OPTIONS, m.gas.type));
-        b.rows.push(...gas.rows);
-      }
-      const phase = optionLabel(PHASE_OPTIONS, m.phase);
-      blocks.push({
-        card: true,
-        title: `Meetmoment ${idx + 1} · ${fi(m.at) || 'tijdstip niet ingevuld'}${phase ? ` · ${phase}` : ''}`,
-        rows: b.orEmpty(),
-      });
+    const { table, rows } = timelineReportTable(t.measurements, timeZone);
+    sections.push({
+      title: '6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen',
+      blocks: rows.length
+        ? [{ rows: [], table }, ...(rows.some(hasGas) ? [{ rows: [{ type: 'note' as const, text: GAS_TYPE_LEGEND }] }] : [])]
+        : [{ rows: [{ type: 'note', text: 'Geen meetmomenten geregistreerd.' }] }],
     });
-    sections.push({ title: '6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen', blocks: blocks.length ? blocks : [{ rows: [{ type: 'note', text: 'Geen meetmomenten geregistreerd.' }] }] });
   }
 
   // 7 Overige diagnostiek
@@ -313,6 +298,18 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   ].filter(Boolean);
 
   return { title: 'Transportverslag neonataal transport', meta, sections };
+}
+
+/** Tijdlijn als tabel: één rij per meetmoment (chronologisch), alleen kolommen met minstens één waarde. */
+export function timelineReportTable(measurements: Measurement[], timeZone: string): { table: ReportTable; rows: Measurement[] } {
+  const { rows, columns } = timelineTable(measurements, timeZone);
+  return {
+    rows,
+    table: {
+      columns: columns.map((c) => ({ header: c.label, fullLabel: c.fullLabel, unit: c.unit, keyColumn: !!c.key_column, group: TIMELINE_GROUP_LABELS[c.group] })),
+      rows: rows.map((m, i) => columns.map((c) => c.cell(m, i))),
+    },
+  };
 }
 
 export function tubeSummary(v: TubeVersion, timeZone: string): string {

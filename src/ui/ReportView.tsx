@@ -3,6 +3,7 @@ import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToText } from '../report/text';
 import { useTimeZone } from './context';
+import { DataTable } from './DataTable';
 
 /** Mailto-links worden door sommige mailprogramma's afgekapt; boven deze lengte gaat de tekst alleen via het klembord. */
 const MAILTO_BODY_LIMIT = 1800;
@@ -165,6 +166,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
               {s.blocks.map((b, i) => (
                 <div key={i} className={b.card ? 'r-card' : 'r-block'}>
                   {b.title && <h3>{b.title}</h3>}
+                  {b.table && <DataTable table={b.table} caption={`${s.title}: één rij per meetmoment`} rotatedHeaders />}
                   <dl>
                     {b.rows.map((r, j) => (
                       <Row key={j} row={r} />

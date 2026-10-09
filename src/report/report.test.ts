@@ -49,12 +49,28 @@ describe('verslag', () => {
     expect(text).toContain('Tubediepte bij tandenrij: 7,5 cm');
   });
 
-  it('koppelt op historische meetmomenten de destijds geldende tubegegevens', () => {
-    const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    const m2 = text.slice(text.indexOf('Meetmoment 2'), text.indexOf('Meetmoment 3'));
-    const m3 = text.slice(text.indexOf('Meetmoment 3'), text.indexOf('7 OVERIGE'));
-    expect(m2).toContain('tubediepte bij tandenrij 8 cm');
-    expect(m3).toContain('tubediepte bij tandenrij 7,5 cm');
+  it('tijdlijn is één tabel met één rij per meetmoment, zonder #, fase en tube, type bloedgas als A/V/C', () => {
+    const t = sampleTransport(TZ);
+    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('6 '))!;
+    const tables = section.blocks.filter((b) => b.table);
+    expect(tables).toHaveLength(1);
+    const table = tables[0].table!;
+    expect(table.rows).toHaveLength(t.measurements.length);
+    expect([...new Set(table.columns.map((c) => c.group))]).toEqual(['Meetmoment', 'Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas']);
+    const headers = table.columns.map((c) => c.header);
+    for (const h of ['#', 'Fase', 'Tube']) expect(headers).not.toContain(h);
+    expect(headers[0]).toBe('Tijd');
+    const col = (h: string, unit = '') => table.columns.findIndex((c) => c.header === h && c.unit === unit);
+    // Rijen chronologisch; bloeddruk (mmHg) en luchtwegdruk (cmH₂O) zijn aparte kolommen.
+    expect(table.rows.map((r) => r[col('Tijd')])).toEqual(['09-10-2026\n23:10', '09-10-2026\n23:45', '10-10-2026\n00:50']);
+    expect(table.rows[1][col('Bloeddruk MAP', 'mmHg')]).toBe('40');
+    expect(table.rows[2][col('MAP luchtweg', 'cmH₂O')]).toBe('9');
+    expect(table.rows[0][col('CPAP', 'cmH₂O')]).toBe('7');
+    expect(table.rows[1][col('CPAP', 'cmH₂O')]).toBe('');
+    expect(table.rows.map((r) => r[col('Type')])).toEqual(['C', 'A', '']);
+    expect(section.blocks.some((b) => b.rows.some((r) => r.type === 'note' && r.text.includes('A = arterieel, V = veneus, C = capillair')))).toBe(true);
+    // Lege kolommen (geen enkele waarde) worden weggelaten.
+    expect(col('etCO₂', 'kPa')).toBe(-1);
   });
 
   it('exporteert alleen instellingen van de actuele modaliteit', () => {

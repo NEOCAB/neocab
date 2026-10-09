@@ -62,11 +62,14 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 - **Verwijzend ziekenhuis**: vrije invoer met een korte voorstel-lijst van bestaande Nederlandse ziekenhuisnamen (`HOSPITAL_SUGGESTIONS` in `src/domain/labels.ts`). Laat deze lijst inhoudelijk controleren en aanvullen voor gebruik.
 - **Toedieningsroutes** zijn configureerbaar via *Instellingen* op het startscherm (per apparaat).
 - **E-mail**: *E-mailtekst kopiëren* kopieert het volledige verslag als platte tekst. *Concept openen in mailprogramma* opent een `mailto:`-concept; past de tekst niet veilig in de link (> ca. 1800 tekens), dan wordt de volledige tekst eerst naar het klembord gekopieerd en bevat het concept alleen een plakinstructie. Een mailto-concept bevat geen pdf-bijlage; er wordt nooit automatisch verzonden. De volledige tekst staat ook in een selecteerbaar tekstvak.
-- **Pdf**: echte A4-pdf (jsPDF), lange tekst breekt over regels en pagina's, koppen blijven bij hun inhoud, meetmomenten staan als tweekoloms kaarten die niet over een pagina worden gesplitst (alleen een kaart die langer is dan een pagina loopt door met een vervolgkop). Paginanummering “Pagina x van y”. Daarnaast is er een afdrukweergave (knop *Afdrukken*, print-CSS).
+- **Tijdlijn als tabel**: de tijdlijn is één tabel met per rij één meetmoment (chronologisch) en kolommen voor ademhalingsondersteuning, monitorgegevens en bloedgas, gegroepeerd onder een kopregel. Meetnummer, fase en tube staan niet in de tabel (fase wordt wel per meetmoment ingevoerd; tubegegevens staan in sectie 10 en in het bewerkformulier van een invasief meetmoment). Type bloedgas wordt afgekort als A (arterieel), V (veneus) of C (capillair), met legenda. Kolommen zonder enige waarde worden weggelaten; eenheden staan in de kolomkop. Een instelling verschijnt alleen in de rij als die bij de modaliteit van dat meetmoment hoort. Luchtwegdruk (MAP luchtweg, cmH₂O) en bloeddruk (Bloeddruk MAP, mmHg) zijn aparte kolommen. In het formulier scrolt de tabel horizontaal binnen zijn eigen kader (de tijdkolom blijft staan); het formulier zelf scrolt niet horizontaal. Bewerken: tik op het tijdstip; verwijderen gaat via het bewerkformulier (met bevestiging).
+- **Pdf**: echte A4-pdf (jsPDF), lange tekst breekt over regels en pagina's, koppen blijven bij hun inhoud. De tijdlijntabel staat op liggende A4-pagina's met verticale kolomkoppen; bij een paginawissel wordt de kopregel herhaald. Past de tabel niet in de breedte, dan wordt de letter tot ca. 5,4 pt verkleind; pas daarna (bij uitzonderlijk veel gevulde kolommen) wordt hij in kolomdelen gesplitst met herhaalde tijdkolom. In de e-mailtekst staat elk meetmoment als één regel. Paginanummering “Pagina x van y”. Daarnaast is er een afdrukweergave (knop *Afdrukken*, print-CSS).
 
 ## Uitgevoerde controles
 
 Unit-tests (`npm test`, 35 tests):
+
+- tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 
 - doseergewicht bij twee gewichten, één bekend gewicht, lege invoer, handmatige override (blijft bij gewijzigde gewichten), opnieuw automatisch;
 - postmenstruele leeftijd bij weekovergang en bij gewijzigde transportdatum (verwijzing 23:59 vs. 00:01), geen rekening met lege dagen;
@@ -76,11 +79,11 @@ Unit-tests (`npm test`, 35 tests):
 - zichtbaarheid van instellingen per modaliteit (VG alleen PTV/SIMV, iNO alleen invasief);
 - chronologische sortering na achteraf toevoegen en aanpassen;
 - geen overname van monitor- en bloedgaswaarden in een nieuw meetmoment;
-- tubegegevens op historische meetmomenten na aanpassing en na plaatsing van een nieuwe tube;
+- tubegegevens die op het tijdstip van een meetmoment golden, na aanpassing en na plaatsing van een nieuwe tube;
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 39 controles in Chromium): invoerscenario op 390 px (doseergewicht, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen op 390/768/1024 px, tubegegevens op de tijdlijn, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 47 controles in Chromium): invoerscenario op 390 px (doseergewicht, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 

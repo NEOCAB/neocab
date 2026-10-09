@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import type { Report, ReportBlock, ReportRow } from './buildReport';
+import type { Report, ReportBlock, ReportRow, ReportTable, ReportTableColumn } from './buildReport';
 
 export interface PdfFonts {
   /** Base64 van DejaVuSans.ttf (Unicode: subscripts, Δ, °, ⁻). */
@@ -8,8 +8,8 @@ export interface PdfFonts {
 }
 
 const A4 = { w: 210, h: 297 };
-const M = { left: 16, right: 16, top: 18, bottom: 18 };
-const CONTENT_W = A4.w - M.left - M.right;
+const M = { left: 12, right: 12, top: 18, bottom: 16 };
+
 const LABEL_W = 62;
 const FONT = 'DejaVu';
 const SIZE = { body: 9.5, title: 16, section: 12.5, block: 10.5, meta: 8.5, footer: 8 };
@@ -31,18 +31,24 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   doc.setProperties({ title: report.title, subject: report.meta[0] ?? '', creator: 'Neonatale transportregistratie' });
 
   let y = M.top;
-  const bottom = A4.h - M.bottom;
+  /** Paginageometrie; de tijdlijntabel staat op liggende pagina's. */
+  let orientation = 'portrait' as 'portrait' | 'landscape';
+  let contentW = A4.w - M.left - M.right;
+  let bottom = A4.h - M.bottom;
 
   /** Titel van de kaart die over een paginagrens loopt; wordt als vervolgkop herhaald. */
   let continuation: string | null = null;
-  const newPage = () => {
-    doc.addPage();
+  const newPage = (o: 'portrait' | 'landscape' = orientation) => {
+    doc.addPage('a4', o);
+    orientation = o;
+    contentW = (o === 'landscape' ? A4.h : A4.w) - M.left - M.right;
+    bottom = (o === 'landscape' ? A4.w : A4.h) - M.bottom;
     y = M.top;
     if (continuation) {
       doc.setFont(FONT, 'bold');
       doc.setFontSize(SIZE.body);
       doc.setTextColor(20, 60, 95);
-      doc.text(`${continuation} (vervolg)`, M.left + 3, y + LINE(SIZE.body) * 0.75, { maxWidth: CONTENT_W - 6 });
+      doc.text(`${continuation} (vervolg)`, M.left + 3, y + LINE(SIZE.body) * 0.75, { maxWidth: contentW - 6 });
       y += LINE(SIZE.body) + 1.5;
     }
   };
@@ -67,9 +73,9 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   };
 
   // Titel
-  writeLines(split(report.title, CONTENT_W, SIZE.title, true), M.left, SIZE.title, true, [20, 60, 95]);
+  writeLines(split(report.title, contentW, SIZE.title, true), M.left, SIZE.title, true, [20, 60, 95]);
   y += 1;
-  for (const m of report.meta) writeLines(split(m, CONTENT_W, SIZE.meta), M.left, SIZE.meta, false, [70, 70, 70]);
+  for (const m of report.meta) writeLines(split(m, contentW, SIZE.meta), M.left, SIZE.meta, false, [70, 70, 70]);
   y += 3;
 
   const rowHeight = (row: ReportRow, width: number, labelW = LABEL_W): number => {
@@ -131,7 +137,6 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     }
   };
 
-  const pageH = bottom - M.top;
   const COL_GAP = 6;
   const COL_LABEL_W = 40;
   /**
@@ -160,8 +165,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   };
 
   const blockMetrics = (block: ReportBlock) => {
+    const pageH = bottom - M.top;
+    if (block.table) return { pad: 0, width: contentW, titleLines: [] as string[], keep: 0, columns: null };
     const pad = block.card ? 3 : 0;
-    const width = CONTENT_W - pad * 2;
+    const width = contentW - pad * 2;
     const titleLines = block.title ? split(block.title, width, SIZE.block, true) : [];
     const titleH = titleLines.length * LINE(SIZE.block) + (block.title ? 1.5 : 0);
     const cols = twoColumns(block, width);
@@ -175,7 +182,163 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     return { pad, width, titleLines, keep, columns };
   };
 
+  const BASE_TS = { cell: 7, head: 6.5, group: 7 };
+  const BASE_PAD = 1.1;
+  const BASE_MAX_COL_W = 30;
+  /** Kleinste schaal waarop de tabel nog als één geheel wordt gezet (letter ca. 5,4 pt). */
+  const MIN_TABLE_SCALE = 0.77;
+
+  /**
+   * Tabel met per rij één record. Kolombreedte volgt de inhoud; past de tabel niet in de paginabreedte,
+   * dan wordt hij in kolomblokken verdeeld waarbij de identificatiekolommen (#, tijd, fase) terugkomen.
+   * Bij een paginawissel worden de kopregels herhaald.
+   */
+  const writeTable = (table: ReportTable, title?: string, scale = 1): void => {
+    const TS = { cell: BASE_TS.cell * scale, head: BASE_TS.head * scale, group: BASE_TS.group * scale };
+    const CELL_PAD = BASE_PAD * scale;
+    const MAX_COL_W = BASE_MAX_COL_W * scale;
+    const lhCell = LINE(TS.cell);
+    const lhHead = LINE(TS.head);
+    const headerLines = (c: ReportTableColumn) => [c.header, ...(c.unit ? [c.unit] : [])];
+    const longestWord = (text: string, size: number, bold: boolean) => {
+      doc.setFont(FONT, bold ? 'bold' : 'normal');
+      doc.setFontSize(size);
+      return Math.max(0, ...text.split(/[\s\n]+/).map((w) => doc.getTextWidth(w)));
+    };
+    const lineWidth = (text: string, size: number, bold: boolean) => {
+      doc.setFont(FONT, bold ? 'bold' : 'normal');
+      doc.setFontSize(size);
+      return Math.max(0, ...text.split('\n').map((l) => doc.getTextWidth(l)));
+    };
+    // Identificatiekolommen hebben een liggende kop; de overige koppen staan verticaal (90°),
+    // zodat de kolombreedte door de waarden wordt bepaald.
+    const rotated = (c: ReportTableColumn) => !c.keyColumn;
+    const rotatedText = (c: ReportTableColumn) => (c.unit ? `${c.header} (${c.unit})` : c.header);
+    const natural = table.columns.map((c, ci) => {
+      const cells = Math.max(0, ...table.rows.map((r) => lineWidth(r[ci] ?? '', TS.cell, c.keyColumn)));
+      const head = rotated(c) ? LINE(TS.head) : Math.max(...headerLines(c).map((l) => longestWord(l, TS.head, true)));
+      return Math.max(head, Math.min(cells, MAX_COL_W), 3.5 * scale) + CELL_PAD * 2;
+    });
+
+    // Eén tabel: past hij niet, verklein dan alles naar rato (tot MIN_TABLE_SCALE).
+    const naturalTotal = natural.reduce((a, b) => a + b, 0);
+    if (scale === 1 && naturalTotal > contentW) {
+      const fit = (contentW / naturalTotal) * 0.995;
+      if (fit >= MIN_TABLE_SCALE) return writeTable(table, title, fit);
+      return writeTable(table, title, MIN_TABLE_SCALE);
+    }
+
+    // Kolomblokken (alleen bij uitzonderlijk veel gevulde kolommen) met herhaalde identificatiekolommen.
+    const keyIdx = table.columns.map((c, i) => (c.keyColumn ? i : -1)).filter((i) => i >= 0);
+    const dataIdx = table.columns.map((c, i) => (c.keyColumn ? -1 : i)).filter((i) => i >= 0);
+    const keyW = keyIdx.reduce((sum, i) => sum + natural[i], 0);
+    const chunks: number[][] = [];
+    let cur: number[] = [];
+    let curW = keyW;
+    for (const i of dataIdx) {
+      if (cur.length && curW + natural[i] > contentW) {
+        chunks.push(cur);
+        cur = [];
+        curW = keyW;
+      }
+      cur.push(i);
+      curW += natural[i];
+    }
+    if (cur.length || chunks.length === 0) chunks.push(cur);
+
+    chunks.forEach((chunk, ci) => {
+      const idx = [...keyIdx, ...chunk];
+      const total = idx.reduce((sum, i) => sum + natural[i], 0);
+      const extra = Math.max(0, (contentW - total) / idx.length);
+      const widths = idx.map((i) => natural[i] + extra);
+      const xs = widths.reduce<number[]>((acc, w, k) => [...acc, acc[k] + w], [M.left]);
+      const cols = idx.map((i) => table.columns[i]);
+
+      // Groepskoppen: aaneengesloten kolommen met dezelfde groep.
+      const spans: { label: string; x: number; w: number }[] = [];
+      cols.forEach((c, k) => {
+        const last = spans[spans.length - 1];
+        if (last && last.label === c.group) last.w += widths[k];
+        else spans.push({ label: c.group, x: xs[k], w: widths[k] });
+      });
+      const groupLines = spans.map((sp) => split(sp.label, sp.w - CELL_PAD * 2, TS.group, true));
+      const groupH = Math.max(...groupLines.map((l) => l.length)) * LINE(TS.group) + 1.5;
+      const headLines = cols.map((c, k) => (rotated(c) ? [] : headerLines(c).flatMap((l) => split(l, widths[k] - CELL_PAD * 2, TS.head, true))));
+      const rotatedW = cols.map((c) => (rotated(c) ? lineWidth(rotatedText(c), TS.head, true) : 0));
+      const headH = Math.max(Math.max(...headLines.map((l) => l.length)) * lhHead, ...rotatedW) + CELL_PAD * 2 + 0.5;
+
+      const drawHeader = () => {
+        doc.setLineWidth(0.15);
+        doc.setDrawColor(160, 172, 185);
+        doc.setFillColor(214, 228, 240);
+        doc.rect(M.left, y, total + extra * idx.length, groupH, 'FD');
+        spans.forEach((sp, k) => {
+          doc.line(sp.x, y, sp.x, y + groupH + headH);
+          doc.setFont(FONT, 'bold');
+          doc.setFontSize(TS.group);
+          doc.setTextColor(20, 60, 95);
+          groupLines[k].forEach((l, li) => doc.text(l, sp.x + CELL_PAD, y + 0.8 + LINE(TS.group) * (li + 0.75)));
+        });
+        y += groupH;
+        doc.setFillColor(234, 241, 247);
+        doc.rect(M.left, y, total + extra * idx.length, headH, 'FD');
+        cols.forEach((c, k) => {
+          doc.line(xs[k], y, xs[k], y + headH);
+          doc.setFont(FONT, 'bold');
+          doc.setFontSize(TS.head);
+          doc.setTextColor(40, 40, 40);
+          if (rotated(c)) {
+            // Van onder naar boven, onderaan uitgelijnd.
+            doc.text(rotatedText(c), xs[k] + widths[k] / 2 + TS.head * 0.3528 * 0.35, y + headH - CELL_PAD, { angle: 90 });
+          } else {
+            const n = headLines[k].length;
+            headLines[k].forEach((l, li) => doc.text(l, xs[k] + CELL_PAD, y + headH - CELL_PAD - lhHead * (n - 1 - li) - lhHead * 0.25));
+          }
+        });
+        doc.line(xs[xs.length - 1], y - groupH, xs[xs.length - 1], y + headH);
+        y += headH;
+      };
+
+      const label = `${title ?? 'Tijdlijn'}${chunks.length > 1 ? ` — kolommen deel ${ci + 1} van ${chunks.length}` : ''}`;
+      if (title || chunks.length > 1) {
+        ensure(LINE(SIZE.block) + groupH + headH + lhCell * 2 + 4);
+        writeLines([label], M.left, SIZE.block, true, [15, 15, 15]);
+        y += 1;
+      } else ensure(groupH + headH + lhCell * 2 + 4);
+      drawHeader();
+
+      table.rows.forEach((row, ri) => {
+        const cellLines = idx.map((i, k) => split(row[i] ?? '', widths[k] - CELL_PAD * 2, TS.cell));
+        const h = Math.max(1, ...cellLines.map((l) => l.length)) * lhCell + 1.4;
+        if (y + h > bottom) {
+          continuation = label;
+          newPage();
+          continuation = null;
+          drawHeader();
+        }
+        if (ri % 2 === 1) {
+          doc.setFillColor(246, 248, 250);
+          doc.rect(M.left, y, total + extra * idx.length, h, 'F');
+        }
+        doc.setDrawColor(200, 208, 216);
+        doc.setLineWidth(0.1);
+        cols.forEach((c, k) => {
+          doc.line(xs[k], y, xs[k], y + h);
+          doc.setFont(FONT, c.keyColumn ? 'bold' : 'normal');
+          doc.setFontSize(TS.cell);
+          doc.setTextColor(15, 15, 15);
+          cellLines[k].forEach((l, li) => doc.text(l, xs[k] + CELL_PAD, y + 0.7 + lhCell * (li + 0.75)));
+        });
+        doc.line(xs[xs.length - 1], y, xs[xs.length - 1], y + h);
+        doc.line(M.left, y + h, xs[xs.length - 1], y + h);
+        y += h;
+      });
+      y += 4;
+    });
+  };
+
   const writeBlock = (block: ReportBlock) => {
+    if (block.table) return writeTable(block.table, block.title);
     const { pad, width, titleLines, keep, columns } = blockMetrics(block);
     const x = M.left + pad;
     ensure(keep);
@@ -209,7 +372,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
       doc.setLineWidth(0.3);
       const endPage = doc.getNumberOfPages();
       if (endPage === startPage) {
-        doc.roundedRect(M.left, startY, CONTENT_W, y - startY, 1.5, 1.5, 'S');
+        doc.roundedRect(M.left, startY, contentW, y - startY, 1.5, 1.5, 'S');
       } else {
         // Kaart loopt over pagina's: alleen een linkerlijn per pagina.
         for (let p = startPage; p <= endPage; p++) {
@@ -225,7 +388,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   };
 
   for (const section of report.sections) {
-    const titleLines = split(section.title, CONTENT_W, SIZE.section, true);
+    const hasTable = section.blocks.some((b) => b.table);
+    if (hasTable && orientation !== 'landscape') newPage('landscape');
+    else if (!hasTable && orientation !== 'portrait') newPage('portrait');
+    const titleLines = split(section.title, contentW, SIZE.section, true);
     // Kop nooit los onderaan een pagina: houd hem samen met het begin van het eerste blok.
     const firstKeep = section.blocks[0] ? blockMetrics(section.blocks[0]).keep : 0;
     ensure(titleLines.length * LINE(SIZE.section) + 5 + firstKeep);
@@ -233,7 +399,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     writeLines(titleLines, M.left, SIZE.section, true, [20, 60, 95]);
     doc.setDrawColor(20, 60, 95);
     doc.setLineWidth(0.4);
-    doc.line(M.left, y + 0.5, M.left + CONTENT_W, y + 0.5);
+    doc.line(M.left, y + 0.5, M.left + contentW, y + 0.5);
     y += 3;
     for (const block of section.blocks) writeBlock(block);
   }
@@ -245,9 +411,11 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     doc.setFont(FONT, 'normal');
     doc.setFontSize(SIZE.footer);
     doc.setTextColor(110, 110, 110);
-    if (p > 1) doc.text(`${report.title}${report.meta[0] ? ` — ${report.meta[0]}` : ''}`, M.left, 10, { maxWidth: CONTENT_W });
-    doc.text(`Pagina ${p} van ${pages}`, A4.w - M.right, A4.h - 8, { align: 'right' });
-    doc.text('Neonatale transportregistratie — prototype', M.left, A4.h - 8);
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    if (p > 1) doc.text(`${report.title}${report.meta[0] ? ` — ${report.meta[0]}` : ''}`, M.left, 10, { maxWidth: pw - M.left - M.right });
+    doc.text(`Pagina ${p} van ${pages}`, pw - M.right, ph - 8, { align: 'right' });
+    doc.text('Neonatale transportregistratie — prototype', M.left, ph - 8);
   }
   return doc;
 }

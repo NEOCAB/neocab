@@ -545,6 +545,7 @@ fieldset.group > legend {
   display: none;
 }
 .form {
+  width: 100%;
   max-width: 980px;
   margin: 0 auto;
   padding: 0.75rem 16px 4rem;
@@ -674,6 +675,106 @@ fieldset.group > legend {
 }
 .subform {
   margin-top: 0.5rem;
+}
+
+/* Tijdlijntabel: één rij per meetmoment */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.5rem 0 0.75rem;
+  background: #fff;
+}
+.data-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  width: max-content;
+  min-width: 100%;
+}
+.data-table th,
+.data-table td {
+  padding: 0.35rem 0.5rem;
+  border-right: 1px solid #e3e8ee;
+  border-bottom: 1px solid #e3e8ee;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.data-table thead th {
+  background: #eaf1f7;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  vertical-align: bottom;
+}
+.data-table .group-row th {
+  background: #d6e4f0;
+  color: var(--primary-dark);
+  font-size: 0.8rem;
+  border-left: 2px solid #fff;
+}
+.unit-head {
+  display: block;
+  font-weight: 400;
+  color: var(--muted);
+}
+.data-table tbody tr:nth-child(even) td,
+.data-table tbody tr:nth-child(even) th {
+  background: #f6f8fa;
+}
+.data-table tbody tr.editing td,
+.data-table tbody tr.editing th {
+  background: #fff4e0;
+}
+.data-table td.unknown {
+  color: var(--warning);
+  font-style: italic;
+}
+/* Eerste kolom (tijd) blijft staan bij horizontaal scrollen. */
+.data-table .col-0,
+.data-table .sticky-group {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  border-right: 2px solid #c9d3dd;
+  white-space: pre-line;
+}
+.data-table thead .col-0,
+.data-table .sticky-group {
+  background: #eaf1f7;
+  z-index: 2;
+}
+.data-table .sticky-group {
+  background: #d6e4f0;
+}
+.row-edit {
+  min-height: var(--tap);
+  padding: 0.2rem 0.4rem;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--primary);
+  font-weight: 700;
+  text-align: left;
+  white-space: pre-line;
+  line-height: 1.25;
+}
+.row-edit:hover {
+  border-color: var(--primary);
+}
+.data-table.rotated thead tr:not(.group-row) th.data .th-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
+.data-table.rotated thead tr:not(.group-row) th.data .unit-head {
+  display: inline;
+}
+.table-hint {
+  margin-bottom: 0;
 }
 
 /* Infusen en tube */
@@ -864,6 +965,28 @@ fieldset.group > legend {
   .r-kv {
     grid-template-columns: 55mm 1fr;
     break-inside: avoid;
+  }
+  .table-scroll {
+    overflow: visible;
+    border: none;
+  }
+  .data-table {
+    font-size: 6.5pt;
+    width: 100%;
+  }
+  .data-table th,
+  .data-table td {
+    padding: 0.5mm 0.8mm;
+  }
+  .data-table thead {
+    display: table-header-group;
+  }
+  .data-table tr {
+    break-inside: avoid;
+  }
+  .data-table .col-0,
+  .data-table .sticky-group {
+    position: static;
   }
 }
 

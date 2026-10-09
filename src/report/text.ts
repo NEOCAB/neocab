@@ -1,4 +1,21 @@
-import type { Report } from './buildReport';
+import type { Report, ReportTable } from './buildReport';
+
+/** Tabel als tekst: één regel per rij (bijv. per meetmoment), lege cellen weggelaten. */
+function tableToText(table: ReportTable): string[] {
+  const out: string[] = [];
+  table.rows.forEach((row, r) => {
+    const key: string[] = [];
+    const data: string[] = [];
+    table.columns.forEach((c, i) => {
+      const v = (row[i] ?? '').replace(/\n/g, ' ');
+      if (!v) return;
+      if (c.keyColumn) key.push(v);
+      else data.push(`${c.fullLabel}: ${v}${c.unit ? ` ${c.unit}` : ''}`);
+    });
+    out.push(`Meetmoment ${r + 1} · ${key.join(' · ')}`, `    ${data.join('; ') || 'geen waarden'}`);
+  });
+  return out;
+}
 
 function indent(text: string, prefix: string): string {
   return text
@@ -17,6 +34,7 @@ export function reportToText(report: Report): string {
     out.push('', '', section.title.toUpperCase(), '-'.repeat(Math.min(section.title.length, 72)));
     for (const block of section.blocks) {
       if (block.title) out.push('', `» ${block.title}`);
+      if (block.table) out.push(...tableToText(block.table));
       for (const row of block.rows) {
         switch (row.type) {
           case 'kv':

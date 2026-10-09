@@ -98,13 +98,13 @@ async function unlabeledControls(page) {
   await ed2.getByRole('radio', { name: 'PTV', exact: true }).check();
   check('Terug naar PTV: PIP bewaard', (await ed2.getByLabel('PIP', { exact: true }).inputValue()) === '20');
   // Tijdstip achteraf eerder zetten
-  const at1 = await page.locator('.timeline-card .time').first().textContent();
+  const at1 = await page.locator('#s6 .data-table tbody th').first().textContent();
   const dt = ed2.getByLabel('Datum en tijd', { exact: true });
   const cur = await dt.inputValue();
   const earlier = new Date(new Date(cur + ':00Z').getTime() - 3 * 3600_000).toISOString().slice(0, 16);
   await dt.fill(earlier);
   await ed2.getByRole('button', { name: 'Meetmoment opslaan' }).click();
-  const times = await page.locator('.timeline-card .time').allTextContents();
+  const times = await page.locator('#s6 .data-table tbody th').allTextContents();
   check('Achteraf toegevoegd meetmoment staat chronologisch eerst', times.length === 2 && times[1] === at1, times.join(' | '));
   check('Geen horizontaal scrollen op 390 px (formulier)', await noHorizontalScroll(page));
 
@@ -131,12 +131,12 @@ async function unlabeledControls(page) {
 
   // Herladen: gegevens en tijdstippen behouden
   await page.getByRole('button', { name: 'Concept opslaan' }).click();
-  const timesBefore = await page.locator('.timeline-card .time').allTextContents();
+  const timesBefore = await page.locator('#s6 .data-table tbody th').allTextContents();
   await page.reload();
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
   check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('LUMC-patiëntnummer', { exact: true }).inputValue()) === '0007788');
   check('Na herladen: verwijstijd ongewijzigd', (await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue()) === referred);
-  const timesAfter = await page.locator('.timeline-card .time').allTextContents();
+  const timesAfter = await page.locator('#s6 .data-table tbody th').allTextContents();
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));
   // Toetsenbord: Tab-volgorde begint bij de navigatie en bereikt de velden
   await page.keyboard.press('Tab');
@@ -181,10 +181,20 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });
-  await page.locator('#s6').scrollIntoViewIfNeeded();
+  await page.locator('#s6 .data-table').scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${OUT}/${w}-tijdlijn.png` });
-  const cards = await page.locator('.timeline-card').allTextContents();
-  check(`${w}px: tube 8 cm op meetmoment 2 en 7,5 cm op meetmoment 3`, cards[1]?.includes('tandenrij 8 cm') && cards[2]?.includes('tandenrij 7,5 cm'));
+  const rowCount = await page.locator('#s6 .data-table tbody tr').count();
+  check(`${w}px: tijdlijn is één tabel met één rij per meetmoment`, (await page.locator('#s6 .data-table').count()) === 1 && rowCount === 3, `${rowCount} rijen`);
+  const headers = await page.locator('#s6 .data-table thead tr:not(.group-row) th').allTextContents();
+  check(`${w}px: geen kolommen #, Fase of Tube`, !headers.some((h) => ['#', 'Fase', 'Tube'].includes(h.trim())), headers.join(' | '));
+  const types = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), headers.findIndex((h) => h.startsWith('Type')));
+  check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '']), JSON.stringify(types));
+  await page.locator('#s6 .row-edit').nth(1).click();
+  check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 8 cm'));
+  await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
+  await page.locator('#s6 .row-edit').nth(2).click();
+  check(`${w}px: bewerken toont tube na aanpassing (7,5 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 7,5 cm'));
+  await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
   await page.waitForSelector('.report');
   check(`Geen horizontaal scrollen op ${w} px (verslag)`, await noHorizontalScroll(page));
