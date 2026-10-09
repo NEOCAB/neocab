@@ -65,8 +65,9 @@ describe('verslag', () => {
     expect(table.rows.map((r) => r[col('Tijd')])).toEqual(['09-10-2026\n23:10', '09-10-2026\n23:45', '10-10-2026\n00:50']);
     expect(table.rows[1][col('Bloeddruk MAP', 'mmHg')]).toBe('40');
     expect(table.rows[2][col('MAP luchtweg', 'cmH₂O')]).toBe('9');
-    expect(table.rows[0][col('CPAP', 'cmH₂O')]).toBe('7');
-    expect(table.rows[1][col('CPAP', 'cmH₂O')]).toBe('');
+    // CPAP-druk staat in de kolom PEEP; geen aparte CPAP-kolom.
+    expect(col('CPAP', 'cmH₂O')).toBe(-1);
+    expect(table.rows.map((r) => r[col('PEEP', 'cmH₂O')])).toEqual(['7', '6', '6']);
     expect(table.rows.map((r) => r[col('Type')])).toEqual(['C', 'A', '']);
     expect(section.blocks.some((b) => b.rows.some((r) => r.type === 'note' && r.text.includes('A = arterieel, V = veneus, C = capillair')))).toBe(true);
     // Lege kolommen (geen enkele waarde) worden weggelaten.

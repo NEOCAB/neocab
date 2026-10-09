@@ -187,6 +187,10 @@ for (const [w, h] of [
   check(`${w}px: tijdlijn is één tabel met één rij per meetmoment`, (await page.locator('#s6 .data-table').count()) === 1 && rowCount === 3, `${rowCount} rijen`);
   const headers = await page.locator('#s6 .data-table thead tr:not(.group-row) th').allTextContents();
   check(`${w}px: geen kolommen #, Fase of Tube`, !headers.some((h) => ['#', 'Fase', 'Tube'].includes(h.trim())), headers.join(' | '));
+  check(`${w}px: geen aparte CPAP-kolom (CPAP-druk staat onder PEEP)`, !headers.some((h) => h.startsWith('CPAP')));
+  const peepIdx = headers.findIndex((h) => h.startsWith('PEEP'));
+  const peeps = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), peepIdx);
+  check(`${w}px: PEEP-kolom toont CPAP-druk bij CPAP`, JSON.stringify(peeps) === JSON.stringify(['7', '6', '6']), JSON.stringify(peeps));
   const types = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), headers.findIndex((h) => h.startsWith('Type')));
   check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '']), JSON.stringify(types));
   await page.locator('#s6 .row-edit').nth(1).click();
