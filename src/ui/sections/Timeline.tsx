@@ -116,7 +116,6 @@ function MeasurementEditor({ draft, setDraft, tubes, isNew, proposed, onSave, on
 
       <h4 className="block-title">Bloedgas</h4>
       <div className="grid">
-        <DateTimeField label="Afnametijd (datum en tijd)" value={draft.gas.sampledAt} onChange={(v) => setDraft({ ...draft, gas: { ...draft.gas, sampledAt: v } })} />
         <Segmented legend="Afnametype" value={draft.gas.type} onChange={(v) => setDraft({ ...draft, gas: { ...draft.gas, type: v } })} options={GAS_TYPE_OPTIONS} />
       </div>
       <div className="grid compact">

@@ -122,7 +122,6 @@ export type GasType = '' | 'arterieel' | 'veneus' | 'capillair';
 export type GasKey = 'ph' | 'pco2' | 'po2' | 'hco3' | 'be' | 'lactate' | 'glucose' | 'hb';
 
 export interface BloodGas {
-  sampledAt: Instant;
   type: GasType;
   values: Record<GasKey, Num>;
 }

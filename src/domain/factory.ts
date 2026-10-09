@@ -98,7 +98,7 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
 }
 
 /**
- * Nieuw meetmoment. Tijdstip en afnametijd bloedgas = nu.
+ * Nieuw meetmoment. Tijdstip = nu; het bloedgas hoort bij het tijdstip van het meetmoment.
  * De modaliteit en de instellingen van díe modaliteit uit het laatste meetmoment worden als voorstel overgenomen;
  * monitor- en bloedgaswaarden nooit.
  */
@@ -114,7 +114,7 @@ export function newMeasurement(existing: Measurement[], timeZone = DEFAULT_TIME_
     phase: previous?.phase ?? '',
     resp: { mode, settingsByMode: mode && settings ? { [mode]: settings } : {} },
     monitor: emptyRecord(MONITOR_KEYS),
-    gas: { sampledAt: at, type: '', values: emptyRecord(GAS_KEYS) },
+    gas: { type: '', values: emptyRecord(GAS_KEYS) },
   };
 }
 

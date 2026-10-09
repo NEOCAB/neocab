@@ -81,7 +81,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         phase: 'stabilisatie',
         resp: { mode: 'cpap', settingsByMode: { cpap: { cpap: 7, fio2: 45, flow: null } } },
         monitor: { heartRate: 168, respRate: 72, spo2Pre: 89, spo2Post: 88, meanBp: 38, temperature: 36.6, capRefill: 2, tcCo2: null, etCo2: null },
-        gas: { sampledAt: at('2026-10-09T23:12'), type: 'capillair', values: { ph: 7.19, pco2: 8.4, po2: 5.1, hco3: 21, be: -5.2, lactate: 2.8, glucose: 3.9, hb: null } },
+        gas: { type: 'capillair', values: { ph: 7.19, pco2: 8.4, po2: 5.1, hco3: 21, be: -5.2, lactate: 2.8, glucose: 3.9, hb: null } },
       },
       {
         id: newId(),
@@ -89,7 +89,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         phase: 'stabilisatie',
         resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 20, peep: 6, rate: 50, ti: 0.35, fio2: 35, vg: 4.5, map: null, ino: null } } },
         monitor: { heartRate: 155, respRate: null, spo2Pre: 94, spo2Post: 93, meanBp: 40, temperature: 36.8, capRefill: null, tcCo2: 6.1, etCo2: null },
-        gas: { sampledAt: at('2026-10-09T23:58'), type: 'arterieel', values: { ph: 7.27, pco2: 6.3, po2: 7.9, hco3: 22, be: -3.1, lactate: 2.1, glucose: 4.6, hb: 10.2 } },
+        gas: { type: 'arterieel', values: { ph: 7.27, pco2: 6.3, po2: 7.9, hco3: 22, be: -3.1, lactate: 2.1, glucose: 4.6, hb: 10.2 } },
       },
       {
         id: newId(),
@@ -97,7 +97,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         phase: 'onderweg',
         resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 18, peep: 6, rate: 50, ti: 0.35, fio2: 30, vg: 4.5, map: 9, ino: null } } },
         monitor: { heartRate: 150, respRate: null, spo2Pre: 95, spo2Post: null, meanBp: 41, temperature: 36.9, capRefill: null, tcCo2: 5.8, etCo2: null },
-        gas: { sampledAt: at('2026-10-10T00:50'), type: '', values: { ph: null, pco2: null, po2: null, hco3: null, be: null, lactate: null, glucose: null, hb: null } },
+        gas: { type: '', values: { ph: null, pco2: null, po2: null, hco3: null, be: null, lactate: null, glucose: null, hb: null } },
       },
     ],
     otherLabs: 'CRP 4 mg/L (fictief).',

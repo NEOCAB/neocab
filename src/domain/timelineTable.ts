@@ -107,7 +107,6 @@ export function allTimelineColumns(timeZone: string): TimelineColumn[] {
     },
     ...RESP_COLUMNS.map((c) => ({ ...c, key: `resp.${c.key}`, group: 'ademhaling' as const, cell: (m: Measurement) => num(respValue(m, c.key)) })),
     ...MONITOR_COLUMNS.map((c) => ({ ...c, key: `mon.${c.key}`, group: 'monitor' as const, cell: (m: Measurement) => num(m.monitor[c.key]) })),
-    { key: 'gas.at', group: 'bloedgas', label: 'Afname', fullLabel: 'Afnametijd', unit: '', cell: (m) => (hasGas(m) ? stamp(m.gas.sampledAt, timeZone) : '') },
     { key: 'gas.type', group: 'bloedgas', label: 'Type', fullLabel: 'Afnametype (A = arterieel, V = veneus, C = capillair)', unit: '', cell: (m) => GAS_TYPE_SHORT[m.gas.type] },
     ...GAS_COLUMNS.map((c) => ({ ...c, key: `gas.${c.key}`, group: 'bloedgas' as const, cell: (m: Measurement) => num(m.gas.values[c.key]) })),
   ];

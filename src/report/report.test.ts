@@ -124,9 +124,10 @@ describe('verslag', () => {
 
   it('meetmoment over middernacht verschijnt met juiste datum', () => {
     const t = sampleTransport(TZ);
-    t.measurements[1].gas.sampledAt = wallToInstant('2026-10-10T00:02', TZ);
+    t.measurements[1].at = wallToInstant('2026-10-10T00:02', TZ);
     const text = reportToText(buildReport(t, TZ));
-    expect(text).toContain('Afnametijd: 10-10-2026 00:02');
+    expect(text).toContain('Meetmoment 2 · 10-10-2026 00:02\n    Modaliteit: PTV');
+    expect(text).not.toContain('Afnametijd');
     expect(text).toContain('Aankomst ontvangend centrum: 10-10-2026 01:35');
   });
 });

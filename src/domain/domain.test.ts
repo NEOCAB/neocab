@@ -108,7 +108,7 @@ describe('standaardtijden', () => {
     const now = Date.parse('2026-10-09T21:00:00Z');
     const m = newMeasurement([], TZ, now);
     expect(m.at).toBe('2026-10-09T23:00:00+02:00');
-    expect(m.gas.sampledAt).toBe('2026-10-09T23:00:00+02:00');
+    expect('sampledAt' in m.gas).toBe(false); // bloedgas heeft geen eigen afnametijd
     const t = newTransport(TZ, now);
     expect(t.referral.referredAt).toBe('2026-10-09T23:00:00+02:00');
     // Geen automatische "nu" voor tijden die nog niet zijn ingevoerd, en nooit een stoptijd.
@@ -164,7 +164,7 @@ describe('tijdlijn', () => {
     const prev = measurement('2026-10-09T23:10', {
       resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 20, peep: 6 }, cpap: { cpap: 7 } } },
       monitor: { heartRate: 160, respRate: 50, spo2Pre: 92, spo2Post: 90, meanBp: 40, temperature: 36.5, capRefill: 2, tcCo2: 6, etCo2: 5 },
-      gas: { sampledAt: wallToInstant('2026-10-09T23:12', TZ), type: 'arterieel', values: { ph: 7.3, pco2: 6, po2: 8, hco3: 22, be: -2, lactate: 2, glucose: 4, hb: 10 } },
+      gas: { type: 'arterieel', values: { ph: 7.3, pco2: 6, po2: 8, hco3: 22, be: -2, lactate: 2, glucose: 4, hb: 10 } },
     });
     const next = newMeasurement([prev], TZ);
     expect(next.resp.mode).toBe('ptv');
