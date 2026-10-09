@@ -1,4 +1,4 @@
-import type { Transport } from '../domain/types';
+import type { Measurement, Transport } from '../domain/types';
 import { newTransport } from '../domain/factory';
 import { summarize, type TransportRepository, type TransportSummary } from './repository';
 
@@ -27,7 +27,16 @@ export function normalizeTransport(raw: unknown): Transport | null {
   if (!isObject(raw) || typeof raw.id !== 'string') return null;
   const defaults = newTransport();
   // Standaard-"nu" van een lege registratie mag een opgeslagen waarde nooit vervangen.
-  return mergeDefaults({ ...defaults, id: raw.id }, raw);
+  const t = mergeDefaults({ ...defaults, id: raw.id }, raw);
+  return { ...t, measurements: t.measurements.map(migrateCpapToPeep) };
+}
+
+/** Oudere concepten bewaarden de CPAP-druk als `cpap`; die wordt nu als PEEP geregistreerd. */
+function migrateCpapToPeep(m: Measurement): Measurement {
+  const cpap = m.resp?.settingsByMode?.cpap;
+  if (!cpap || !('cpap' in cpap)) return m;
+  const { cpap: pressure, ...rest } = cpap;
+  return { ...m, resp: { ...m.resp, settingsByMode: { ...m.resp.settingsByMode, cpap: { ...rest, peep: rest.peep ?? pressure } } } };
 }
 
 export class LocalStorageTransportRepository implements TransportRepository {

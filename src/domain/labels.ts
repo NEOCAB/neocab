@@ -146,7 +146,6 @@ const f = {
   flow: { key: 'flow', label: 'Flow', unit: 'L/min', ...POS },
   o2: { key: 'o2', label: 'Zuurstofconcentratie (indien bekend)', unit: '%', optional: true, ...PCT },
   fio2: { key: 'fio2', label: 'FiO₂', unit: '%', ...PCT },
-  cpap: { key: 'cpap', label: 'CPAP-druk', unit: 'cmH₂O', ...POS },
   flowOpt: { key: 'flow', label: 'Flow (optioneel)', unit: 'L/min', optional: true, ...POS },
   pip: { key: 'pip', label: 'PIP', unit: 'cmH₂O', ...POS },
   peep: { key: 'peep', label: 'PEEP', unit: 'cmH₂O', ...POS },
@@ -167,7 +166,8 @@ const BASE_FIELDS: Record<RespMode, NumFieldDef[]> = {
   geen: [],
   lowflow: [f.flow, f.o2],
   hfnc: [f.flow, f.fio2],
-  cpap: [f.cpap, f.fio2, f.flowOpt],
+  // De CPAP-druk wordt als PEEP geregistreerd (gelijk aan PEEP bij invasieve beademing).
+  cpap: [f.peep, f.fio2, f.flowOpt],
   nippv: [f.pip, f.peep, f.rate, f.ti, f.fio2],
   ptv: [f.pip, f.peep, f.backupRate, f.ti, f.fio2, f.vg, f.mapMeasured],
   simv: [f.pip, f.peep, f.rate, f.ti, f.fio2, f.vg, f.mapMeasured, f.ps],

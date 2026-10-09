@@ -75,7 +75,8 @@ async function unlabeledControls(page) {
   await editor.getByRole('radio', { name: 'CPAP', exact: true }).check();
   check('CPAP: geen iNO', (await editor.getByLabel('iNO (optioneel)', { exact: true }).count()) === 0);
   check('CPAP: geen VG', (await editor.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 0);
-  await editor.getByLabel('CPAP-druk', { exact: true }).fill('7');
+  check('CPAP: invoerveld heet PEEP, geen CPAP-druk', (await editor.getByLabel('CPAP-druk', { exact: true }).count()) === 0 && (await editor.getByLabel('PEEP', { exact: true }).count()) === 1);
+  await editor.getByLabel('PEEP', { exact: true }).fill('7');
   await editor.getByLabel('FiO₂', { exact: true }).fill('30,5');
   await editor.getByLabel('Hartfrequentie', { exact: true }).fill('160');
   await editor.getByLabel('BE', { exact: true }).fill('-5,2');
@@ -85,13 +86,13 @@ async function unlabeledControls(page) {
   // Meetmoment 2: voorstel modaliteit, geen monitorwaarden
   await page.locator('#s6').getByRole('button', { name: '+ Nieuw meetmoment' }).first().click();
   const ed2 = page.getByRole('form', { name: 'Nieuw meetmoment' });
-  check('Voorstel: CPAP-druk overgenomen', (await ed2.getByLabel('CPAP-druk', { exact: true }).inputValue()) === '7');
+  check('Voorstel: PEEP van CPAP overgenomen', (await ed2.getByLabel('PEEP', { exact: true }).inputValue()) === '7');
   check('Geen oude hartfrequentie overgenomen', (await ed2.getByLabel('Hartfrequentie', { exact: true }).inputValue()) === '');
   check('Geen oude BE overgenomen', (await ed2.getByLabel('BE', { exact: true }).inputValue()) === '');
   await ed2.getByRole('radio', { name: 'PTV', exact: true }).check();
   check('PTV: VG zichtbaar', (await ed2.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 1);
   check('PTV: iNO zichtbaar', (await ed2.getByLabel('iNO (optioneel)', { exact: true }).count()) === 1);
-  check('PTV: geen CPAP-druk zichtbaar', (await ed2.getByLabel('CPAP-druk', { exact: true }).count()) === 0);
+  check('PTV: PEEP-instelling van CPAP niet overgenomen', (await ed2.getByLabel('PEEP', { exact: true }).inputValue()) === '');
   await ed2.getByLabel('PIP', { exact: true }).fill('20');
   await ed2.getByRole('radio', { name: 'HFOV', exact: true }).check();
   check('HFOV: geen VG', (await ed2.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 0);
@@ -187,10 +188,10 @@ for (const [w, h] of [
   check(`${w}px: tijdlijn is één tabel met één rij per meetmoment`, (await page.locator('#s6 .data-table').count()) === 1 && rowCount === 3, `${rowCount} rijen`);
   const headers = await page.locator('#s6 .data-table thead tr:not(.group-row) th').allTextContents();
   check(`${w}px: geen kolommen #, Fase of Tube`, !headers.some((h) => ['#', 'Fase', 'Tube'].includes(h.trim())), headers.join(' | '));
-  check(`${w}px: geen aparte CPAP-kolom (CPAP-druk staat onder PEEP)`, !headers.some((h) => h.startsWith('CPAP')));
+  check(`${w}px: geen aparte CPAP-kolom`, !headers.some((h) => h.startsWith('CPAP')));
   const peepIdx = headers.findIndex((h) => h.startsWith('PEEP'));
   const peeps = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), peepIdx);
-  check(`${w}px: PEEP-kolom toont CPAP-druk bij CPAP`, JSON.stringify(peeps) === JSON.stringify(['7', '6', '6']), JSON.stringify(peeps));
+  check(`${w}px: PEEP-kolom ook gevuld bij CPAP`, JSON.stringify(peeps) === JSON.stringify(['7', '6', '6']), JSON.stringify(peeps));
   const types = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), headers.findIndex((h) => h.startsWith('Type')));
   check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '']), JSON.stringify(types));
   await page.locator('#s6 .row-edit').nth(1).click();

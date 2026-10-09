@@ -79,7 +79,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         id: newId(),
         at: at('2026-10-09T23:10'),
         phase: 'stabilisatie',
-        resp: { mode: 'cpap', settingsByMode: { cpap: { cpap: 7, fio2: 45, flow: null } } },
+        resp: { mode: 'cpap', settingsByMode: { cpap: { peep: 7, fio2: 45, flow: null } } },
         monitor: { heartRate: 168, respRate: 72, spo2Pre: 89, spo2Post: 88, meanBp: 38, temperature: 36.6, capRefill: 2, tcCo2: null, etCo2: null },
         gas: { type: 'capillair', values: { ph: 7.19, pco2: 8.4, po2: 5.1, hco3: 21, be: -5.2, lactate: 2.8, glucose: 3.9, hb: null } },
       },

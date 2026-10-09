@@ -65,7 +65,7 @@ describe('verslag', () => {
     expect(table.rows.map((r) => r[col('Tijd')])).toEqual(['09-10-2026\n23:10', '09-10-2026\n23:45', '10-10-2026\n00:50']);
     expect(table.rows[1][col('Bloeddruk MAP', 'mmHg')]).toBe('40');
     expect(table.rows[2][col('MAP luchtweg', 'cmH₂O')]).toBe('9');
-    // CPAP-druk staat in de kolom PEEP; geen aparte CPAP-kolom.
+    // Bij CPAP wordt PEEP ingevoerd; geen aparte CPAP-kolom.
     expect(col('CPAP', 'cmH₂O')).toBe(-1);
     expect(table.rows.map((r) => r[col('PEEP', 'cmH₂O')])).toEqual(['7', '6', '6']);
     expect(table.rows.map((r) => r[col('Type')])).toEqual(['C', 'A', '']);
@@ -76,11 +76,11 @@ describe('verslag', () => {
 
   it('exporteert alleen instellingen van de actuele modaliteit', () => {
     const t = sampleTransport(TZ);
-    t.measurements[0].resp = { mode: 'hfnc', settingsByMode: { cpap: { cpap: 7 }, hfnc: { flow: 6, fio2: 30 } } };
+    t.measurements[0].resp = { mode: 'hfnc', settingsByMode: { cpap: { peep: 7 }, hfnc: { flow: 6, fio2: 30 } } };
     const text = reportToText(buildReport(t, TZ));
     const m1 = text.slice(text.indexOf('Meetmoment 1'), text.indexOf('Meetmoment 2'));
     expect(m1).toContain('HFNC');
-    expect(m1).not.toContain('CPAP-druk');
+    expect(m1).not.toContain('PEEP');
   });
 
   it('toont onbekend niet als normale waarde en laat lege waarden weg', () => {

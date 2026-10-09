@@ -132,7 +132,7 @@ describe('ademhalingsondersteuning', () => {
     expect(keys('geen')).toEqual([]);
     expect(keys('lowflow')).toEqual(['flow', 'o2']);
     expect(keys('hfnc')).toEqual(['flow', 'fio2']);
-    expect(keys('cpap')).toEqual(['cpap', 'fio2', 'flow']);
+    expect(keys('cpap')).toEqual(['peep', 'fio2', 'flow']);
     expect(keys('nippv')).toEqual(['pip', 'peep', 'rate', 'ti', 'fio2']);
     expect(keys('ptv')).toEqual(['pip', 'peep', 'rate', 'ti', 'fio2', 'vg', 'map', 'ino']);
     expect(keys('simv')).toEqual(['pip', 'peep', 'rate', 'ti', 'fio2', 'vg', 'map', 'ps', 'ino']);
@@ -162,7 +162,7 @@ describe('tijdlijn', () => {
 
   it('neemt modaliteit en instellingen over als voorstel, maar geen monitor- of bloedgaswaarden', () => {
     const prev = measurement('2026-10-09T23:10', {
-      resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 20, peep: 6 }, cpap: { cpap: 7 } } },
+      resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 20, peep: 6 }, cpap: { peep: 7 } } },
       monitor: { heartRate: 160, respRate: 50, spo2Pre: 92, spo2Post: 90, meanBp: 40, temperature: 36.5, capRefill: 2, tcCo2: 6, etCo2: 5 },
       gas: { type: 'arterieel', values: { ph: 7.3, pco2: 6, po2: 8, hco3: 22, be: -2, lactate: 2, glucose: 4, hb: 10 } },
     });
