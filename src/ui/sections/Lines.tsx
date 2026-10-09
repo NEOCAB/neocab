@@ -7,6 +7,7 @@ import { compareInstants, formatInstant, nowInstant } from '../../domain/time';
 import { currentTube, sortedVersions, tubePlacedAt } from '../../domain/timeline';
 import { DateTimeField, NumberField, Section, Segmented, SelectField, TextArea, TextField } from '../fields';
 import { useTimeZone } from '../context';
+import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
 const LINE_ONLY_TYPES = LINE_TYPES.filter((x): x is Line['type'] => x !== 'endotracheale_tube').map((v) => ({ value: v, label: LINE_TYPE_LABELS[v] }));
@@ -94,6 +95,7 @@ function versionText(v: TubeVersion): string {
 
 function TubeCard({ tube, index, onChange, onDelete }: { tube: EndotrachealTube; index: number; onChange: (t: EndotrachealTube) => void; onDelete: () => void }) {
   const tz = useTimeZone();
+  const confirm = useConfirm();
   const [form, setForm] = useState<{ mode: TubeFormMode; version: TubeVersion } | null>(null);
   const versions = sortedVersions(tube);
   const latest = versions[versions.length - 1];
@@ -126,7 +128,7 @@ function TubeCard({ tube, index, onChange, onDelete }: { tube: EndotrachealTube;
                     type="button"
                     className="link-button danger"
                     onClick={() => {
-                      if (window.confirm(`Aanpassing van ${formatInstant(v.validFrom, tz)} verwijderen?`)) onChange({ ...tube, versions: tube.versions.filter((x) => x.id !== v.id) });
+                      void confirm(`Aanpassing van ${formatInstant(v.validFrom, tz)} verwijderen?`).then((ok) => ok && onChange({ ...tube, versions: tube.versions.filter((x) => x.id !== v.id) }));
                     }}
                   >
                     Verwijderen
@@ -167,6 +169,7 @@ function TubeCard({ tube, index, onChange, onDelete }: { tube: EndotrachealTube;
 
 export function LinesSection({ t, update }: SectionProps) {
   const tz = useTimeZone();
+  const confirm = useConfirm();
   const [newType, setNewType] = useState<LineType>('perifeer_infuus');
   const [placing, setPlacing] = useState<TubeVersion | null>(null);
   const tubes = [...t.tubes].sort((a, b) => compareInstants(tubePlacedAt(a), tubePlacedAt(b)));
@@ -183,7 +186,7 @@ export function LinesSection({ t, update }: SectionProps) {
             line={l}
             onChange={setLine}
             onDelete={() => {
-              if (window.confirm(`${LINE_TYPE_LABELS[l.type]} verwijderen?`)) update((x) => ({ ...x, lines: x.lines.filter((y) => y.id !== l.id) }));
+              void confirm(`${LINE_TYPE_LABELS[l.type]} verwijderen?`).then((ok) => ok && update((x) => ({ ...x, lines: x.lines.filter((y) => y.id !== l.id) })));
             }}
           />
         ))}
@@ -194,7 +197,7 @@ export function LinesSection({ t, update }: SectionProps) {
             index={i + 1}
             onChange={setTube}
             onDelete={() => {
-              if (window.confirm('Deze endotracheale tube met de volledige historie verwijderen? Meetmomenten tonen daarna geen tubegegevens meer voor deze periode.')) update((x) => ({ ...x, tubes: x.tubes.filter((y) => y.id !== tb.id) }));
+              void confirm('Deze endotracheale tube met de volledige historie verwijderen?').then((ok) => ok && update((x) => ({ ...x, tubes: x.tubes.filter((y) => y.id !== tb.id) })));
             }}
           />
         ))}

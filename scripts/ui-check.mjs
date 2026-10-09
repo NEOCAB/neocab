@@ -151,6 +151,17 @@ async function unlabeledControls(page) {
   check('Toetsenbord: Tab bereikt Naam kind', tabbed.includes('Naam kind'), tabbed.join(' › '));
   await page.screenshot({ path: `${OUT}/390-formulier.png`, fullPage: true });
 
+  // Verwijderen met bevestiging binnen de pagina
+  const before = await page.locator('#s6 .data-table tbody tr').count();
+  await page.locator('#s6 .row-edit').first().click();
+  await page.locator('#s6 form').getByRole('button', { name: 'Verwijderen', exact: true }).click();
+  check('Bevestigingsvenster in de pagina', await page.getByRole('alertdialog').isVisible());
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Annuleren' }).click();
+  check('Annuleren behoudt meetmoment', (await page.locator('#s6 .data-table tbody tr').count()) === before);
+  await page.locator('#s6 form').getByRole('button', { name: 'Verwijderen', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Verwijderen' }).click();
+  check('Bevestigen verwijdert meetmoment', (await page.locator('#s6 .data-table tbody tr').count()) === before - 1);
+
   // Verslag
   await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
   await page.waitForSelector('.report');

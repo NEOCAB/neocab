@@ -4,6 +4,7 @@ import type { TransportSummary } from '../storage/repository';
 import { isValidTimeZone, type AppSettings } from '../storage/settings';
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
 import { useTimeZone } from './context';
+import { useConfirm } from './confirm';
 
 const TIME_ZONES = ['Europe/Amsterdam', 'Europe/Brussels', 'Europe/London', 'UTC'];
 
@@ -61,6 +62,7 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
 
 export function TransportList({ items, onOpen, onNew, onSample, onDelete, settings, onSettings }: { items: TransportSummary[]; onOpen: (id: string) => void; onNew: () => void; onSample: () => void; onDelete: (id: string) => void; settings: AppSettings; onSettings: (s: AppSettings) => void }) {
   const tz = useTimeZone();
+  const confirm = useConfirm();
   return (
     <div className="home">
       <header className="home-header">
@@ -100,7 +102,7 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, settin
                     type="button"
                     className="link-button danger"
                     onClick={() => {
-                      if (window.confirm(`Concept "${s.childName || 'zonder naam'}" definitief verwijderen van dit apparaat?`)) onDelete(s.id);
+                      void confirm(`Concept "${s.childName || 'zonder naam'}" definitief verwijderen van dit apparaat?`).then((ok) => ok && onDelete(s.id));
                     }}
                   >
                     Verwijderen

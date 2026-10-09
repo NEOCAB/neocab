@@ -22,6 +22,17 @@ npm run preview      # http://localhost:4173
 
 Op een telefoon of iPad in hetzelfde netwerk: open `http://<ip-adres-van-de-computer>:5173`. Let op: kopiëren naar het klembord via de knop werkt in sommige browsers alleen via `https` of `localhost`; de app valt dan terug op een geselecteerd tekstvak.
 
+## Demo als claude.ai-artifact
+
+`npm run build:artifact` bouwt de app en schrijft `dist/artifact.html`: een paginafragment (titel, stylesheet, script, root-element) dat samen met `dist/assets` en `dist/fonts` als artifact op claude.ai kan worden gepubliceerd. In die ingebedde weergave:
+
+- worden concepten alleen in de browser van de kijker bewaard (eigen `localStorage` per artifact);
+- loopt het opslaan van de pdf via de downloadbevestiging van claude.ai (capability `downloads`);
+- is de knop *Afdrukken* verborgen, omdat de ingebedde weergave niet kan afdrukken;
+- kan het openen van het mailprogramma niet werken; de volledige tekst staat dan al op het klembord en in het tekstvak.
+
+Bevestigingen (bijv. bij verwijderen) zijn een venster binnen de pagina, zodat ze ook in de ingebedde weergave werken. Als lokale opslag niet beschikbaar is (privévenster), meldt de app dat gegevens verloren gaan bij sluiten.
+
 ## Controles
 
 ```bash
@@ -83,7 +94,7 @@ Unit-tests (`npm test`, 36 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 52 controles in Chromium): invoerscenario op 390 px (doseergewicht, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 55 controles in Chromium): invoerscenario op 390 px (doseergewicht, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 

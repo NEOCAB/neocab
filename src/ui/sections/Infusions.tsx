@@ -6,6 +6,7 @@ import { formatInstant, nowInstant } from '../../domain/time';
 import { sortedRates } from '../../domain/timeline';
 import { DateTimeField, NumberField, Section, TextField } from '../fields';
 import { useTimeZone } from '../context';
+import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
 const RATE_RULES = { positive: true };
@@ -48,6 +49,7 @@ function RateChangeForm({ onSave, onCancel }: { onSave: (at: Instant, rate: numb
 
 function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i: Infusion) => void; onDelete: () => void }) {
   const tz = useTimeZone();
+  const confirm = useConfirm();
   const [changing, setChanging] = useState(false);
   const rates = sortedRates(inf);
   const first = rates[0];
@@ -87,7 +89,7 @@ function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i
                       type="button"
                       className="link-button danger"
                       onClick={() => {
-                        if (window.confirm(`Snelheidswijziging van ${formatInstant(r.at, tz)} verwijderen?`)) onChange({ ...inf, rates: inf.rates.filter((x) => x.id !== r.id) });
+                        void confirm(`Snelheidswijziging van ${formatInstant(r.at, tz)} verwijderen?`).then((ok) => ok && onChange({ ...inf, rates: inf.rates.filter((x) => x.id !== r.id) }));
                       }}
                     >
                       Wijziging verwijderen
@@ -122,7 +124,7 @@ function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i
               type="button"
               className="link-button"
               onClick={() => {
-                if (window.confirm('Stoptijd verwijderen? Het infuus wordt weer als lopend geregistreerd.')) onChange({ ...inf, stopAt: null });
+                void confirm('Stoptijd verwijderen? Het infuus wordt weer als lopend geregistreerd.', 'Stoptijd verwijderen').then((ok) => ok && onChange({ ...inf, stopAt: null }));
               }}
             >
               Stoppen ongedaan maken
@@ -188,6 +190,7 @@ function NewInfusionForm({ onStart, onCancel }: { onStart: (i: Infusion) => void
 
 export function InfusionsSection({ t, update }: SectionProps) {
   const [adding, setAdding] = useState(false);
+  const confirm = useConfirm();
   const setInf = (i: Infusion) => update((x) => ({ ...x, infusions: x.infusions.map((y) => (y.id === i.id ? i : y)) }));
   return (
     <Section id="s9" title="9 Lopende infusen" intro="Start, wijzig en stop een infuus met de knoppen. Eerdere snelheden blijven bewaard en staan in het verslag.">
@@ -199,7 +202,7 @@ export function InfusionsSection({ t, update }: SectionProps) {
             inf={inf}
             onChange={setInf}
             onDelete={() => {
-              if (window.confirm(`Infuus ${inf.name || ''} met de volledige snelheidshistorie verwijderen?`)) update((x) => ({ ...x, infusions: x.infusions.filter((y) => y.id !== inf.id) }));
+              void confirm(`Infuus ${inf.name || ''} met de volledige snelheidshistorie verwijderen?`).then((ok) => ok && update((x) => ({ ...x, infusions: x.infusions.filter((y) => y.id !== inf.id) })));
             }}
           />
         ))}

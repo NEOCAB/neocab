@@ -20,6 +20,7 @@ import { DataTable } from '../DataTable';
 import { GAS_TYPE_LEGEND } from '../../domain/timelineTable';
 import { DateTimeField, NumberField, Section, Segmented, SelectField } from '../fields';
 import { useTimeZone } from '../context';
+import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
 const rulesOf = (d: NumFieldDef) => ({ min: d.min, max: d.max, integer: d.integer });
@@ -145,6 +146,7 @@ export function TimelineSection({ t, update }: SectionProps) {
   const tz = useTimeZone();
   const [draft, setDraft] = useState<Measurement | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const confirm = useConfirm();
   const { table, rows } = timelineReportTable(t.measurements, tz);
 
   const startNew = () => {
@@ -156,8 +158,8 @@ export function TimelineSection({ t, update }: SectionProps) {
     update((x) => ({ ...x, measurements: upsertMeasurement(x.measurements, draft) }));
     setDraft(null);
   };
-  const remove = (m: Measurement) => {
-    if (window.confirm(`Meetmoment van ${formatInstant(m.at, tz) || 'onbekend tijdstip'} verwijderen? Dit kan niet ongedaan worden gemaakt.`)) {
+  const remove = async (m: Measurement) => {
+    if (await confirm(`Meetmoment van ${formatInstant(m.at, tz) || 'onbekend tijdstip'} verwijderen? Dit kan niet ongedaan worden gemaakt.`)) {
       update((x) => ({ ...x, measurements: x.measurements.filter((y) => y.id !== m.id) }));
       setDraft(null);
     }
@@ -180,7 +182,7 @@ export function TimelineSection({ t, update }: SectionProps) {
           proposed={isNew && !!draft.resp.mode}
           onSave={save}
           onCancel={() => setDraft(null)}
-          onDelete={isNew ? undefined : () => remove(draft)}
+          onDelete={isNew ? undefined : () => void remove(draft)}
         />
       )}
       {rows.length === 0 ? (

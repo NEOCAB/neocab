@@ -4,10 +4,12 @@ import { newMedication } from '../../domain/factory';
 import { formatInstant } from '../../domain/time';
 import { DateTimeField, NumberField, Section, SelectField, TextArea, TextField } from '../fields';
 import { useSettings } from '../context';
+import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
 export function MedicationsSection({ t, update }: SectionProps) {
   const { timeZone, medicationRoutes } = useSettings();
+  const confirm = useConfirm();
   const setMed = (id: string, patch: Partial<MedicationAdministration>) =>
     update((x) => ({ ...x, medications: x.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
   // Invoervolgorde tijdens bewerken (kaarten springen niet weg); het verslag sorteert chronologisch.
@@ -35,9 +37,9 @@ export function MedicationsSection({ t, update }: SectionProps) {
                   type="button"
                   className="link-button danger"
                   onClick={() => {
-                    if (window.confirm(`Toediening ${m.name || ''} van ${formatInstant(m.at, timeZone) || 'onbekend tijdstip'} verwijderen?`)) {
-                      update((x) => ({ ...x, medications: x.medications.filter((y) => y.id !== m.id) }));
-                    }
+                    void confirm(`Toediening ${m.name || ''} van ${formatInstant(m.at, timeZone) || 'onbekend tijdstip'} verwijderen?`).then((ok) => {
+                      if (ok) update((x) => ({ ...x, medications: x.medications.filter((y) => y.id !== m.id) }));
+                    });
                   }}
                 >
                   Toediening verwijderen

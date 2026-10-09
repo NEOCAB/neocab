@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { newTransport } from './domain/factory';
+import type { Transport } from './domain/types';
 import { sampleTransport } from './domain/sample';
 import { LocalStorageTransportRepository } from './storage/localRepository';
 import { loadSettings, saveSettings, type AppSettings } from './storage/settings';
@@ -7,6 +8,8 @@ import { SettingsContext } from './ui/context';
 import { Editor } from './ui/Editor';
 import { ReportView } from './ui/ReportView';
 import { TransportList } from './ui/TransportList';
+import { ConfirmProvider } from './ui/confirm';
+import { safeStorage } from './storage/safeStorage';
 
 type Route = { name: 'home' } | { name: 'edit'; id: string } | { name: 'report'; id: string };
 
@@ -21,10 +24,12 @@ function navigate(hash: string) {
 }
 
 export function App() {
-  const repo = useMemo(() => new LocalStorageTransportRepository(window.localStorage), []);
+  const { storage, persistent } = useMemo(() => safeStorage(), []);
+  const repo = useMemo(() => new LocalStorageTransportRepository(storage), [storage]);
   const [route, setRoute] = useState<Route>(() => parseHash(window.location.hash));
-  const [settings, setSettings] = useState<AppSettings>(() => loadSettings(window.localStorage));
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings(storage));
   const [listVersion, setListVersion] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const onHash = () => {
@@ -37,6 +42,15 @@ export function App() {
 
   const items = useMemo(() => repo.list(), [repo, listVersion, route]);
 
+  const open = (t: Transport) => {
+    try {
+      navigate(`#/t/${repo.save(t).id}`);
+      setError(null);
+    } catch {
+      setError('Opslaan in de lokale opslag is mislukt. Verwijder oude concepten en probeer het opnieuw.');
+    }
+  };
+
   let content;
   if (route.name === 'home') {
     content = (
@@ -44,18 +58,16 @@ export function App() {
         items={items}
         settings={settings}
         onSettings={(s) => {
-          saveSettings(window.localStorage, s);
+          try {
+            saveSettings(storage, s);
+          } catch {
+            /* instelling geldt dan alleen voor deze sessie */
+          }
           setSettings(s);
         }}
         onOpen={(id) => navigate(`#/t/${id}`)}
-        onNew={() => {
-          const t = repo.save(newTransport(settings.timeZone));
-          navigate(`#/t/${t.id}`);
-        }}
-        onSample={() => {
-          const t = repo.save(sampleTransport(settings.timeZone));
-          navigate(`#/t/${t.id}`);
-        }}
+        onNew={() => open(newTransport(settings.timeZone))}
+        onSample={() => open(sampleTransport(settings.timeZone))}
         onDelete={(id) => {
           repo.remove(id);
           setListVersion((v) => v + 1);
@@ -81,5 +93,21 @@ export function App() {
     }
   }
 
-  return <SettingsContext.Provider value={settings}>{content}</SettingsContext.Provider>;
+  return (
+    <SettingsContext.Provider value={settings}>
+      <ConfirmProvider>
+        {!persistent && (
+          <p className="storage-warning" role="alert">
+            Lokale opslag is in deze browser niet beschikbaar. Gegevens gaan verloren bij sluiten of herladen.
+          </p>
+        )}
+        {error && (
+          <p className="storage-warning" role="alert">
+            {error}
+          </p>
+        )}
+        {content}
+      </ConfirmProvider>
+    </SettingsContext.Provider>
+  );
 }

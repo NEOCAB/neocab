@@ -4,6 +4,7 @@ import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToText } from '../report/text';
 import { useTimeZone } from './context';
 import { DataTable } from './DataTable';
+import { canPrint, offerFile } from './viewer';
 
 /** Mailto-links worden door sommige mailprogramma's afgekapt; boven deze lengte gaat de tekst alleen via het klembord. */
 const MAILTO_BODY_LIMIT = 1800;
@@ -73,15 +74,15 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
       const { loadPdfFonts, pdfFileName, reportToPdf } = await import('../report/pdf');
       const fonts = await loadPdfFonts();
       const doc = reportToPdf(report, fonts);
-      const url = URL.createObjectURL(doc.output('blob'));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = pdfFileName(transport.child.name, transport.child.patientNumber);
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      setStatus(`Pdf gemaakt (${doc.getNumberOfPages()} pagina's, A4).`);
+      const pages = doc.getNumberOfPages();
+      const result = await offerFile(pdfFileName(transport.child.name, transport.child.patientNumber), doc.output('blob'));
+      setStatus(
+        result === 'saved'
+          ? `Pdf gemaakt (${pages} pagina's, A4).`
+          : result === 'declined'
+            ? 'Opslaan van de pdf is geannuleerd.'
+            : 'Pdf opslaan is in deze weergave niet beschikbaar. Kopieer de e-mailtekst of open de app lokaal.',
+      );
     } catch (e) {
       setStatus(`Pdf maken is mislukt: ${e instanceof Error ? e.message : 'onbekende fout'}`);
     } finally {
@@ -102,14 +103,18 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
   const openMail = async () => {
     const subject = emailSubject(report);
     const fits = encodeURIComponent(text).length <= MAILTO_BODY_LIMIT;
-    let body = text;
-    if (!fits) {
-      const ok = await copyText(text);
-      body = ok
+    // Altijd eerst de volledige tekst naar het klembord: openen van het mailprogramma lukt niet op elk apparaat.
+    const copied = await copyText(text);
+    const body = fits
+      ? text
+      : copied
         ? 'Het volledige transportverslag staat op het klembord. Plak het hier (Ctrl/Cmd+V).'
         : 'Kopieer het volledige transportverslag uit de app en plak het hier.';
-      setStatus(ok ? 'Verslag is te lang voor een mailto-link: de volledige tekst staat op het klembord, plak deze in het concept.' : 'Verslag is te lang voor een mailto-link en kopiëren lukte niet; kopieer de tekst handmatig uit het tekstvak.');
-    } else setStatus('Concept geopend in het mailprogramma. Er wordt niets automatisch verzonden.');
+    setStatus(
+      copied
+        ? 'De volledige tekst staat op het klembord. Als het mailprogramma niet opent, plak de tekst dan zelf in een nieuwe e-mail. Er wordt niets automatisch verzonden.'
+        : 'Kopiëren lukte niet; kopieer de tekst uit het tekstvak hieronder. Er wordt niets automatisch verzonden.',
+    );
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -139,9 +144,11 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
             <button type="button" className="secondary" onClick={openMail}>
               Concept openen in mailprogramma
             </button>
-            <button type="button" className="secondary" onClick={() => window.print()}>
-              Afdrukken
-            </button>
+            {canPrint() && (
+              <button type="button" className="secondary" onClick={() => window.print()}>
+                Afdrukken
+              </button>
+            )}
           </div>
           <p className="muted small-print">
             Er wordt nooit automatisch een e-mail verzonden. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe. Bij een lang verslag gaat de volledige tekst via het klembord, zodat er niets wegvalt.
