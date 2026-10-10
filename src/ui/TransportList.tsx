@@ -31,6 +31,12 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
         <div className="field-hint">Tijdstippen worden altijd met UTC-offset opgeslagen; dit bepaalt alleen de lokale weergave.</div>
       </div>
       <div className="field">
+        <label className="check-setting">
+          <input type="checkbox" checked={settings.abcdLettersOnly} onChange={(e) => onChange({ ...settings, abcdLettersOnly: e.target.checked })} />
+          <span>Bij Airway, Breathing, Circulation enz. alleen de letter tonen (A, B, C …), links van het invulveld</span>
+        </label>
+      </div>
+      <div className="field">
         <label className="field-label" htmlFor="routes">
           Opties toedieningsroute medicatie (één per regel)
         </label>

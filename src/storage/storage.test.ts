@@ -96,7 +96,15 @@ describe('lokale conceptopslag', () => {
 
   it('bewaart configureerbare toedieningsroutes', () => {
     const storage = memoryStorage();
-    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'] });
+    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], abcdLettersOnly: false });
     expect(loadSettings(storage).medicationRoutes).toEqual(['IV', 'Oraal']);
+  });
+
+  it('bewaart de instelling voor alleen ABCD-letters; standaard uit, ook bij oude instellingen', () => {
+    const storage = memoryStorage();
+    storage.setItem('neonataal-transport:v1:instellingen', JSON.stringify({ timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV'] }));
+    expect(loadSettings(storage).abcdLettersOnly).toBe(false);
+    saveSettings(storage, { ...loadSettings(storage), abcdLettersOnly: true });
+    expect(loadSettings(storage).abcdLettersOnly).toBe(true);
   });
 });

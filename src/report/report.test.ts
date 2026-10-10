@@ -41,7 +41,7 @@ describe('verslag', () => {
     expect(text).not.toContain('Allergie');
     // Herkomst en bestemming; Verwijzing = zwangerschap en geboorte + toestand bij verwijzing.
     const titles = buildReport(sampleTransport(TZ), TZ).sections.map((sec) => sec.title);
-    expect(titles.slice(0, 5)).toEqual(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']);
+    expect(titles).toEqual(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie', 'Tijdlijn', 'Overige diagnostiek', 'Plastic', 'Medicatietoedieningen', 'Lopende infusen', 'Notities', 'Ouders en gezin', 'Transport']);
     expect(buildReport(sampleTransport(TZ), TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']);
     const noAdvice = sampleTransport(TZ);
     noAdvice.referralCondition.advice = '';

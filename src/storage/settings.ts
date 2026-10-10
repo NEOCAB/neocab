@@ -6,11 +6,13 @@ export interface AppSettings {
   timeZone: string;
   /** Configureerbare opties voor de toedieningsroute van medicatie. */
   medicationRoutes: string[];
+  /** Bij de acht klinische kopjes (Airway … Infection) alleen de beginletter tonen, links van het invulveld. */
+  abcdLettersOnly: boolean;
 }
 
 const KEY = 'neonataal-transport:v1:instellingen';
 
-export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES };
+export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, abcdLettersOnly: false };
 
 export function loadSettings(storage: KeyValueStorage): AppSettings {
   try {
@@ -19,6 +21,7 @@ export function loadSettings(storage: KeyValueStorage): AppSettings {
     return {
       timeZone: typeof v.timeZone === 'string' && isValidTimeZone(v.timeZone) ? v.timeZone : DEFAULT_TIME_ZONE,
       medicationRoutes: Array.isArray(v.medicationRoutes) ? v.medicationRoutes.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_MEDICATION_ROUTES,
+      abcdLettersOnly: v.abcdLettersOnly === true,
     };
   } catch {
     return DEFAULT_SETTINGS;

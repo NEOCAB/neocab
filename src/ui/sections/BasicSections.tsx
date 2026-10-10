@@ -11,7 +11,7 @@ import {
 import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
 import { useEffect, useState } from 'react';
 import { DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
-import { useTimeZone } from '../context';
+import { useSettings, useTimeZone } from '../context';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
 export interface SectionProps {
@@ -140,18 +140,21 @@ function BirthFields({ t, update }: SectionProps) {
 }
 
 function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void }) {
+  // Instelling: alleen de letter (links van het veld) in plaats van letter + woord erboven.
+  const lettersOnly = useSettings().abcdLettersOnly;
   return (
-    <div className="abcd">
+    <div className={`abcd ${lettersOnly ? 'letters-only' : ''}`}>
       {ABCD_KEYS.map((k) => (
         <TextArea
           key={k}
+          className={lettersOnly ? 'abcd-compact' : undefined}
           label={
             <>
               {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
-              <span className="abcd-letter" aria-hidden="true">
+              <span className="abcd-letter" aria-hidden="true" title={lettersOnly ? ABCD_LABELS[k] : undefined}>
                 {ABCD_LABELS[k][0]}
               </span>
-              {ABCD_LABELS[k]}
+              {lettersOnly ? <span className="sr-only">{ABCD_LABELS[k]}</span> : ABCD_LABELS[k]}
             </>
           }
           value={notes[k]}

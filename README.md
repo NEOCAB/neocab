@@ -68,8 +68,8 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Basisgegevens kind: acht velden in een raster van 2 kolommen × 4 rijen (telefoon) of 4 kolommen × 2 rijen (vanaf 720 px breed).
 - Koppen zonder nummer; de tijdlijn heet *Tijdlijn* met als toelichting *Ademhalingsondersteuning, monitorgegevens en bloedgassen*. Geen veld Allergieën en geen legenda bij de checklist.
 - Sectiekoppen, zijnavigatie en verslagkoppen hebben een Material Symbols-icoon (outlined, gewicht 700 passend bij de vette koppen, via `@material-symbols/svg-700`, alleen de gebruikte SVG's): id_card, route, clinical_notes (Verwijzing), ambulance, stethoscope (Stabilisatie), timeline, lab_research, medication, vaccines, ventilator, surgical, family_home, checklist, flag. De zes vaste tijdstippen hebben het icoon safety_check.
-- De acht klinische kopjes (Airway … Infection) bij Verwijzing en Stabilisatie hebben hun beginletter in een donkerblauw rondje vóór het woord (alleen visueel; de veldnaam voor schermlezers blijft het woord).
-- Secties: Basisgegevens kind, *Herkomst en bestemming*, *Verwijzing* (samengevoegd uit Zwangerschap en geboorte en Toestand bij verwijzing, met subkoppen *Zwangerschap en geboorte*, *Toestand bij verwijzing* en *Advies*; het veld Advies bij verwijzing is optioneel en het blok Advies staat alleen in het verslag als het is ingevuld), Dispatch, *Stabilisatie* (voorheen Onderzoek door transportteam), Tijdlijn, Overige diagnostiek, Medicatie, Infusen, *Plastic* (lijnen, sondes, drains en endotracheale tube; voorheen zo genoemd), *Notities* (voorheen Procedures en gebeurtenissen), Ouders en gezin, Checklist voor vertrek, *Transport* (voorheen Afsluiting transport) (14 secties).
+- De acht klinische kopjes (Airway … Infection) bij Verwijzing en Stabilisatie hebben hun beginletter in een donkerblauw rondje vóór het woord (alleen visueel; de veldnaam voor schermlezers blijft het woord). Onder *Instellingen* op de startpagina kan worden gekozen om alleen de letter te tonen, links van het invulveld (het woord verschijnt dan als tooltip en blijft de naam voor schermlezers); deze instelling geldt per apparaat.
+- Secties: Basisgegevens kind, *Herkomst en bestemming*, *Verwijzing* (samengevoegd uit Zwangerschap en geboorte en Toestand bij verwijzing, met subkoppen *Zwangerschap en geboorte*, *Toestand bij verwijzing* en *Advies*; het veld Advies bij verwijzing is optioneel en het blok Advies staat alleen in het verslag als het is ingevuld), Dispatch, *Stabilisatie* (voorheen Onderzoek door transportteam), Tijdlijn, Overige diagnostiek, *Plastic* (lijnen, sondes, drains en endotracheale tube; voorheen zo genoemd; vóór medicatie), Medicatie, Infusen, *Notities* (voorheen Procedures en gebeurtenissen), Ouders en gezin, Checklist voor vertrek, *Transport* (voorheen Afsluiting transport) (14 secties).
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
 - PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
 
@@ -109,7 +109,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 49 tests):
+Unit-tests (`npm test`, 50 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -126,7 +126,7 @@ Unit-tests (`npm test`, 49 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 124 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 126 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 

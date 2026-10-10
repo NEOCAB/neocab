@@ -116,7 +116,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   const fi = (i: string | null) => formatInstant(i, timeZone);
   const sections: ReportSection[] = [];
 
-  // 1 Basisgegevens kind
+  // Basisgegevens kind
   {
     const c = t.child;
     const b = new RowBuilder();
@@ -135,7 +135,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Basisgegevens kind', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 2 Herkomst en bestemming
+  // Herkomst en bestemming
   {
     const r = t.referral;
     const b = new RowBuilder();
@@ -150,7 +150,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Herkomst en bestemming', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 3 Verwijzing: zwangerschap en geboorte, toestand bij verwijzing
+  // Verwijzing: zwangerschap en geboorte, toestand bij verwijzing
   {
     const g = t.birth;
     const b = new RowBuilder();
@@ -178,14 +178,14 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     });
   }
 
-  // 5 Dispatch
+  // Dispatch
   {
     const b = new RowBuilder();
     b.kv('Ambulance aangevraagd', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek transportteam', fi(t.dispatch.departedWithAmbulanceAt)).kv('Aankomst bij kind', fi(t.teamAssessment.arrivedAt));
     sections.push({ title: 'Dispatch', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 6 Stabilisatie (aankomst bij kind staat bij 5 Dispatch)
+  // Stabilisatie (aankomst bij kind staat bij Dispatch)
   {
     const a = t.teamAssessment;
     const b = new RowBuilder();
@@ -194,7 +194,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Stabilisatie', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 6 Tijdlijn: één tabel, elke rij is één meetmoment
+  // Tijdlijn: één tabel, elke rij is één meetmoment
   {
     const { table, rows } = timelineReportTable(t.measurements, timeZone);
     sections.push({
@@ -214,47 +214,14 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     });
   }
 
-  // 7 Overige diagnostiek
+  // Overige diagnostiek
   {
     const b = new RowBuilder();
     b.para('Overige laboratoriumuitslagen', t.otherLabs).para('Beeldvorming en overige onderzoeken', t.imaging);
     sections.push({ title: 'Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 8 Medicatie
-  {
-    const blocks: ReportBlock[] = [];
-    const meds = [...t.medications].sort((a, b) => compareInstants(a.at, b.at));
-    for (const m of meds) {
-      const b = new RowBuilder();
-      b.kv('Datum en tijd', fi(m.at)).kv('Medicament', m.name);
-      const dose = formatNum(m.dose);
-      if (dose !== null || m.doseUnit) b.kv('Dosis', `${dose ?? 'niet ingevuld'}${m.doseUnit ? ` ${m.doseUnit}` : ''}`);
-      b.kv('Toedieningsroute', m.route);
-      blocks.push({ card: true, title: `${fi(m.at) || 'Tijdstip niet ingevuld'} · ${m.name || 'Medicament niet ingevuld'}`, rows: b.orEmpty() });
-    }
-    if (meds.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] });
-    sections.push({ title: 'Medicatietoedieningen', blocks });
-  }
-
-  // 9 Infusen
-  {
-    const blocks: ReportBlock[] = [];
-    const infs = [...t.infusions].sort((a, b) => compareInstants(a.startAt, b.startAt));
-    for (const inf of infs) {
-      const b = new RowBuilder();
-      b.kv('Start', fi(inf.startAt)).kv('Medicatie en concentratie', inf.name);
-      sortedRates(inf).forEach((r, i) => {
-        b.kv(i === 0 ? 'Pompsnelheid bij start' : 'Snelheidswijziging', `${fi(r.at) || 'tijdstip niet ingevuld'}: ${formatNum(r.rateMlPerHour, 'mL/uur') ?? 'niet ingevuld'}`);
-      });
-      b.kv('Stop', inf.stopAt ? fi(inf.stopAt) : 'Loopt nog (geen stoptijd)');
-      blocks.push({ card: true, title: `${inf.name || 'Infuus'}${inf.stopAt ? ' (gestopt)' : ' (lopend)'}`, rows: b.rows });
-    }
-    if (infs.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] });
-    sections.push({ title: 'Lopende infusen', blocks });
-  }
-
-  // 10 Plastic
+  // Plastic
   {
     const blocks: ReportBlock[] = [];
     for (const l of t.lines) {
@@ -281,7 +248,40 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Plastic', blocks });
   }
 
-  // 11, 12
+  // Medicatie
+  {
+    const blocks: ReportBlock[] = [];
+    const meds = [...t.medications].sort((a, b) => compareInstants(a.at, b.at));
+    for (const m of meds) {
+      const b = new RowBuilder();
+      b.kv('Datum en tijd', fi(m.at)).kv('Medicament', m.name);
+      const dose = formatNum(m.dose);
+      if (dose !== null || m.doseUnit) b.kv('Dosis', `${dose ?? 'niet ingevuld'}${m.doseUnit ? ` ${m.doseUnit}` : ''}`);
+      b.kv('Toedieningsroute', m.route);
+      blocks.push({ card: true, title: `${fi(m.at) || 'Tijdstip niet ingevuld'} · ${m.name || 'Medicament niet ingevuld'}`, rows: b.orEmpty() });
+    }
+    if (meds.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] });
+    sections.push({ title: 'Medicatietoedieningen', blocks });
+  }
+
+  // Infusen
+  {
+    const blocks: ReportBlock[] = [];
+    const infs = [...t.infusions].sort((a, b) => compareInstants(a.startAt, b.startAt));
+    for (const inf of infs) {
+      const b = new RowBuilder();
+      b.kv('Start', fi(inf.startAt)).kv('Medicatie en concentratie', inf.name);
+      sortedRates(inf).forEach((r, i) => {
+        b.kv(i === 0 ? 'Pompsnelheid bij start' : 'Snelheidswijziging', `${fi(r.at) || 'tijdstip niet ingevuld'}: ${formatNum(r.rateMlPerHour, 'mL/uur') ?? 'niet ingevuld'}`);
+      });
+      b.kv('Stop', inf.stopAt ? fi(inf.stopAt) : 'Loopt nog (geen stoptijd)');
+      blocks.push({ card: true, title: `${inf.name || 'Infuus'}${inf.stopAt ? ' (gestopt)' : ' (lopend)'}`, rows: b.rows });
+    }
+    if (infs.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] });
+    sections.push({ title: 'Lopende infusen', blocks });
+  }
+
+  // Notities, Ouders en gezin
   sections.push({ title: 'Notities', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
@@ -289,9 +289,9 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 14 Checklist voor vertrek: bewust niet in het verslag (alleen in het formulier).
+  // Checklist voor vertrek: bewust niet in het verslag (alleen in het formulier).
 
-  // 14 Afsluiting
+  // Transport
   {
     const c = t.closure;
     const b = new RowBuilder();

@@ -141,6 +141,26 @@ async function basisLayout(page) {
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
+  check('Plastic staat vóór Medicatie', order.indexOf('Plastic') === order.indexOf('Medicatietoedieningen') - 1 || order.indexOf('Plastic') === order.indexOf('Medicatie') - 1, order.join(' | '));
+  // Instelling: alleen ABCD-letters (links van het invulveld)
+  await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
+  await page.locator('details.settings summary').click();
+  await page.getByLabel(/alleen de letter tonen/).check();
+  await page.getByRole('button', { name: 'Hervatten' }).first().click();
+  await page.waitForSelector('#s3');
+  const compact = await page.evaluate(() => {
+    const f = document.querySelector('#s3 .abcd-compact');
+    const letter = f?.querySelector('.abcd-letter')?.getBoundingClientRect();
+    const box = f?.querySelector('textarea')?.getBoundingClientRect();
+    return { n: document.querySelectorAll('#s3 .abcd-compact').length, labelW: Math.round(f?.querySelector('.field-label')?.getBoundingClientRect().width ?? 0), word: f?.querySelector('.field-label .sr-only')?.textContent, left: !!letter && !!box && letter.right <= box.left && Math.abs(letter.top - box.top) < 12 };
+  });
+  check('Instelling alleen letters: letter links van het veld, woord niet zichtbaar, naam blijft Airway', compact.n === 8 && compact.labelW < 50 && compact.word === 'Airway' && compact.left && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, JSON.stringify(compact));
+  await page.screenshot({ path: `${OUT}/390-abcd-letters.png`, fullPage: false, clip: await page.locator('#s3 .abcd').boundingBox().then((b) => ({ x: 0, y: b.y, width: 390, height: 400 })) }).catch(() => {});
+  await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
+  await page.locator('details.settings summary').click();
+  await page.getByLabel(/alleen de letter tonen/).uncheck();
+  await page.getByRole('button', { name: 'Hervatten' }).first().click();
+  await page.waitForSelector('#s3');
   const sub3 = await page.locator('#s3 h3.subsection-title').allTextContents();
   const letters = await page.locator('#s3 .abcd-letter').allTextContents();
   check('ABCD-kopjes met beginletter in een rondje (Verwijzing en Stabilisatie)', letters.join('') === 'ABCDFGHI' && (await page.locator('#s5 .abcd-letter').count()) === 8 && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, letters.join(''));

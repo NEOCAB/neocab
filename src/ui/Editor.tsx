@@ -30,9 +30,9 @@ export const SECTIONS = [
   { id: 's5', label: 'Stabilisatie' },
   { id: 's6', label: 'Tijdlijn' },
   { id: 's7', label: 'Overige diagnostiek' },
+  { id: 's10', label: 'Plastic' },
   { id: 's8', label: 'Medicatie' },
   { id: 's9', label: 'Infusen' },
-  { id: 's10', label: 'Plastic' },
   { id: 's11', label: 'Notities' },
   { id: 's12', label: 'Ouders en gezin' },
   { id: 's13', label: 'Checklist voor vertrek' },
@@ -173,9 +173,9 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           <TeamAssessmentSection {...props} />
           <TimelineSection {...props} />
           <OtherDiagnosticsSection {...props} />
+          <LinesSection {...props} />
           <MedicationsSection {...props} />
           <InfusionsSection {...props} />
-          <LinesSection {...props} />
           <ProceduresSection {...props} />
           <ParentsSection {...props} />
           <ChecklistSection {...props} />
