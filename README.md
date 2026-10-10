@@ -51,7 +51,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Hoofdtekst 15 px volgens de richtlijn; invoervelden 16 px (voorkomt inzoomen op iOS); koppen vet.
 - Kleuren: **donkerblauw `#003c7d`** als kernkleur (koppen, knoppen, tabelkop), **kobaltblauw `#007cc2`** als aanvullende kleur (focus, hover) en tinten daarvan (20%). Extra kleuren uit het palet: lichtblauw `#cee8ef` (berekende leeftijd, badges), zand `#f0e2d2` (meldingen), groen `#b9debc` (checklist gedaan) en rood `#ed1846` spaarzaam (checklist niet van toepassing, verwijderen).
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
-- Witte vlakken met dunne grijze scheidingslijnen, strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
+- Lichtblauwe pagina-achtergrond (kobaltblauw 20%, `#cce5f3`) met de secties als witte vlakken; strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
 - Tijdlijntabel: compacte waarden, verticale kolomkoppen in de tweede rij (eenheid tussen haakjes), getallen rechts uitgelijnd, groepen gescheiden door een lijn, tijd vet in de vaste eerste kolom. De datum staat alleen onder de tijd als de meetmomenten over meer dan één kalenderdag gaan.
 - Zes vaste tijdstippen in dezelfde vormgeving (naam, omschrijving, datum/tijd met *Nu* en *Wissen*, donkerblauwe streep links), op hun plek in het formulier en met dezelfde namen in verslag en pdf:
   | Tijdstip | Omschrijving | Sectie |

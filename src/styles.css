@@ -16,7 +16,7 @@
   --alert-bg: #ffe0b8;
   --alert-border: #e07b00;
   --alert-text: #7a3c00;
-  --bg: #ffffff;
+  --bg: #cce5f3; /* kobaltblauw 20%: lichtblauwe pagina-achtergrond */
   --surface: #ffffff;
   --text: #1a1a1a; /* lopende tekst bij voorkeur zwart */
   --muted: #4a545e;
@@ -656,14 +656,12 @@ fieldset.group > legend {
   min-width: 0;
 }
 .form-section {
-  /* Huisstijl: witte vlakken, gescheiden door dunne grijze lijnen. */
+  /* Huisstijl: witte vlakken op een lichtblauwe achtergrond. */
   background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 0.75rem 0 1.25rem;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem 1.25rem;
+  margin-bottom: 1rem;
   scroll-margin-top: 7.5rem;
-}
-.form-section:first-child {
-  border-top: none;
 }
 .form-section > h2 {
   color: var(--primary);
@@ -706,7 +704,7 @@ fieldset.group > legend {
   .sidenav a {
     display: block;
     padding: 0.5rem 0.6rem 0.5rem 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--surface);
     color: var(--primary);
     text-decoration: none;
     font-size: 0.95rem;
@@ -715,7 +713,6 @@ fieldset.group > legend {
     color: var(--accent);
   }
   .sidenav {
-    border-right: 1px solid var(--line);
     padding-right: 1rem;
   }
   .form-section {
@@ -1075,14 +1072,14 @@ fieldset.group > legend {
 }
 .export-actions {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius);
   padding: 0.5rem 1rem 1rem;
   margin-bottom: 1rem;
 }
 .report {
-  background: #fff;
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: none;
   border-radius: var(--radius);
   padding: 1.25rem;
 }
