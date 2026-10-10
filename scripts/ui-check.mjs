@@ -265,7 +265,7 @@ async function basisLayout(page) {
   check('Geen horizontaal scrollen op 390 px (formulier)', await noHorizontalScroll(page));
 
   // Infuus
-  await page.getByRole('button', { name: 'Infuus starten' }).click();
+  await page.locator('#s9').getByRole('button', { name: 'Toevoegen', exact: true }).click();
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('2. Medicatie en concentratie', { exact: true }).fill('Glucose 10%');
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('3. Pompsnelheid', { exact: true }).fill('0');
   check('Pompsnelheid 0 geweigerd', await page.getByText('De waarde moet groter dan 0 zijn.').isVisible());
@@ -285,7 +285,7 @@ async function basisLayout(page) {
   check('Infusentabel toont het verloop van de pompsnelheid', /3,2\s*4 vanaf/.test(infRow), infRow);
 
   // Medicatie als tabel: toevoegen via editor, bewerken via de tijd in de tabel
-  await page.locator('#s8').getByRole('button', { name: 'Toediening toevoegen' }).click();
+  await page.locator('#s8').getByRole('button', { name: 'Toevoegen', exact: true }).click();
   const medForm = page.getByRole('form', { name: 'Nieuwe toediening' });
   await medForm.getByLabel('Medicament', { exact: true }).fill('Testmedicament');
   await medForm.getByLabel('Dosis', { exact: true }).fill('1,5');

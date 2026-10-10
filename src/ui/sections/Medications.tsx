@@ -83,7 +83,7 @@ export function MedicationsSection({ t, update }: SectionProps) {
       actions={
         !draft && (
           <AddButton
-            label="Toediening toevoegen"
+            label="Toevoegen"
             onClick={() => {
               setDraft(newMedication(timeZone));
               setIsNew(true);

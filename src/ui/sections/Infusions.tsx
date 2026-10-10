@@ -209,7 +209,7 @@ export function InfusionsSection({ t, update }: SectionProps) {
       actions={
         !adding &&
         !open && (
-          <AddButton label="Infuus starten" onClick={() => setAdding(true)} />
+          <AddButton label="Toevoegen" onClick={() => setAdding(true)} />
         )
       }
     >
