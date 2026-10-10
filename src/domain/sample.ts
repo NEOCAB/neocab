@@ -55,6 +55,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
       },
       advice: 'CPAP ophogen, bloedgas herhalen.',
     },
+    dispatch: { ambulanceCalledAt: at('2026-10-09T22:20'), departedWithAmbulanceAt: at('2026-10-09T22:35') },
     teamAssessment: {
       arrivedAt: at('2026-10-09T23:05'),
       notes: {

@@ -15,7 +15,7 @@ export function MedicationsSection({ t, update }: SectionProps) {
   // Invoervolgorde tijdens bewerken (kaarten springen niet weg); het verslag sorteert chronologisch.
   const meds = t.medications;
   return (
-    <Section id="s8" title="8 Medicatietoedieningen">
+    <Section id="s8" title="9 Medicatietoedieningen">
       <TextArea label="Allergieën" value={t.allergies} onChange={(v) => update((x) => ({ ...x, allergies: v }))} rows={2} />
       <div className="list">
         {meds.length === 0 && <p className="muted">Nog geen toedieningen geregistreerd.</p>}

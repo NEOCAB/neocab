@@ -141,11 +141,24 @@ export function ReferralConditionSection({ t, update }: SectionProps) {
   );
 }
 
+export function DispatchSection({ t, update }: SectionProps) {
+  const d = t.dispatch;
+  const set = <K extends keyof Transport['dispatch']>(k: K, v: Transport['dispatch'][K]) => update((x) => ({ ...x, dispatch: { ...x.dispatch, [k]: v } }));
+  return (
+    <Section id="sdispatch" title="5 Dispatch">
+      <div className="grid">
+        <DateTimeField label="Ambulance gebeld om" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
+        <DateTimeField label="Vertrokken met ambulance om" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
+      </div>
+    </Section>
+  );
+}
+
 export function TeamAssessmentSection({ t, update }: SectionProps) {
   const a = t.teamAssessment;
   const set = <K extends keyof Transport['teamAssessment']>(k: K, v: Transport['teamAssessment'][K]) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, [k]: v } }));
   return (
-    <Section id="s5" title="5 Onderzoek door transportteam" intro="Eigen onderzoek van het transportteam; de informatie bij verwijzing (sectie 4) blijft ongewijzigd bewaard.">
+    <Section id="s5" title="6 Onderzoek door transportteam" intro="Eigen onderzoek van het transportteam; de informatie bij verwijzing (sectie 4) blijft ongewijzigd bewaard.">
       <DateTimeField label="Datum en tijd aankomst bij het verwijzende ziekenhuis" value={a.arrivedAt} onChange={(v) => set('arrivedAt', v)} />
       <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} />
       <TextArea label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
@@ -157,7 +170,7 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
 
 export function OtherDiagnosticsSection({ t, update }: SectionProps) {
   return (
-    <Section id="s7" title="7 Overige diagnostiek">
+    <Section id="s7" title="8 Overige diagnostiek">
       <TextArea label="Overige laboratoriumuitslagen" value={t.otherLabs} onChange={(v) => update((x) => ({ ...x, otherLabs: v }))} />
       <TextArea label="Beeldvorming en overige onderzoeken" value={t.imaging} onChange={(v) => update((x) => ({ ...x, imaging: v }))} />
     </Section>
@@ -166,7 +179,7 @@ export function OtherDiagnosticsSection({ t, update }: SectionProps) {
 
 export function ProceduresSection({ t, update }: SectionProps) {
   return (
-    <Section id="s11" title="11 Procedures en gebeurtenissen">
+    <Section id="s11" title="12 Procedures en gebeurtenissen">
       <TextArea label="Procedures en gebeurtenissen" value={t.proceduresAndEvents} onChange={(v) => update((x) => ({ ...x, proceduresAndEvents: v }))} rows={5} />
     </Section>
   );
@@ -174,7 +187,7 @@ export function ProceduresSection({ t, update }: SectionProps) {
 
 export function ParentsSection({ t, update }: SectionProps) {
   return (
-    <Section id="s12" title="12 Ouders en gezin">
+    <Section id="s12" title="13 Ouders en gezin">
       <TextArea label="Ouders en gezin" value={t.parentsAndFamily} onChange={(v) => update((x) => ({ ...x, parentsAndFamily: v }))} rows={4} />
       <fieldset className="group phones">
         <legend>Contactgegevens ouders</legend>
@@ -189,7 +202,7 @@ export function ParentsSection({ t, update }: SectionProps) {
 
 export function ChecklistSection({ t, update }: SectionProps) {
   return (
-    <Section id="s13" title="13 Checklist voor vertrek">
+    <Section id="s13" title="14 Checklist voor vertrek">
       <ol className="checklist">
         {CHECKLIST_KEYS.map((k) => (
           <li key={k}>
@@ -212,7 +225,7 @@ export function ClosureSection({ t, update }: SectionProps) {
   const c = t.closure;
   const set = <K extends keyof Transport['closure']>(k: K, v: Transport['closure'][K]) => update((x) => ({ ...x, closure: { ...x.closure, [k]: v } }));
   return (
-    <Section id="s14" title="14 Afsluiting transport">
+    <Section id="s14" title="15 Afsluiting transport">
       <DateTimeField label="Vertrek van cotside" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
       <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
       <DateTimeField label="Aankomst ontvangend centrum" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />

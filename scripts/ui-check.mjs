@@ -71,9 +71,23 @@ async function unlabeledControls(page) {
   const gb = await ga.boundingBox();
   const sizes = await page.evaluate(() => [getComputedStyle(document.querySelector('#s1 .computed-value')).fontSize, getComputedStyle(document.querySelector('#s1 .gestation-field input')).fontSize]);
   check('Waarden in blauw vak even groot als invoer', sizes[0] === sizes[1], sizes.join(' / '));
+  const centers = await page.evaluate(() => {
+    const mid = (el) => { const r = el.getBoundingClientRect(); return Math.round(r.top + r.height / 2); };
+    return [mid(document.querySelector('#s1 .gestation-field input')), ...[...document.querySelectorAll('#s1 .computed-value')].map(mid)];
+  });
+  check('Waarden in blauw vak op één lijn met ingevulde waarde', centers.length === 3 && centers.every((c) => Math.abs(c - centers[0]) <= 1), centers.join(' / '));
   check('Blauw vak rechts van amenorroeduur, gelijke onderkant', !!cb && !!gb && cb.x > gb.x && Math.abs(cb.y + cb.height - (gb.y + gb.height)) < 3, JSON.stringify([cb, gb]));
   check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd33+5 wk'), ca);
   check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('Postnatale leeftijddag 1'), ca);
+
+  // Box 5 Dispatch tussen box 4 en (nu) 6
+  const order = await page.locator('main.form > section h2').allTextContents();
+  check('Dispatch als box 5 tussen 4 en 6', order[3]?.startsWith('4 ') && order[4] === '5 Dispatch' && order[5]?.startsWith('6 Onderzoek') && order.length === 15, order.join(' | '));
+  const called = page.getByLabel('Ambulance gebeld om', { exact: true });
+  const departed = page.getByLabel('Vertrokken met ambulance om', { exact: true });
+  check('Dispatch-tijden standaard leeg', (await called.inputValue()) === '' && (await departed.inputValue()) === '');
+  await page.locator('#sdispatch').getByRole('button', { name: 'Nu invullen' }).first().click();
+  check('Ambulance gebeld om: Nu invullen vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(await called.inputValue()), await called.inputValue());
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();

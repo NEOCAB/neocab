@@ -34,16 +34,18 @@ function bigTransport(): Transport {
 describe('verslag', () => {
   it('bevat alle secties, eenheden en de checkliststatus "Nog niet gedaan"', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    for (const h of ['1 BASISGEGEVENS KIND', '6 TIJDLIJN', '13 CHECKLIST VOOR VERTREK', '14 AFSLUITING TRANSPORT']) expect(text).toContain(h);
+    for (const h of ['1 BASISGEGEVENS KIND', '5 DISPATCH', '6 ONDERZOEK DOOR TRANSPORTTEAM', '7 TIJDLIJN', '14 CHECKLIST VOOR VERTREK', '15 AFSLUITING TRANSPORT']) expect(text).toContain(h);
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     expect(text).toContain('Beeldvorming beschikbaar voor ontvangend ziekenhuis: Nog niet gedaan');
-    const s12 = text.slice(text.indexOf('12 OUDERS EN GEZIN'), text.indexOf('13 CHECKLIST'));
+    const s12 = text.slice(text.indexOf('13 OUDERS EN GEZIN'), text.indexOf('14 CHECKLIST'));
     expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
     expect(text).not.toContain('LUMC-patiëntnummer');
     for (const gone of ['Doseergewicht', 'Geslacht', 'gewogen', 'Postmenstruele']) expect(text).not.toContain(gone);
     expect(text).toContain('Amenorroeduur: 33+5 weken');
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
+    expect(text).toContain('Ambulance gebeld om: 09-10-2026 22:20');
+    expect(text).toContain('Vertrokken met ambulance om: 09-10-2026 22:35');
     expect(text).toContain('Postnatale leeftijd: dag 3');
     expect(text).toContain('Medicatie en concentratie: Glucose 10%');
     expect(text).toContain('Pompsnelheid bij start: 09-10-2026 23:15: 3,2 mL/uur');
@@ -56,7 +58,7 @@ describe('verslag', () => {
 
   it('tijdlijn is één tabel met één rij per meetmoment, zonder #, fase en tube, type bloedgas als A/V/C', () => {
     const t = sampleTransport(TZ);
-    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('6 '))!;
+    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('7 '))!;
     const tables = section.blocks.filter((b) => b.table);
     expect(tables).toHaveLength(1);
     const table = tables[0].table!;
@@ -81,7 +83,7 @@ describe('verslag', () => {
 
   it('berekent de OI in de tabel en markeert OI > 25 als alert', () => {
     const t = sampleTransport(TZ);
-    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('6 '))!;
+    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('7 '))!;
     const table = section.blocks.find((b) => b.table)!.table!;
     const oi = table.columns.findIndex((c) => c.header === 'OI');
     expect(table.columns[oi].group).toBe('Meetmoment');

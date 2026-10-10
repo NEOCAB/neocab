@@ -117,7 +117,7 @@ function MeasurementEditor({ draft, setDraft, tubes, isNew, proposed, onSave, on
       {mode === 'geen' && <p className="muted">Geen ademhalingsinstellingen.</p>}
       {mode && isInvasive(mode) && (
         <p className="tube-line">
-          <strong>Endotracheale tube op dit tijdstip:</strong> {tube ? tubeSummary(tube.version, tz) : 'geen tube geregistreerd. Voer de tube in bij sectie 10.'}
+          <strong>Endotracheale tube op dit tijdstip:</strong> {tube ? tubeSummary(tube.version, tz) : 'geen tube geregistreerd. Voer de tube in bij sectie 11.'}
         </p>
       )}
 
@@ -181,7 +181,7 @@ export function TimelineSection({ t, update }: SectionProps) {
   };
 
   return (
-    <Section id="s6" title="6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen">
+    <Section id="s6" title="7 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen">
       {!draft && (
         <button type="button" className="primary" onClick={startNew}>
           + Nieuw meetmoment

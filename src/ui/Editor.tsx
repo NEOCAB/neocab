@@ -8,6 +8,7 @@ import {
   ChecklistSection,
   ChildSection,
   ClosureSection,
+  DispatchSection,
   OtherDiagnosticsSection,
   ParentsSection,
   ProceduresSection,
@@ -26,16 +27,17 @@ export const SECTIONS = [
   { id: 's2', label: '2 Verwijzing en bestemming' },
   { id: 's3', label: '3 Zwangerschap en geboorte' },
   { id: 's4', label: '4 Toestand bij verwijzing' },
-  { id: 's5', label: '5 Onderzoek transportteam' },
-  { id: 's6', label: '6 Tijdlijn' },
-  { id: 's7', label: '7 Overige diagnostiek' },
-  { id: 's8', label: '8 Medicatie' },
-  { id: 's9', label: '9 Infusen' },
-  { id: 's10', label: '10 Lijnen, sondes, tube' },
-  { id: 's11', label: '11 Procedures en gebeurtenissen' },
-  { id: 's12', label: '12 Ouders en gezin' },
-  { id: 's13', label: '13 Checklist voor vertrek' },
-  { id: 's14', label: '14 Afsluiting transport' },
+  { id: 'sdispatch', label: '5 Dispatch' },
+  { id: 's5', label: '6 Onderzoek transportteam' },
+  { id: 's6', label: '7 Tijdlijn' },
+  { id: 's7', label: '8 Overige diagnostiek' },
+  { id: 's8', label: '9 Medicatie' },
+  { id: 's9', label: '10 Infusen' },
+  { id: 's10', label: '11 Lijnen, sondes, tube' },
+  { id: 's11', label: '12 Procedures en gebeurtenissen' },
+  { id: 's12', label: '13 Ouders en gezin' },
+  { id: 's13', label: '14 Checklist voor vertrek' },
+  { id: 's14', label: '15 Afsluiting transport' },
 ];
 
 function goToSection(id: string) {
@@ -168,6 +170,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           <ReferralSection {...props} />
           <BirthSection {...props} />
           <ReferralConditionSection {...props} />
+          <DispatchSection {...props} />
           <TeamAssessmentSection {...props} />
           <TimelineSection {...props} />
           <OtherDiagnosticsSection {...props} />

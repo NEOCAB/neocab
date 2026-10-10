@@ -134,6 +134,7 @@ scripts/        ui-check.mjs (Playwright)
 - Amenorroeduur als één veld `weken+dagen`; gecorrigeerde leeftijd in plaats van postmenstruele leeftijd.
 - Sectie 2: eerst datum en tijd verwijzing, dan verwijzer (ziekenhuis, afdeling, naam, telefoon), dan ontvangende afdeling en ziekenhuis.
 - Infusen: *Medicatie en concentratie* in plaats van *Vloeistof of medicament*.
-- Contactgegevens ouders staan bij sectie 12: twee velden naast elkaar, *Telefoonnummer moeder* en *Telefoonnummer partner*; checklistpunt 5 bevat alleen de status. Oudere concepten met een lijst telefoonnummers worden bij laden omgezet (eerste nummer = moeder, overige = partner).
-- Sectie 1: het blauwe vak met gecorrigeerde leeftijd en postnatale dag staat rechts naast het veld Amenorroeduur, ook op een telefoon; de waarden hebben dezelfde lettergrootte als ingevulde waarden.
+- Contactgegevens ouders staan bij sectie 13 (Ouders en gezin): twee velden naast elkaar, *Telefoonnummer moeder* en *Telefoonnummer partner*; checklistpunt 5 bevat alleen de status. Oudere concepten met een lijst telefoonnummers worden bij laden omgezet (eerste nummer = moeder, overige = partner).
+- Sectie 1: het blauwe vak met gecorrigeerde leeftijd en postnatale dag staat rechts naast het veld Amenorroeduur, ook op een telefoon. Per waarde staat het label boven de waarde; de waarden hebben dezelfde lettergrootte als ingevulde waarden en staan op één lijn met de ingevulde amenorroeduur.
+- Nieuwe sectie 5 *Dispatch* (tussen Toestand bij verwijzing en Onderzoek door transportteam): *Ambulance gebeld om* en *Vertrokken met ambulance om*, standaard leeg met knop *Nu invullen*. De secties daarna zijn één nummer opgeschoven (nu 15 secties).
 - Geen toelichtingsteksten bij verwijzing en tijdlijn.

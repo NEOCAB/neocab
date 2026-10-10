@@ -435,36 +435,46 @@ fieldset.group > legend {
 }
 .gestation-row {
   align-items: stretch;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(7.5rem, 1fr) minmax(0, 2fr);
 }
 .gestation-row > .field {
   align-self: end;
 }
-/* Blauw vak met berekende leeftijd: vult de hoogte van label + invoerveld ernaast. */
+.gestation-field .num-input-wrap input {
+  padding-right: 3rem;
+}
+/*
+ * Blauw vak met berekende leeftijd: per waarde label boven, waarde eronder.
+ * De waarderegel is even hoog als een invoerveld en staat onderaan, zodat de waarden
+ * op één lijn staan met de ingevulde waarde links ervan.
+ */
 .gestation-row .computed {
   margin-bottom: 0.75rem;
-  min-height: var(--tap);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.2rem;
-  padding: 0.35rem 0.65rem;
-  line-height: 1.2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.75rem;
+  padding: 0.35rem 0.65rem 0;
 }
 .computed-item {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.5rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-width: 0;
 }
 .computed-label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
   color: var(--muted);
 }
-/* Zelfde grootte als ingevulde waarden in invoervelden (16px). */
+/* Zelfde grootte en verticale positie als ingevulde waarden in invoervelden (16px, 44px hoog). */
 .computed-value {
   font-size: 16px;
   color: var(--text);
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
 }
 .readonly-value {
   display: flex;

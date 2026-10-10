@@ -172,6 +172,13 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: '4 Toestand bij verwijzing', blocks: [{ rows: all.length ? all : [NOT_FILLED] }] });
   }
 
+  // 5 Dispatch
+  {
+    const b = new RowBuilder();
+    b.kv('Ambulance gebeld om', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrokken met ambulance om', fi(t.dispatch.departedWithAmbulanceAt));
+    sections.push({ title: '5 Dispatch', blocks: [{ rows: b.orEmpty() }] });
+  }
+
   // 5 Onderzoek door transportteam
   {
     const a = t.teamAssessment;
@@ -179,14 +186,14 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     b.kv('Aankomst bij verwijzend ziekenhuis', fi(a.arrivedAt));
     b.rows.push(...abcdRows(a.notes));
     b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan).kv('Laatste voeding', fi(a.lastFeedAt));
-    sections.push({ title: '5 Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: '6 Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 6 Tijdlijn: één tabel, elke rij is één meetmoment
   {
     const { table, rows } = timelineReportTable(t.measurements, timeZone);
     sections.push({
-      title: '6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen',
+      title: '7 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen',
       blocks: rows.length
         ? [
             { rows: [], table },
@@ -205,7 +212,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   {
     const b = new RowBuilder();
     b.para('Overige laboratoriumuitslagen', t.otherLabs).para('Beeldvorming en overige onderzoeken', t.imaging);
-    sections.push({ title: '7 Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: '8 Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 8 Medicatie
@@ -224,7 +231,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `${fi(m.at) || 'Tijdstip niet ingevuld'} · ${m.name || 'Medicament niet ingevuld'}`, rows: b.orEmpty() });
     }
     if (meds.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] });
-    sections.push({ title: '8 Medicatietoedieningen', blocks });
+    sections.push({ title: '9 Medicatietoedieningen', blocks });
   }
 
   // 9 Infusen
@@ -241,7 +248,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `${inf.name || 'Infuus'}${inf.stopAt ? ' (gestopt)' : ' (lopend)'}`, rows: b.rows });
     }
     if (infs.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] });
-    sections.push({ title: '9 Lopende infusen', blocks });
+    sections.push({ title: '10 Lopende infusen', blocks });
   }
 
   // 10 Lijnen, sondes, drains en endotracheale tube
@@ -268,15 +275,15 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `Endotracheale tube ${tubes.length > 1 ? i + 1 : ''}`.trim(), rows: b.rows });
     });
     if (blocks.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen lijnen, sondes, drains of tube geregistreerd.' }] });
-    sections.push({ title: '10 Lijnen, sondes, drains en endotracheale tube', blocks });
+    sections.push({ title: '11 Lijnen, sondes, drains en endotracheale tube', blocks });
   }
 
   // 11, 12
-  sections.push({ title: '11 Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
+  sections.push({ title: '12 Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
     b.kv('Telefoonnummer moeder', t.motherPhone.trim()).kv('Telefoonnummer partner', t.partnerPhone.trim());
-    sections.push({ title: '12 Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: '13 Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 13 Checklist
@@ -285,7 +292,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     CHECKLIST_KEYS.forEach((k, i) => {
       b.kv(`${i + 1}. ${CHECKLIST_LABELS[k]}`, CHECKLIST_STATUS_OPTIONS.find((o) => o.value === t.checklist[k])?.label ?? 'Nog niet gedaan');
     });
-    sections.push({ title: '13 Checklist voor vertrek', blocks: [{ rows: b.rows }] });
+    sections.push({ title: '14 Checklist voor vertrek', blocks: [{ rows: b.rows }] });
   }
 
   // 14 Afsluiting
@@ -293,7 +300,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const c = t.closure;
     const b = new RowBuilder();
     b.kv('Vertrek van cotside', fi(c.departedCotsideAt)).para('Gebeurtenissen tijdens transport', c.eventsDuringTransport).kv('Aankomst ontvangend centrum', fi(c.arrivedReceivingAt));
-    sections.push({ title: '14 Afsluiting transport', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: '15 Afsluiting transport', blocks: [{ rows: b.orEmpty() }] });
   }
 
   const meta = [

@@ -81,6 +81,12 @@ export interface ReferralCondition {
   advice: string;
 }
 
+/** Dispatch: inzet van de ambulance. */
+export interface Dispatch {
+  ambulanceCalledAt: Instant;
+  departedWithAmbulanceAt: Instant;
+}
+
 export interface TeamAssessment {
   arrivedAt: Instant;
   notes: AbcdNotes;
@@ -222,6 +228,7 @@ export interface Transport {
   referral: Referral;
   birth: Birth;
   referralCondition: ReferralCondition;
+  dispatch: Dispatch;
   teamAssessment: TeamAssessment;
   measurements: Measurement[];
   otherLabs: string;
