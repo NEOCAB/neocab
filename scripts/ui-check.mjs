@@ -141,7 +141,7 @@ async function basisLayout(page) {
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
-  check('Plastic staat vóór Medicatie', order.indexOf('Plastic') === order.indexOf('Medicatietoedieningen') - 1 || order.indexOf('Plastic') === order.indexOf('Medicatie') - 1, order.join(' | '));
+  check('Plastic staat vóór Medicatie', order.indexOf('Plastic') === order.indexOf('Medicatie') - 1, order.join(' | '));
   // Instelling: alleen ABCD-letters (links van het invulveld)
   await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
   await page.locator('details.settings summary').click();

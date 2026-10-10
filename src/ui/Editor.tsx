@@ -34,7 +34,7 @@ export const SECTIONS = [
   { id: 's8', label: 'Medicatie' },
   { id: 's9', label: 'Infusen' },
   { id: 's11', label: 'Notities' },
-  { id: 's12', label: 'Ouders en gezin' },
+  { id: 's12', label: 'Gezin' },
   { id: 's13', label: 'Checklist voor vertrek' },
   { id: 's14', label: 'Transport' },
 ];

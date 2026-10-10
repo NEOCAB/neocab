@@ -108,7 +108,10 @@ function DeviceChoice({ items, settings, onSettings, onAnonymizeAll }: { items: 
           </label>
         ))}
       </div>
-      <p className="muted small-print">De keuze geldt voor dit apparaat (standaard: werkapparaat).</p>
+      <p className="muted small-print">
+        Ingevulde gegevens worden alleen lokaal op dit apparaat bewaard. Op een apparaat van je werk geldt het privacybeleid van je organisatie. Op een persoonlijk apparaat kan je geen herleidbare
+        patiëntgegevens invullen, zoals naam of patiëntnummer.
+      </p>
     </fieldset>
   );
 }

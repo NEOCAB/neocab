@@ -261,7 +261,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `${fi(m.at) || 'Tijdstip niet ingevuld'} · ${m.name || 'Medicament niet ingevuld'}`, rows: b.orEmpty() });
     }
     if (meds.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] });
-    sections.push({ title: 'Medicatietoedieningen', blocks });
+    sections.push({ title: 'Medicatie', blocks });
   }
 
   // Infusen
@@ -278,15 +278,15 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `${inf.name || 'Infuus'}${inf.stopAt ? ' (gestopt)' : ' (lopend)'}`, rows: b.rows });
     }
     if (infs.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] });
-    sections.push({ title: 'Lopende infusen', blocks });
+    sections.push({ title: 'Infusen', blocks });
   }
 
-  // Notities, Ouders en gezin
+  // Notities, Gezin
   sections.push({ title: 'Notities', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
     b.kv('Telefoonnummer moeder', t.motherPhone.trim()).kv('Telefoonnummer partner', t.partnerPhone.trim());
-    sections.push({ title: 'Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Gezin', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // Checklist voor vertrek: bewust niet in het verslag (alleen in het formulier).

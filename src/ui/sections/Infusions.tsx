@@ -193,7 +193,7 @@ export function InfusionsSection({ t, update }: SectionProps) {
   const confirm = useConfirm();
   const setInf = (i: Infusion) => update((x) => ({ ...x, infusions: x.infusions.map((y) => (y.id === i.id ? i : y)) }));
   return (
-    <Section id="s9" title="Lopende infusen">
+    <Section id="s9" title="Infusen">
       <div className="list">
         {t.infusions.length === 0 && !adding && <p className="muted">Nog geen infusen.</p>}
         {t.infusions.map((inf) => (

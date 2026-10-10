@@ -15,7 +15,7 @@ export function MedicationsSection({ t, update }: SectionProps) {
   // Invoervolgorde tijdens bewerken (kaarten springen niet weg); het verslag sorteert chronologisch.
   const meds = t.medications;
   return (
-    <Section id="s8" title="Medicatietoedieningen">
+    <Section id="s8" title="Medicatie">
       <div className="list">
         {meds.length === 0 && <p className="muted">Nog geen toedieningen geregistreerd.</p>}
         {meds.map((m, i) => {
