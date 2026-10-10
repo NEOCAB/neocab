@@ -44,10 +44,21 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 `npm run ui-check` gebruikt `playwright-core` en een lokaal geïnstalleerde Chromium (zet zo nodig `CHROMIUM_PATH`). Screenshots en de gedownloade pdf's komen in `test-output/`. Met `WRITE_PDF=1 npx vitest run` worden ook `test-output/voorbeeld-verslag.pdf` en `test-output/groot-verslag.pdf` (63 meetmomenten en lange vrije tekst) geschreven voor handmatige review.
 
+## Huisstijl
+
+De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of naam van de organisatie:
+
+- Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Hoofdtekst 15 px, invoervelden 16 px (voorkomt inzoomen op iOS), koppen vet.
+- Kleuren: **donkerblauw `#003c7d`** als kernkleur (koppen, knoppen, tabelkop), **kobaltblauw `#007cc2`** als aanvullende kleur (focus, hover) en tinten daarvan (20%). Extra kleuren uit het palet: lichtblauw `#cee8ef` (berekende leeftijd, badges), zand `#f0e2d2` (meldingen), groen `#b9debc` (checklist gedaan) en rood `#ed1846` spaarzaam (checklist niet van toepassing, verwijderen).
+- Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
+- Witte vlakken met dunne grijze scheidingslijnen, strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
+- Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
+- PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
+
 ## Stack
 
 - Vite + React 19 + TypeScript (geen UI-framework; eigen CSS)
-- jsPDF voor het pdf-bestand, met het meegeleverde lettertype DejaVu Sans (`public/fonts`, vrije licentie in `DejaVu-LICENSE.txt`) zodat subscripts (FiO₂, HCO₃⁻), Δ en ° correct in de pdf staan
+- jsPDF voor het pdf-bestand, met het meegeleverde lettertype PT Sans (`public/fonts`, licentie in `PTSans-OFL.txt`); bevat subscripts (FiO₂, pCO₂), Δ en °
 - Vitest voor tests, playwright-core voor de interfacecontrole
 
 ## Opslag
@@ -130,7 +141,7 @@ scripts/        ui-check.mjs (Playwright)
 
 - Ontvangende afdeling en ontvangend ziekenhuis zijn standaard leeg.
 
-- Patiëntnummer (vrije tekst) in plaats van LUMC-patiëntnummer; geen geslacht, weegdatum of doseergewicht.
+- Patiëntnummer als vrije tekst; geen geslacht, weegdatum of doseergewicht.
 - Amenorroeduur als één veld `weken+dagen`; gecorrigeerde leeftijd in plaats van postmenstruele leeftijd.
 - Sectie 2: eerst datum en tijd verwijzing, dan verwijzer (ziekenhuis, afdeling, naam, telefoon), dan ontvangende afdeling en ziekenhuis.
 - Infusen: *Medicatie en concentratie* in plaats van *Vloeistof of medicament*.

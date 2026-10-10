@@ -13,6 +13,7 @@
     "build:artifact": "npm run build && node scripts/build-artifact.mjs"
   },
   "dependencies": {
+    "@fontsource/pt-sans": "^5.2.5",
     "jspdf": "^3.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

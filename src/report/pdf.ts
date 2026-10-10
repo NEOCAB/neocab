@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import type { Report, ReportBlock, ReportRow, ReportTable, ReportTableColumn } from './buildReport';
 
 export interface PdfFonts {
-  /** Base64 van DejaVuSans.ttf (Unicode: subscripts, Δ, °, ⁻). */
+  /** Base64 van PTSans-Regular.ttf (huisstijllettertype; bevat o.a. ₂, ₃, Δ, °). */
   regular: string;
   bold: string;
 }
@@ -11,7 +11,22 @@ const A4 = { w: 210, h: 297 };
 const M = { left: 12, right: 12, top: 18, bottom: 16 };
 
 const LABEL_W = 62;
-const FONT = 'DejaVu';
+const FONT = 'PTSans';
+
+/** Huisstijlkleuren (RGB). */
+const C = {
+  blue: [0, 60, 125] as [number, number, number], // donkerblauw, kernkleur
+  blue20: [204, 216, 229] as [number, number, number], // donkerblauw 20%
+  blue10: [242, 245, 249] as [number, number, number],
+  line: [200, 204, 209] as [number, number, number],
+  text: [26, 26, 26] as [number, number, number],
+  muted: [92, 102, 112] as [number, number, number],
+};
+
+/** Tekens die PT Sans niet bevat, vervangen door een gelijkwaardige weergave. */
+function pdfText(s: string): string {
+  return s.replace(/⁻/g, '-').replace(/→/g, 'naar').replace(/▲/g, '');
+}
 const SIZE = { body: 9.5, title: 16, section: 12.5, block: 10.5, meta: 8.5, footer: 8 };
 const LINE = (pt: number) => pt * 0.3528 * 1.32; // regelhoogte in mm
 
@@ -23,10 +38,10 @@ const LINE = (pt: number) => pt * 0.3528 * 1.32; // regelhoogte in mm
  */
 export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
-  doc.addFileToVFS('DejaVuSans.ttf', fonts.regular);
-  doc.addFont('DejaVuSans.ttf', FONT, 'normal');
-  doc.addFileToVFS('DejaVuSans-Bold.ttf', fonts.bold);
-  doc.addFont('DejaVuSans-Bold.ttf', FONT, 'bold');
+  doc.addFileToVFS('PTSans-Regular.ttf', fonts.regular);
+  doc.addFont('PTSans-Regular.ttf', FONT, 'normal');
+  doc.addFileToVFS('PTSans-Bold.ttf', fonts.bold);
+  doc.addFont('PTSans-Bold.ttf', FONT, 'bold');
   doc.setFont(FONT, 'normal');
   doc.setProperties({ title: report.title, subject: report.meta[0] ?? '', creator: 'Neonatale transportregistratie' });
 
@@ -47,8 +62,8 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     if (continuation) {
       doc.setFont(FONT, 'bold');
       doc.setFontSize(SIZE.body);
-      doc.setTextColor(20, 60, 95);
-      doc.text(`${continuation} (vervolg)`, M.left + 3, y + LINE(SIZE.body) * 0.75, { maxWidth: contentW - 6 });
+      doc.setTextColor(...C.blue);
+      doc.text(pdfText(`${continuation} (vervolg)`), M.left + 3, y + LINE(SIZE.body) * 0.75, { maxWidth: contentW - 6 });
       y += LINE(SIZE.body) + 1.5;
     }
   };
@@ -58,7 +73,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   const split = (text: string, width: number, size: number, bold = false): string[] => {
     doc.setFont(FONT, bold ? 'bold' : 'normal');
     doc.setFontSize(size);
-    return text.split('\n').flatMap((para) => (para === '' ? [''] : (doc.splitTextToSize(para, width) as string[])));
+    return pdfText(text).split('\n').flatMap((para) => (para === '' ? [''] : (doc.splitTextToSize(para, width) as string[])));
   };
   const writeLines = (lines: string[], x: number, size: number, bold = false, color: [number, number, number] = [20, 20, 20]) => {
     const lh = LINE(size);
@@ -73,7 +88,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   };
 
   // Titel
-  writeLines(split(report.title, contentW, SIZE.title, true), M.left, SIZE.title, true, [20, 60, 95]);
+  writeLines(split(report.title, contentW, SIZE.title, true), M.left, SIZE.title, true, C.blue);
   y += 1;
   for (const m of report.meta) writeLines(split(m, contentW, SIZE.meta), M.left, SIZE.meta, false, [70, 70, 70]);
   y += 3;
@@ -127,7 +142,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
       case 'sub':
         ensure(lh * 3);
         y += 1;
-        writeLines([row.text], x, SIZE.body, true, [20, 60, 95]);
+        writeLines([row.text], x, SIZE.body, true, C.blue);
         y += 1;
         break;
       case 'note':
@@ -269,24 +284,24 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
 
       const drawHeader = () => {
         doc.setLineWidth(0.15);
-        doc.setDrawColor(160, 172, 185);
-        doc.setFillColor(214, 228, 240);
+        doc.setDrawColor(...C.line);
+        doc.setFillColor(...C.blue);
         doc.rect(M.left, y, total + extra * idx.length, groupH, 'FD');
         spans.forEach((sp, k) => {
           doc.line(sp.x, y, sp.x, y + groupH + headH);
           doc.setFont(FONT, 'bold');
           doc.setFontSize(TS.group);
-          doc.setTextColor(20, 60, 95);
+          doc.setTextColor(255, 255, 255); // wit op volle kernkleur
           groupLines[k].forEach((l, li) => doc.text(l, sp.x + CELL_PAD, y + 0.8 + LINE(TS.group) * (li + 0.75)));
         });
         y += groupH;
-        doc.setFillColor(234, 241, 247);
+        doc.setFillColor(...C.blue20);
         doc.rect(M.left, y, total + extra * idx.length, headH, 'FD');
         cols.forEach((c, k) => {
           doc.line(xs[k], y, xs[k], y + headH);
           doc.setFont(FONT, 'bold');
           doc.setFontSize(TS.head);
-          doc.setTextColor(40, 40, 40);
+          doc.setTextColor(...C.text);
           if (rotated(c)) {
             // Van onder naar boven, onderaan uitgelijnd.
             doc.text(rotatedText(c), xs[k] + widths[k] / 2 + TS.head * 0.3528 * 0.35, y + headH - CELL_PAD, { angle: 90 });
@@ -317,10 +332,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
           drawHeader();
         }
         if (ri % 2 === 1) {
-          doc.setFillColor(246, 248, 250);
+          doc.setFillColor(...C.blue10);
           doc.rect(M.left, y, total + extra * idx.length, h, 'F');
         }
-        doc.setDrawColor(200, 208, 216);
+        doc.setDrawColor(...C.line);
         doc.setLineWidth(0.1);
         cols.forEach((c, k) => {
           const alert = table.alerts?.[ri]?.[idx[k]] ?? false;
@@ -330,14 +345,14 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
             doc.setDrawColor(224, 123, 0);
             doc.setLineWidth(0.5);
             doc.rect(xs[k] + 0.25, y + 0.25, widths[k] - 0.5, h - 0.5, 'FD');
-            doc.setDrawColor(200, 208, 216);
+            doc.setDrawColor(...C.line);
             doc.setLineWidth(0.1);
           }
           doc.line(xs[k], y, xs[k], y + h);
           doc.setFont(FONT, c.keyColumn || alert ? 'bold' : 'normal');
           doc.setFontSize(TS.cell);
           if (alert) doc.setTextColor(122, 60, 0);
-          else doc.setTextColor(15, 15, 15);
+          else doc.setTextColor(...C.text);
           cellLines[k].forEach((l, li) => doc.text(l, xs[k] + CELL_PAD, y + 0.7 + lhCell * (li + 0.75)));
         });
         doc.line(xs[xs.length - 1], y, xs[xs.length - 1], y + h);
@@ -379,7 +394,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     continuation = null;
     y += pad;
     if (block.card) {
-      doc.setDrawColor(190, 200, 210);
+      doc.setDrawColor(...C.line);
       doc.setLineWidth(0.3);
       const endPage = doc.getNumberOfPages();
       if (endPage === startPage) {
@@ -407,8 +422,8 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     const firstKeep = section.blocks[0] ? blockMetrics(section.blocks[0]).keep : 0;
     ensure(titleLines.length * LINE(SIZE.section) + 5 + firstKeep);
     y += 2;
-    writeLines(titleLines, M.left, SIZE.section, true, [20, 60, 95]);
-    doc.setDrawColor(20, 60, 95);
+    writeLines(titleLines, M.left, SIZE.section, true, C.blue);
+    doc.setDrawColor(...C.blue);
     doc.setLineWidth(0.4);
     doc.line(M.left, y + 0.5, M.left + contentW, y + 0.5);
     y += 3;
@@ -421,10 +436,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     doc.setPage(p);
     doc.setFont(FONT, 'normal');
     doc.setFontSize(SIZE.footer);
-    doc.setTextColor(110, 110, 110);
+    doc.setTextColor(...C.muted);
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    if (p > 1) doc.text(`${report.title}${report.meta[0] ? ` — ${report.meta[0]}` : ''}`, M.left, 10, { maxWidth: pw - M.left - M.right });
+    if (p > 1) doc.text(pdfText(`${report.title}${report.meta[0] ? ` — ${report.meta[0]}` : ''}`), M.left, 10, { maxWidth: pw - M.left - M.right });
     doc.text(`Pagina ${p} van ${pages}`, pw - M.right, ph - 8, { align: 'right' });
     doc.text('Neonatale transportregistratie — prototype', M.left, ph - 8);
   }
@@ -461,7 +476,7 @@ export function loadPdfFonts(baseUrl = import.meta.env?.BASE_URL ?? './'): Promi
       if (!res.ok) throw new Error(`Lettertype ${file} kon niet worden geladen.`);
       return arrayBufferToBase64(await res.arrayBuffer());
     };
-    fontCache = Promise.all([get('DejaVuSans.ttf'), get('DejaVuSans-Bold.ttf')]).then(([regular, bold]) => ({ regular, bold }));
+    fontCache = Promise.all([get('PTSans-Regular.ttf'), get('PTSans-Bold.ttf')]).then(([regular, bold]) => ({ regular, bold }));
     fontCache.catch(() => {
       fontCache = null;
     });

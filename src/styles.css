@@ -1,23 +1,33 @@
 :root {
+  /* Huisstijl: donkerblauw is de kernkleur, kobaltblauw aanvullend; tinten 80/60/40/20%. Rood alleen spaarzaam als highlight. */
+  --primary: #003c7d; /* donkerblauw 100% */
+  --primary-80: #336397;
+  --primary-20: #ccd8e5;
+  --primary-10: #e6ecf2;
+  --tint: #f2f5f9;
+  --accent: #007cc2; /* kobaltblauw 100% */
+  --accent-20: #cce5f3;
+  --lightblue: #cee8ef; /* extra kleur lichtblauw */
+  --sand: #f0e2d2; /* extra kleur zand */
+  --sand-line: #d9c5ae;
+  --green: #b9debc; /* extra kleur groen */
+  --green-line: #7fb985;
+  --danger: #ed1846; /* rood: highlight, spaarzaam */
   --alert-bg: #ffe0b8;
   --alert-border: #e07b00;
   --alert-text: #7a3c00;
-  --bg: #f3f6f9;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --text: #17212b;
-  --muted: #5b6875;
-  --border: #c9d3dd;
-  --primary: #1d5c8a;
-  --primary-dark: #154569;
-  --primary-soft: #e3eef7;
-  --danger: #b3261e;
-  --warning: #9a5b00;
-  --ok: #1e7340;
-  --focus: #f0a400;
-  --radius: 10px;
+  --text: #1a1a1a; /* lopende tekst bij voorkeur zwart */
+  --muted: #5c6670;
+  --border: #b9bfc6;
+  --line: #d9dcdf;
+  --warning: #7a3c00;
+  --focus: #007cc2;
+  --radius: 2px;
   --tap: 44px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
+  font-family: 'PT Sans', Calibri, 'Segoe UI', Arial, sans-serif;
+  font-size: 15px; /* huisstijl: hoofdtekst 15 px */
   line-height: 1.45;
   color: var(--text);
   background: var(--bg);
@@ -34,24 +44,35 @@ body {
   overflow-x: hidden;
 }
 
+/* Koppen in donkerblauw, nooit zwart. */
+h1,
+h2,
+h3,
+h4,
+legend {
+  color: var(--primary);
+  text-wrap: balance;
+}
 h1 {
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
   margin: 0 0 0.25rem;
 }
 h2 {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 h3 {
-  font-size: 1.05rem;
+  font-size: 1.2rem; /* huisstijl H3: 18 px vet */
+  font-weight: 700;
   margin: 0 0 0.5rem;
 }
 h4 {
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin: 0.25rem 0;
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -80,7 +101,7 @@ button {
   font: inherit;
   min-height: var(--tap);
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1px solid transparent;
   cursor: pointer;
   touch-action: manipulation;
@@ -95,7 +116,7 @@ button.primary {
   font-weight: 600;
 }
 button.primary:hover {
-  background: var(--primary-dark);
+  background: var(--primary-80);
 }
 button.secondary {
   background: var(--surface);
@@ -103,7 +124,7 @@ button.secondary {
   border-color: var(--primary);
 }
 button.warning {
-  background: #fff4e0;
+  background: var(--sand);
   color: var(--warning);
   border-color: var(--warning);
   font-weight: 600;
@@ -147,8 +168,11 @@ button.large {
   min-width: 0;
   margin-bottom: 0.75rem;
 }
-.field-label {
-  font-weight: 600;
+/* Veldlabels in zwart; alleen koppen en groepstitels in donkerblauw. */
+.field-label,
+legend.field-label {
+  color: var(--text);
+  font-weight: 700;
   font-size: 0.92rem;
 }
 input,
@@ -160,7 +184,7 @@ textarea {
   min-height: var(--tap);
   padding: 0.5rem 0.65rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fff;
   color: var(--text);
   min-width: 0;
@@ -170,7 +194,7 @@ textarea {
   line-height: 1.4;
 }
 input:disabled {
-  background: #eef1f4;
+  background: var(--line);
 }
 input[type='datetime-local'],
 input[type='date'],
@@ -221,13 +245,13 @@ input[type='time'] {
   flex: none;
   font-size: 0.78rem;
   padding: 0.2rem 0.45rem;
-  background: #f4f6f8;
+  background: var(--tint);
   color: var(--muted);
   border: 1px solid var(--border);
   min-width: var(--tap);
 }
 .unknown-toggle.on {
-  background: #fff4e0;
+  background: var(--sand);
   color: var(--warning);
   border-color: var(--warning);
   font-weight: 600;
@@ -285,7 +309,7 @@ fieldset.group > legend {
   min-height: var(--tap);
   padding: 0.4rem 0.85rem;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: #fff;
   font-size: 0.95rem;
 }
@@ -400,18 +424,18 @@ fieldset.group > legend {
   display: inline-block;
   font-size: 0.78rem;
   padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary-dark);
-  font-weight: 600;
+  border-radius: var(--radius);
+  background: var(--lightblue);
+  color: var(--primary);
+  font-weight: 700;
   margin-right: 0.35rem;
 }
 .badge.ok {
-  background: #e2f3e8;
-  color: var(--ok);
+  background: var(--green);
+  color: var(--text);
 }
 .badge.neutral {
-  background: #eceff2;
+  background: var(--tint);
   color: var(--muted);
 }
 .list {
@@ -420,15 +444,15 @@ fieldset.group > legend {
   margin-bottom: 0.75rem;
 }
 .notice {
-  background: #fff8e6;
-  border: 1px solid #f0d28a;
-  border-radius: 8px;
+  background: var(--sand);
+  border: 1px solid var(--sand-line);
+  border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
   font-size: 0.92rem;
 }
 .computed {
-  background: var(--primary-soft);
-  border-radius: 8px;
+  background: var(--lightblue);
+  border-radius: var(--radius);
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.75rem;
   font-size: 0.95rem;
@@ -478,8 +502,8 @@ fieldset.group > legend {
   min-height: var(--tap);
   padding: 0.5rem 0.65rem;
   border: 1px dashed var(--border);
-  border-radius: 8px;
-  background: #f8fafb;
+  border-radius: var(--radius);
+  background: var(--tint);
   font-weight: 600;
 }
 .dose-weight {
@@ -503,7 +527,6 @@ fieldset.group > legend {
   background: #fff;
   border-bottom: 1px solid var(--border);
   padding: 0.3rem 16px 0.4rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -554,7 +577,7 @@ fieldset.group > legend {
 }
 .save-status {
   font-size: 0.75rem;
-  color: var(--ok);
+  color: var(--muted);
 }
 .save-status.pending {
   color: var(--muted);
@@ -593,17 +616,20 @@ fieldset.group > legend {
   min-width: 0;
 }
 .form-section {
+  /* Huisstijl: witte vlakken, gescheiden door dunne grijze lijnen. */
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.5rem 1rem 1rem;
-  margin-bottom: 1rem;
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 0 1.25rem;
   scroll-margin-top: 7.5rem;
 }
+.form-section:first-child {
+  border-top: none;
+}
 .form-section > h2 {
-  color: var(--primary-dark);
-  border-bottom: 2px solid var(--primary-soft);
-  padding-bottom: 0.35rem;
+  color: var(--primary);
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin: 0.25rem 0 0.75rem;
 }
 .section-intro {
   color: var(--muted);
@@ -639,14 +665,18 @@ fieldset.group > legend {
   }
   .sidenav a {
     display: block;
-    padding: 0.45rem 0.6rem;
-    border-radius: 6px;
-    color: var(--text);
+    padding: 0.5rem 0.6rem 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--primary);
     text-decoration: none;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
   }
   .sidenav a:hover {
-    background: var(--primary-soft);
+    color: var(--accent);
+  }
+  .sidenav {
+    border-right: 1px solid var(--line);
+    padding-right: 1rem;
   }
   .form-section {
     scroll-margin-top: 5rem;
@@ -663,12 +693,12 @@ fieldset.group > legend {
   border-left: 4px solid var(--primary);
 }
 .card-block {
-  border-top: 1px solid #eef1f4;
+  border-top: 1px solid var(--line);
   padding-top: 0.35rem;
   margin-top: 0.35rem;
 }
 .card-block h4 {
-  color: var(--primary-dark);
+  color: var(--primary);
 }
 .chips {
   list-style: none;
@@ -679,8 +709,8 @@ fieldset.group > legend {
   gap: 0.3rem 0.4rem;
 }
 .chips li {
-  background: #f2f5f8;
-  border-radius: 6px;
+  background: var(--tint);
+  border-radius: var(--radius);
   padding: 0.15rem 0.45rem;
   font-size: 0.92rem;
 }
@@ -689,20 +719,19 @@ fieldset.group > legend {
 }
 .tube-line {
   font-size: 0.9rem;
-  background: #f2f5f8;
-  border-radius: 6px;
+  background: var(--tint);
+  border-radius: var(--radius);
   padding: 0.35rem 0.5rem;
 }
 .editor {
   border: 2px solid var(--primary);
-  box-shadow: 0 2px 10px rgba(29, 92, 138, 0.12);
   scroll-margin-top: 9rem;
 }
 .block-title {
   margin-top: 1rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border);
-  color: var(--primary-dark);
+  color: var(--primary);
 }
 .editor-actions {
   display: flex;
@@ -725,7 +754,7 @@ fieldset.group > legend {
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin: 0.5rem 0 0.75rem;
   background: #fff;
 }
@@ -740,21 +769,22 @@ fieldset.group > legend {
 .data-table th,
 .data-table td {
   padding: 0.35rem 0.5rem;
-  border-right: 1px solid #e3e8ee;
-  border-bottom: 1px solid #e3e8ee;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
   white-space: nowrap;
 }
 .data-table thead th {
-  background: #eaf1f7;
+  background: var(--primary-20);
   font-size: 0.78rem;
   line-height: 1.2;
   vertical-align: bottom;
 }
 .data-table .group-row th {
-  background: #d6e4f0;
-  color: var(--primary-dark);
+  /* Witte tekst alleen op volle (100%) kleur. */
+  background: var(--primary);
+  color: #fff;
   font-size: 0.8rem;
   border-left: 2px solid #fff;
 }
@@ -765,11 +795,11 @@ fieldset.group > legend {
 }
 .data-table tbody tr:nth-child(even) td,
 .data-table tbody tr:nth-child(even) th {
-  background: #f6f8fa;
+  background: var(--tint);
 }
 .data-table tbody tr.editing td,
 .data-table tbody tr.editing th {
-  background: #fff4e0;
+  background: var(--sand);
 }
 .data-table td.unknown {
   color: var(--warning);
@@ -782,16 +812,16 @@ fieldset.group > legend {
   left: 0;
   z-index: 1;
   background: #fff;
-  border-right: 2px solid #c9d3dd;
+  border-right: 2px solid var(--border);
   white-space: pre-line;
 }
 .data-table thead .col-0,
 .data-table .sticky-group {
-  background: #eaf1f7;
+  background: var(--primary-20);
   z-index: 2;
 }
 .data-table .sticky-group {
-  background: #d6e4f0;
+  background: var(--primary);
 }
 .row-edit {
   min-height: var(--tap);
@@ -828,9 +858,9 @@ fieldset.group > legend {
   box-shadow: inset 0 0 0 2px var(--alert-border);
 }
 .oi-line {
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 0.45rem 0.65rem;
-  background: #f2f5f8;
+  background: var(--tint);
   font-size: 0.95rem;
 }
 .oi-line.alert {
@@ -849,7 +879,7 @@ fieldset.group > legend {
 }
 .rate-history li,
 .tube-history li {
-  border-bottom: 1px solid #eef1f4;
+  border-bottom: 1px solid var(--line);
   padding: 0.35rem 0;
 }
 .tube-history li {
@@ -868,7 +898,7 @@ fieldset.group > legend {
 }
 .infusion.stopped {
   opacity: 0.9;
-  background: #fafbfc;
+  background: var(--tint);
 }
 .add-row {
   display: flex;
@@ -906,7 +936,7 @@ fieldset.group > legend {
   padding: 0;
 }
 .checklist > li + li {
-  border-top: 1px solid #eef1f4;
+  border-top: 1px solid var(--line);
 }
 .check-row {
   display: flex;
@@ -917,13 +947,13 @@ fieldset.group > legend {
   padding: 0.45rem 0.25rem;
   background: none;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius);
   text-align: left;
   color: var(--text);
   font-weight: 400;
 }
 .check-row:hover {
-  background: #f4f7fa;
+  background: var(--tint);
 }
 .check-row.nvt .check-text {
   color: var(--muted);
@@ -934,8 +964,8 @@ fieldset.group > legend {
   place-items: center;
   width: 1.6rem;
   height: 1.6rem;
-  border: 2px solid #8a98a6;
-  border-radius: 5px;
+  border: 2px solid var(--muted);
+  border-radius: var(--radius);
   background: #fff;
   color: #fff;
   font-weight: 700;
@@ -943,8 +973,9 @@ fieldset.group > legend {
   line-height: 1;
 }
 .check-box.gedaan {
-  background: var(--ok);
-  border-color: var(--ok);
+  background: var(--green);
+  border-color: var(--green-line);
+  color: var(--text);
 }
 .check-box.nvt {
   background: var(--danger);
@@ -980,7 +1011,7 @@ fieldset.group > legend {
   padding: 1.25rem;
 }
 .report h1 {
-  color: var(--primary-dark);
+  color: var(--primary);
 }
 .report-patient {
   font-weight: 700;
@@ -988,14 +1019,14 @@ fieldset.group > legend {
   margin: 0.25rem 0;
 }
 .r-section h2 {
-  color: var(--primary-dark);
+  color: var(--primary);
   border-bottom: 2px solid var(--primary);
   padding-bottom: 0.2rem;
   margin-top: 1.5rem;
 }
 .r-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
   margin: 0.6rem 0;
   break-inside: avoid;
@@ -1015,7 +1046,7 @@ fieldset.group > legend {
 .r-kv dt,
 .r-para dt {
   font-weight: 600;
-  color: #3b4652;
+  color: var(--text);
 }
 .r-kv dd,
 .r-para dd {
@@ -1026,7 +1057,7 @@ fieldset.group > legend {
 }
 .r-sub {
   margin: 0.6rem 0 0.2rem;
-  color: var(--primary-dark);
+  color: var(--primary);
   font-size: 0.92rem;
 }
 @media (max-width: 560px) {
@@ -1138,7 +1169,6 @@ fieldset.group > legend {
   padding: 1.1rem 1.2rem;
   max-width: 26rem;
   width: 100%;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 .confirm-dialog p {
   margin: 0 0 1rem;
@@ -1152,7 +1182,7 @@ button.danger-button {
 .storage-warning {
   margin: 0;
   padding: 0.6rem 16px;
-  background: #fff4e0;
+  background: var(--sand);
   color: var(--warning);
   font-weight: 600;
 }

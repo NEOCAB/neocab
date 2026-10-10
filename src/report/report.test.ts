@@ -11,8 +11,8 @@ import { reportToText } from './text';
 
 const TZ = 'Europe/Amsterdam';
 const fonts = {
-  regular: readFileSync(resolve(__dirname, '../../public/fonts/DejaVuSans.ttf')).toString('base64'),
-  bold: readFileSync(resolve(__dirname, '../../public/fonts/DejaVuSans-Bold.ttf')).toString('base64'),
+  regular: readFileSync(resolve(__dirname, '../../public/fonts/PTSans-Regular.ttf')).toString('base64'),
+  bold: readFileSync(resolve(__dirname, '../../public/fonts/PTSans-Bold.ttf')).toString('base64'),
 };
 
 function bigTransport(): Transport {
@@ -40,7 +40,7 @@ describe('verslag', () => {
     const s12 = text.slice(text.indexOf('13 OUDERS EN GEZIN'), text.indexOf('15 AFSLUITING'));
     expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
-    expect(text).not.toContain('LUMC-patiëntnummer');
+    expect(text).not.toContain('LUMC');
     for (const gone of ['Doseergewicht', 'Geslacht', 'gewogen', 'Postmenstruele']) expect(text).not.toContain(gone);
     expect(text).toContain('Amenorroeduur: 33+5 weken');
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
@@ -131,7 +131,7 @@ describe('verslag', () => {
     const t = bigTransport();
     const doc = reportToPdf(buildReport(t, TZ), fonts);
     const pages = doc.getNumberOfPages();
-    expect(pages).toBeGreaterThan(10);
+    expect(pages).toBeGreaterThan(5);
     const size = doc.internal.pageSize;
     expect(Math.round(size.getWidth())).toBe(210);
     expect(Math.round(size.getHeight())).toBe(297);

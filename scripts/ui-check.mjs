@@ -95,6 +95,17 @@ async function unlabeledControls(page) {
   });
   check('Eerste regel van de waarde op één lijn met ingevulde waarde', Math.abs(firstLine[0] - firstLine[1]) <= 2, firstLine.join(' / '));
 
+  // Huisstijl: PT Sans, koppen donkerblauw, geen verwijzing naar de organisatie
+  const style = await page.evaluate(() => ({
+    font: getComputedStyle(document.body).fontFamily,
+    loaded: document.fonts.check('15px "PT Sans"'),
+    h2: getComputedStyle(document.querySelector('#s1 h2')).color,
+    primary: getComputedStyle(document.querySelector('button.primary')).backgroundColor,
+  }));
+  check('Huisstijl: PT Sans geladen', style.font.includes('PT Sans') && style.loaded, JSON.stringify(style));
+  check('Huisstijl: koppen en primaire knop donkerblauw #003c7d', style.h2 === 'rgb(0, 60, 125)' && style.primary === 'rgb(0, 60, 125)', `${style.h2} / ${style.primary}`);
+  check('Geen verwijzing naar LUMC in de app', !(await page.content()).includes('LUMC'));
+
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Dispatch als box 5 tussen 4 en 6', order[3]?.startsWith('4 ') && order[4] === '5 Dispatch' && order[5]?.startsWith('6 Onderzoek') && order.length === 15, order.join(' | '));

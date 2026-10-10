@@ -213,7 +213,6 @@ export const HOSPITAL_SUGGESTIONS = [
   'HagaZiekenhuis',
   'Haaglanden Medisch Centrum',
   'Ikazia Ziekenhuis',
-  'LUMC',
   'Maasstad Ziekenhuis',
   'Reinier de Graaf',
   'Spaarne Gasthuis',
