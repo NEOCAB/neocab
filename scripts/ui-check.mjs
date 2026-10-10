@@ -214,7 +214,7 @@ async function unlabeledControls(page) {
   check('Geen horizontaal scrollen op 390 px (verslag)', await noHorizontalScroll(page));
   const reportText = await page.locator('#email-text').inputValue();
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
-  check('E-mailtekst bevat "Nog niet gedaan"', reportText.includes('Nog niet gedaan'));
+  check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
   check('E-mailtekst bevat infuushistorie', reportText.includes('3,2 mL/uur') && reportText.includes('4 mL/uur'));
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Pdf downloaden' }).click()]);
   const pdfPath = `${OUT}/${download.suggestedFilename()}`;

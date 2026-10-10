@@ -1,9 +1,7 @@
 import type { AbcdNotes, BloodGasCord, Measurement, Num, Transport, TubeVersion } from '../domain/types';
-import { ABCD_KEYS, CHECKLIST_KEYS } from '../domain/types';
+import { ABCD_KEYS } from '../domain/types';
 import {
   ABCD_LABELS,
-  CHECKLIST_LABELS,
-  CHECKLIST_STATUS_OPTIONS,
   CORTICO_OPTIONS,
   LINE_TYPE_LABELS,
   TUBE_ROUTE_OPTIONS,
@@ -286,14 +284,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: '13 Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 13 Checklist
-  {
-    const b = new RowBuilder();
-    CHECKLIST_KEYS.forEach((k, i) => {
-      b.kv(`${i + 1}. ${CHECKLIST_LABELS[k]}`, CHECKLIST_STATUS_OPTIONS.find((o) => o.value === t.checklist[k])?.label ?? 'Nog niet gedaan');
-    });
-    sections.push({ title: '14 Checklist voor vertrek', blocks: [{ rows: b.rows }] });
-  }
+  // 14 Checklist voor vertrek: bewust niet in het verslag (alleen in het formulier).
 
   // 14 Afsluiting
   {

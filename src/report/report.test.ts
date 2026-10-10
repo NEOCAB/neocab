@@ -32,12 +32,12 @@ function bigTransport(): Transport {
 }
 
 describe('verslag', () => {
-  it('bevat alle secties, eenheden en de checkliststatus "Nog niet gedaan"', () => {
+  it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    for (const h of ['1 BASISGEGEVENS KIND', '5 DISPATCH', '6 ONDERZOEK DOOR TRANSPORTTEAM', '7 TIJDLIJN', '14 CHECKLIST VOOR VERTREK', '15 AFSLUITING TRANSPORT']) expect(text).toContain(h);
+    for (const h of ['1 BASISGEGEVENS KIND', '5 DISPATCH', '6 ONDERZOEK DOOR TRANSPORTTEAM', '7 TIJDLIJN', '13 OUDERS EN GEZIN', '15 AFSLUITING TRANSPORT']) expect(text).toContain(h);
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
-    expect(text).toContain('Beeldvorming beschikbaar voor ontvangend ziekenhuis: Nog niet gedaan');
-    const s12 = text.slice(text.indexOf('13 OUDERS EN GEZIN'), text.indexOf('14 CHECKLIST'));
+    for (const gone of ['CHECKLIST', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
+    const s12 = text.slice(text.indexOf('13 OUDERS EN GEZIN'), text.indexOf('15 AFSLUITING'));
     expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
     expect(text).not.toContain('LUMC-patiëntnummer');
