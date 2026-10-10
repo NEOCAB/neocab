@@ -81,6 +81,17 @@ describe('verslag', () => {
     expect(col('etCO₂', 'kPa')).toBe(-1);
   });
 
+  it('toont de datum in de tijdkolom alleen als meetmomenten over meerdere dagen gaan', () => {
+    const t = sampleTransport(TZ);
+    const tijd = (tt: typeof t) => {
+      const table = buildReport(tt, TZ).sections.find((s) => s.title.startsWith('7 '))!.blocks.find((b) => b.table)!.table!;
+      return table.rows.map((r) => r[0]);
+    };
+    expect(tijd(t)[0]).toBe('09-10-2026\n23:10'); // over middernacht: met datum
+    const sameDay = { ...t, measurements: t.measurements.slice(0, 2) };
+    expect(tijd(sameDay)).toEqual(['23:10', '23:45']); // één dag: alleen tijd
+  });
+
   it('berekent de OI in de tabel en markeert OI > 25 als alert', () => {
     const t = sampleTransport(TZ);
     const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('7 '))!;

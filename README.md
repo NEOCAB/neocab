@@ -48,11 +48,12 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of naam van de organisatie:
 
-- Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Basistekst 16 px voor leesbaarheid op tablet en telefoon (de richtlijn noemt 15 px), koppen vet.
+- Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Hoofdtekst 15 px volgens de richtlijn; invoervelden 16 px (voorkomt inzoomen op iOS); koppen vet.
 - Kleuren: **donkerblauw `#003c7d`** als kernkleur (koppen, knoppen, tabelkop), **kobaltblauw `#007cc2`** als aanvullende kleur (focus, hover) en tinten daarvan (20%). Extra kleuren uit het palet: lichtblauw `#cee8ef` (berekende leeftijd, badges), zand `#f0e2d2` (meldingen), groen `#b9debc` (checklist gedaan) en rood `#ed1846` spaarzaam (checklist niet van toepassing, verwijderen).
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
 - Witte vlakken met dunne grijze scheidingslijnen, strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
-- Tijdlijntabel (scherm): horizontale kolomkoppen met eenheid eronder, getallen rechts uitgelijnd, groepen gescheiden door een lijn, tijd groot en datum klein in de vaste eerste kolom. De pdf houdt verticale kolomkoppen zodat de hele tabel op een liggende A4 past.
+- Tijdlijntabel: compacte waarden, verticale kolomkoppen in de tweede rij (eenheid tussen haakjes), getallen rechts uitgelijnd, groepen gescheiden door een lijn, tijd vet in de vaste eerste kolom. De datum staat alleen onder de tijd als de meetmomenten over meer dan één kalenderdag gaan.
+- Gecorrigeerde leeftijd: opgemaakt als een invoerveld (label erboven, zelfde hoogte, rand en lettergrootte), met lichtblauwe achtergrond en niet invulbaar.
 - Alle datum/tijdvelden hebben de knoppen *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en *Wissen*; bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
 - PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
@@ -90,7 +91,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 40 tests):
+Unit-tests (`npm test`, 41 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 

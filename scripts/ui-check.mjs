@@ -66,11 +66,18 @@ async function unlabeledControls(page) {
   check('Validatiebericht bij ongeldige dagen', await page.getByText('Het aantal dagen is 0 tot en met 6.').isVisible());
   await ga.fill('33+5');
   await ga.blur();
-  const ca = await page.locator('.computed').textContent();
+  const ca = await page.locator('#s1 .computed-value').textContent();
   const cb = await page.locator('#s1 .computed').boundingBox();
   const gb = await ga.boundingBox();
   const sizes = await page.evaluate(() => [getComputedStyle(document.querySelector('#s1 .computed-value')).fontSize, getComputedStyle(document.querySelector('#s1 .gestation-field input')).fontSize]);
   check('Waarden in blauw vak even groot als invoer', sizes[0] === sizes[1], sizes.join(' / '));
+  const fieldLike = await page.evaluate(() => {
+    const o = document.querySelector('#s1 .computed-value').getBoundingClientRect();
+    const i = document.querySelector('#s1 .gestation-field input').getBoundingClientRect();
+    const st = getComputedStyle(document.querySelector('#s1 .computed-value'));
+    return { h: [Math.round(o.height), Math.round(i.height)], top: [Math.round(o.top), Math.round(i.top)], tag: document.querySelector('#s1 .computed-value').tagName, border: st.borderTopWidth };
+  });
+  check('Gecorrigeerde leeftijd opgemaakt als veld (zelfde hoogte en hoogte op pagina, niet invulbaar)', fieldLike.h[0] === fieldLike.h[1] && Math.abs(fieldLike.top[0] - fieldLike.top[1]) <= 1 && fieldLike.tag === 'OUTPUT' && fieldLike.border === '1px', JSON.stringify(fieldLike));
   const centers = await page.evaluate(() => {
     const mid = (el) => { const r = el.getBoundingClientRect(); return Math.round(r.top + r.height / 2); };
     return [mid(document.querySelector('#s1 .gestation-field input')), ...[...document.querySelectorAll('#s1 .computed-value')].map(mid)];
@@ -78,8 +85,8 @@ async function unlabeledControls(page) {
   check('Waarde in blauw vak op één lijn met ingevulde waarde', centers.length === 2 && centers.every((c) => Math.abs(c - centers[0]) <= 1), centers.join(' / '));
   check('Blauw vak even breed als amenorroeduur', !!cb && !!gb && Math.abs(cb.width - gb.width) <= 1, `${cb?.width} / ${gb?.width}`);
   check('Blauw vak rechts van amenorroeduur, gelijke onderkant', !!cb && !!gb && cb.x > gb.x && Math.abs(cb.y + cb.height - (gb.y + gb.height)) < 3, JSON.stringify([cb, gb]));
-  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd33+5 wk · dag 1'), ca);
-  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('dag 1') && !ca?.includes('Postnatale'), ca);
+  check('Gecorrigeerde leeftijd berekend', ca?.startsWith('33+5 wk · dag 1'), ca);
+  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('dag 1') && !ca?.includes('Postnatale') && (await page.locator('#s1 .field-label', { hasText: 'Gecorrigeerde leeftijd' }).count()) === 1, ca);
 
   // Leeftijd in uren en minuten (< 72 uur): geboren vandaag 00:00
   await page.getByLabel('Geboortetijd', { exact: true }).fill('00:00');

@@ -42,25 +42,25 @@ export function ChildSection({ t, update }: SectionProps) {
           days={c.gestationalAgeDays}
           onChange={(w, d) => update((x) => ({ ...x, child: { ...x.child, gestationalAgeWeeks: w, gestationalAgeDays: d } }))}
         />
-        <div className="computed" aria-live="polite">
-          <div className="computed-item">
-            <span className="computed-label">Gecorrigeerde leeftijd</span>
-            <span className="computed-value">
-              {ca ? (
-                <>
-                  <span className="computed-hours">{`${ca.weeks}+${ca.days} wk · dag ${ca.postnatalDay}`}</span>
-                  {young && (
-                    <>
-                      {' '}
-                      <span className="computed-hours">{`· ${young.hours} u ${young.minutes} min`}</span>
-                    </>
-                  )}
-                </>
-              ) : (
-                '—'
-              )}
-            </span>
-          </div>
+        <div className="field">
+          <span className="field-label" id="corrected-age-label">
+            Gecorrigeerde leeftijd
+          </span>
+          <output className="computed computed-value" aria-labelledby="corrected-age-label" aria-live="polite">
+            {ca ? (
+              <>
+                <span className="computed-hours">{`${ca.weeks}+${ca.days} wk · dag ${ca.postnatalDay}`}</span>
+                {young && (
+                  <>
+                    {' '}
+                    <span className="computed-hours">{`· ${young.hours} u ${young.minutes} min`}</span>
+                  </>
+                )}
+              </>
+            ) : (
+              '—'
+            )}
+          </output>
         </div>
       </div>
       <div className="grid">

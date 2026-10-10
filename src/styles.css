@@ -27,7 +27,7 @@
   --radius: 2px;
   --tap: 44px;
   font-family: 'PT Sans', Calibri, 'Segoe UI', Arial, sans-serif;
-  font-size: 16px; /* leesbaarheid op tablet/telefoon; huisstijl noemt 15 px voor hoofdtekst */
+  font-size: 15px; /* huisstijl: hoofdtekst 15 px (invoervelden 16 px tegen inzoomen op iOS) */
   line-height: 1.45;
   color: var(--text);
   background: var(--bg);
@@ -475,40 +475,24 @@ fieldset.group > legend {
   font-size: 0.95rem;
 }
 .gestation-row {
-  align-items: start;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
 }
-/*
- * Blauw vak met berekende leeftijd. Label en waarde hebben dezelfde maten als label en invoer
- * van het veld ernaast, zodat (de eerste regel van) de waarde op één lijn staat met de ingevulde waarde.
- */
-.gestation-row > .field,
-.gestation-row .computed {
-  padding-top: 0.35rem;
-}
-.gestation-row .computed {
-  margin-bottom: 0.75rem;
-  padding-inline: 0.65rem;
-  padding-bottom: 0.1rem;
-}
-.computed-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-.computed-label {
-  font-size: 0.78rem;
-  line-height: calc(0.92rem * 1.45);
-  color: var(--muted);
-}
-/* Zelfde grootte en positie als ingevulde waarden in invoervelden (16px, regelhoogte 1.45, veld 44px). */
+/* Berekende gecorrigeerde leeftijd: opgemaakt als invoerveld (zelfde hoogte, rand, letter), blauw en niet invulbaar. */
 .computed-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.3em;
+  min-height: var(--tap);
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--lightblue);
   font-size: 16px;
   line-height: 1.45;
   color: var(--text);
-  min-height: var(--tap);
-  padding-top: calc((var(--tap) - 1.45em) / 2);
+  cursor: default;
 }
 .computed-hours {
   white-space: nowrap;
@@ -778,14 +762,14 @@ fieldset.group > legend {
 .data-table {
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 1rem;
+  font-size: 0.87rem;
   font-variant-numeric: tabular-nums;
   width: max-content;
   min-width: 100%;
 }
 .data-table th,
 .data-table td {
-  padding: 0.6rem 0.75rem;
+  padding: 0.4rem 0.55rem;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: middle;
@@ -797,7 +781,7 @@ fieldset.group > legend {
   text-align: right;
 }
 .data-table td.num {
-  min-width: 3.4rem;
+  min-width: 2.6rem;
 }
 /* Duidelijke scheiding tussen kolomgroepen. */
 .data-table .gstart {
@@ -819,16 +803,25 @@ fieldset.group > legend {
   line-height: 1.15;
 }
 .th-label {
-  display: block;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 .th-unit {
-  display: block;
   font-weight: 400;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--muted);
-  margin-top: 0.15rem;
+}
+/* Kolomkoppen in de tweede rij verticaal (van onder naar boven); de tijdkolom horizontaal. */
+.data-table .head-row th:not(.key) {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: left;
+  vertical-align: bottom;
+  padding: 0.55rem 0.3rem;
+  white-space: nowrap;
+}
+.data-table .head-row th.num:not(.key) {
+  text-align: left;
 }
 .data-table tbody tr:nth-child(even) td,
 .data-table tbody tr:nth-child(even) th {
@@ -865,7 +858,7 @@ fieldset.group > legend {
 .ts-time {
   display: block;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: var(--text);
 }
 .ts-date {

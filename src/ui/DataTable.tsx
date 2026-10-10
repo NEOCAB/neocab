@@ -58,7 +58,7 @@ export function DataTable({
             {cols.map((c, i) => (
               <th key={i} scope="col" className={cls(i, c.keyColumn ? 'key' : '')} title={c.fullLabel}>
                 <span className="th-label">{c.header}</span>
-                {c.unit && <span className="th-unit">{c.unit}</span>}
+                {c.unit && <span className="th-unit"> ({c.unit})</span>}
               </th>
             ))}
           </tr>

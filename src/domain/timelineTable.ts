@@ -1,7 +1,7 @@
 import type { Measurement, Num } from './types';
 import { RESP_MODE_LABELS, respFieldsFor } from './labels';
 import { formatNum } from './num';
-import { formatInstant } from './time';
+import { formatInstant, localDateOf } from './time';
 import { sortedMeasurements } from './timeline';
 import { formatOi, isOiAlert, oxygenationIndex } from './oi';
 
@@ -96,9 +96,12 @@ function stamp(i: string | null, timeZone: string): string {
 }
 
 /** Alle mogelijke kolommen. */
-export function allTimelineColumns(timeZone: string): TimelineColumn[] {
+/**
+ * Alle mogelijke kolommen. `withDate`: datum tonen in de tijdkolom (alleen nodig als de meetmomenten over meerdere dagen gaan).
+ */
+export function allTimelineColumns(timeZone: string, withDate = true): TimelineColumn[] {
   const cols: TimelineColumn[] = [
-    { key: 'at', group: 'meetmoment', label: 'Tijd', fullLabel: 'Datum en tijd', unit: '', cell: (m) => stamp(m.at, timeZone) || '—', key_column: true },
+    { key: 'at', group: 'meetmoment', label: 'Tijd', fullLabel: 'Datum en tijd', unit: '', cell: (m) => (withDate ? stamp(m.at, timeZone) : formatInstant(m.at, timeZone).slice(11)) || '—', key_column: true },
     // OI direct rechts van datum/tijd, als eerste kolom van Ademhalingsondersteuning.
     {
       key: 'oi',
@@ -137,7 +140,9 @@ export interface TimelineTable {
 
 export function timelineTable(measurements: Measurement[], timeZone: string): TimelineTable {
   const rows = sortedMeasurements(measurements);
-  const columns = allTimelineColumns(timeZone).filter((c) => c.key_column || rows.some((m, i) => c.cell(m, i) !== ''));
+  // Datum alleen tonen als de meetmomenten over meer dan één kalenderdag verspreid zijn.
+  const days = new Set(rows.map((m) => localDateOf(m.at, timeZone)).filter(Boolean));
+  const columns = allTimelineColumns(timeZone, days.size > 1).filter((c) => c.key_column || rows.some((m, i) => c.cell(m, i) !== ''));
   return { rows, columns };
 }
 
