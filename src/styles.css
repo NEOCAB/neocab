@@ -1277,3 +1277,26 @@ button.danger-button {
   color: var(--warning);
   font-weight: 600;
 }
+
+/* Material Symbols bij de sectiekoppen en in de zijnavigatie. */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--primary);
+}
+.section-title .section-icon {
+  font-size: 1.6rem;
+}
+.sidenav a {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sidenav .section-icon {
+  font-size: 1.2rem;
+}

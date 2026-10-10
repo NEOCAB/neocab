@@ -4,6 +4,7 @@ import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
 import { instantToWall, isValidLocalDate, nowInstant, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
+import { SectionIcon } from './icons';
 
 function FieldShell({ id, label, hint, error, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
   return (
@@ -348,8 +349,9 @@ export function TimeField({ label, value, onChange, className }: { label: ReactN
 export function Section({ id, title, children, intro }: { id: string; title: string; children: ReactNode; intro?: ReactNode }) {
   return (
     <section id={id} className="form-section" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} tabIndex={-1}>
-        {title}
+      <h2 id={`${id}-title`} tabIndex={-1} className="section-title">
+        <SectionIcon title={title} />
+        <span>{title}</span>
       </h2>
       {intro && <p className="section-intro">{intro}</p>}
       {children}

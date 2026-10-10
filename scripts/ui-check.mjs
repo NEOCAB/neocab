@@ -119,6 +119,10 @@ async function unlabeledControls(page) {
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (omschrijving, streep, Nu + Wissen)', tps.every((x) => x[2].length > 10 && x[3] === 'rgb(0, 60, 125)' && x[4] === 2));
 
+  // Material Symbols bij alle 15 sectiekoppen
+  const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
+  check('Icoon bij alle 15 sectiekoppen', iconCount === 15, String(iconCount));
+
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Dispatch als box 5 tussen 4 en 6', order[3]?.startsWith('4 ') && order[4] === '5 Dispatch' && order[5]?.startsWith('6 Onderzoek') && order.length === 15, order.join(' | '));

@@ -4,6 +4,7 @@ import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToText } from '../report/text';
 import { useTimeZone } from './context';
 import { DataTable } from './DataTable';
+import { SectionIcon } from './icons';
 import { canPrint, offerFile } from './viewer';
 
 /** Mailto-links worden door sommige mailprogramma's afgekapt; boven deze lengte gaat de tekst alleen via het klembord. */
@@ -169,7 +170,10 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
           ))}
           {report.sections.map((s) => (
             <section key={s.title} className="r-section">
-              <h2>{s.title}</h2>
+              <h2 className="section-title">
+                <SectionIcon title={s.title} />
+                <span>{s.title}</span>
+              </h2>
               {s.blocks.map((b, i) => (
                 <div key={i} className={b.card ? 'r-card' : 'r-block'}>
                   {b.title && <h3>{b.title}</h3>}

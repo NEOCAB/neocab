@@ -3,6 +3,7 @@ import type { Transport } from '../domain/types';
 import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
 import { useTimeZone } from './context';
+import { SectionIcon } from './icons';
 import {
   BirthSection,
   ChecklistSection,
@@ -159,7 +160,8 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                     goToSection(s.id);
                   }}
                 >
-                  {s.label}
+                  <SectionIcon title={s.label} />
+                  <span>{s.label}</span>
                 </a>
               </li>
             ))}
