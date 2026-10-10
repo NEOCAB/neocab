@@ -75,10 +75,11 @@ async function unlabeledControls(page) {
     const mid = (el) => { const r = el.getBoundingClientRect(); return Math.round(r.top + r.height / 2); };
     return [mid(document.querySelector('#s1 .gestation-field input')), ...[...document.querySelectorAll('#s1 .computed-value')].map(mid)];
   });
-  check('Waarden in blauw vak op één lijn met ingevulde waarde', centers.length === 3 && centers.every((c) => Math.abs(c - centers[0]) <= 1), centers.join(' / '));
+  check('Waarde in blauw vak op één lijn met ingevulde waarde', centers.length === 2 && centers.every((c) => Math.abs(c - centers[0]) <= 1), centers.join(' / '));
+  check('Blauw vak even breed als amenorroeduur', !!cb && !!gb && Math.abs(cb.width - gb.width) <= 1, `${cb?.width} / ${gb?.width}`);
   check('Blauw vak rechts van amenorroeduur, gelijke onderkant', !!cb && !!gb && cb.x > gb.x && Math.abs(cb.y + cb.height - (gb.y + gb.height)) < 3, JSON.stringify([cb, gb]));
-  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd33+5 wk'), ca);
-  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('Postnatale leeftijddag 1'), ca);
+  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd33+5 wk · dag 1'), ca);
+  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('dag 1') && !ca?.includes('Postnatale'), ca);
 
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();

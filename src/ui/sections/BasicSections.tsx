@@ -43,11 +43,7 @@ export function ChildSection({ t, update }: SectionProps) {
         <div className="computed" aria-live="polite">
           <div className="computed-item">
             <span className="computed-label">Gecorrigeerde leeftijd</span>
-            <span className="computed-value">{ca ? `${ca.weeks}+${ca.days} wk` : '—'}</span>
-          </div>
-          <div className="computed-item">
-            <span className="computed-label">Postnatale leeftijd</span>
-            <span className="computed-value">{ca ? `dag ${ca.postnatalDay}` : '—'}</span>
+            <span className="computed-value">{ca ? `${ca.weeks}+${ca.days} wk · dag ${ca.postnatalDay}` : '—'}</span>
           </div>
         </div>
       </div>
