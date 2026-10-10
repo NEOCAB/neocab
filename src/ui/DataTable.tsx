@@ -34,7 +34,8 @@ export function DataTable({
   const cols = table.columns;
   const groupStart = cols.map((c, i) => i > 0 && c.group !== cols[i - 1].group);
   // Kolom met alleen getallen (of leeg) wordt rechts uitgelijnd.
-  const numeric = cols.map((c, i) => !c.keyColumn && table.rows.every((r) => r[i] === '' || NUMERIC.test(r[i])));
+  // Eenvoudige tabellen (medicatie, infusen): alles links uitgelijnd.
+  const numeric = cols.map((c, i) => !table.simple && !c.keyColumn && table.rows.every((r) => r[i] === '' || NUMERIC.test(r[i])));
   const spans: { group: string; span: number }[] = [];
   for (const c of cols) {
     const last = spans[spans.length - 1];

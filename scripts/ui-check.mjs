@@ -260,6 +260,8 @@ async function basisLayout(page) {
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('3. Pompsnelheid', { exact: true }).fill('3,2');
   await page.getByRole('button', { name: 'Starten' }).click();
   const infRows = await page.locator('#s9 .data-table.simple tbody tr').allTextContents();
+  const rateAlign = await page.locator('#s9 .data-table.simple tbody td').nth(1).evaluate((e) => getComputedStyle(e).textAlign);
+  check('Pompsnelheid links uitgelijnd', rateAlign === 'left' || rateAlign === 'start', rateAlign);
   check('Infusen als tabel: gestart infuus staat als rij, met snelheid en "loopt"', infRows.length === 1 && infRows[0].includes('Glucose 10%') && infRows[0].includes('3,2') && infRows[0].includes('loopt'), JSON.stringify(infRows));
   await page.locator('#s9 .row-edit').first().click();
   await page.getByRole('button', { name: 'Snelheid wijzigen' }).click();
