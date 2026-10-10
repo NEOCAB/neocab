@@ -99,6 +99,19 @@ function stamp(i: string | null, timeZone: string): string {
 export function allTimelineColumns(timeZone: string): TimelineColumn[] {
   const cols: TimelineColumn[] = [
     { key: 'at', group: 'meetmoment', label: 'Tijd', fullLabel: 'Datum en tijd', unit: '', cell: (m) => stamp(m.at, timeZone) || '—', key_column: true },
+    // OI direct rechts van datum/tijd.
+    {
+      key: 'oi',
+      group: 'meetmoment',
+      label: 'OI',
+      fullLabel: 'Oxygenatie-index (OI, berekend)',
+      unit: '',
+      cell: (m) => {
+        const oi = oxygenationIndex(m);
+        return oi === null ? '' : formatOi(oi);
+      },
+      alert: (m) => isOiAlert(oxygenationIndex(m)),
+    },
     {
       key: 'mode',
       group: 'ademhaling',
@@ -111,18 +124,6 @@ export function allTimelineColumns(timeZone: string): TimelineColumn[] {
     ...MONITOR_COLUMNS.map((c) => ({ ...c, key: `mon.${c.key}`, group: 'monitor' as const, cell: (m: Measurement) => num(m.monitor[c.key]) })),
     { key: 'gas.type', group: 'bloedgas', label: 'Type', fullLabel: 'Afnametype (A = arterieel, V = veneus, C = capillair)', unit: '', cell: (m) => GAS_TYPE_SHORT[m.gas.type] },
     ...GAS_COLUMNS.map((c) => ({ ...c, key: `gas.${c.key}`, group: 'bloedgas' as const, cell: (m: Measurement) => num(m.gas.values[c.key]) })),
-    {
-      key: 'oi',
-      group: 'bloedgas',
-      label: 'OI',
-      fullLabel: 'Oxygenatie-index (OI, berekend)',
-      unit: '',
-      cell: (m) => {
-        const oi = oxygenationIndex(m);
-        return oi === null ? '' : formatOi(oi);
-      },
-      alert: (m) => isOiAlert(oxygenationIndex(m)),
-    },
   ];
   return cols;
 }

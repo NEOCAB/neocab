@@ -93,7 +93,7 @@ Unit-tests (`npm test`, 37 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 69 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 70 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -119,7 +119,7 @@ scripts/        ui-check.mjs (Playwright)
 
 ## Oxygenatie-index (OI)
 
-- OI = (MAP × FiO₂ × 100) / PaO₂, per meetmoment automatisch berekend en als laatste kolom onder *Bloedgas* in de tijdlijntabel getoond (formulier, verslag, pdf, e-mailtekst), plus live in het bewerkformulier van een meetmoment.
+- OI = (MAP × FiO₂ × 100) / PaO₂, per meetmoment automatisch berekend en direct rechts van datum/tijd in de tijdlijntabel getoond (formulier, verslag, pdf, e-mailtekst), plus live in het bewerkformulier van een meetmoment.
 - MAP = luchtweg-MAP in cmH₂O: bij PTV/SIMV de gemeten MAP, bij HFOV de ingestelde MAP. Alleen bij invasieve beademing.
 - FiO₂ wordt in % ingevoerd; in de formule als fractie (dus FiO₂ % / 100 × 100).
 - PaO₂: alleen een **arterieel** bloedgas telt. pO₂ wordt in kPa ingevoerd en voor de OI omgerekend naar mmHg (× 7,50062), zodat de waarde op de gebruikelijke OI-schaal ligt.

@@ -216,6 +216,7 @@ for (const [w, h] of [
   await page.locator('#s6 .row-edit').nth(1).click();
   check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 8 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
+  check(`${w}px: OI-kolom direct rechts van Tijd`, headers[0]?.trim() === 'Tijd' && headers[1]?.trim() === 'OI', headers.slice(0, 3).join(' | '));
   const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();
   check(`${w}px: OI 29,5 oranje gemarkeerd in tabel`, alertCells.length === 1 && alertCells[0].includes('29,5'), JSON.stringify(alertCells));
   await page.locator('#s6 .row-edit').nth(3).click();
