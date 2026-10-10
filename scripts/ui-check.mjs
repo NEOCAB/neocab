@@ -425,6 +425,13 @@ for (const [w, h] of [
   const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();
   check(`${w}px: OI 29,5 oranje gemarkeerd in tabel`, alertCells.length === 1 && alertCells[0].includes('29,5'), JSON.stringify(alertCells));
   // Tijdlijn als grafiek
+  const sw = await page.evaluate(() => {
+    const h = document.querySelector('#s6 .section-title').getBoundingClientRect();
+    const v = document.querySelector('#s6 .section-actions .view-switch')?.getBoundingClientRect();
+    const sec = document.querySelector('#s6').getBoundingClientRect();
+    return v ? { sameRow: Math.abs(v.top + v.height / 2 - (h.top + h.height / 2)) < 12, right: sec.right - v.right < 40, icons: document.querySelectorAll('#s6 .view-switch .view-icon svg').length } : null;
+  });
+  check(`${w}px: weergavekeuze rechtsboven naast de kop Tijdlijn, met iconen`, !!sw && sw.sameRow && sw.right && sw.icons === 2, JSON.stringify(sw));
   await page.locator('#s6').getByRole('radio', { name: 'Grafiek' }).check();
   const charts = page.locator('#s6 .chart-card:not(.chart-band)');
   const nCharts = await charts.count();

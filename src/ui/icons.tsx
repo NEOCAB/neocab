@@ -14,6 +14,8 @@ import checklist from '@material-symbols/svg-700/outlined/checklist.svg?raw';
 import flag from '@material-symbols/svg-700/outlined/flag.svg?raw';
 import safetyCheck from '@material-symbols/svg-700/outlined/safety_check.svg?raw';
 import logoUrl from '../assets/neocab-logo.svg';
+import tableChart from '@material-symbols/svg-700/outlined/table_chart.svg?raw';
+import showChart from '@material-symbols/svg-700/outlined/show_chart.svg?raw';
 import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
@@ -83,3 +85,10 @@ export function Logo({ className }: { className?: string }) {
 }
 
 export { logoUrl };
+
+const VIEW_ICONS = { tabel: prep(tableChart), grafiek: prep(showChart) };
+
+/** Icoon bij de weergavekeuze van de tijdlijn. */
+export function ViewIcon({ view }: { view: keyof typeof VIEW_ICONS }) {
+  return <span className="view-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: VIEW_ICONS[view] }} />;
+}

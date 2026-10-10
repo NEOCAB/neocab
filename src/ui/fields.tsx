@@ -350,13 +350,24 @@ export function TimeField({ label, value, onChange, className }: { label: ReactN
   );
 }
 
-export function Section({ id, title, children, intro }: { id: string; title: string; children: ReactNode; intro?: ReactNode }) {
+export function Section({ id, title, children, intro, actions }: { id: string; title: string; children: ReactNode; intro?: ReactNode; actions?: ReactNode }) {
+  const heading = (
+    <h2 id={`${id}-title`} tabIndex={-1} className="section-title">
+      <SectionIcon id={id} />
+      <span>{title}</span>
+    </h2>
+  );
   return (
     <section id={id} className="form-section" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} tabIndex={-1} className="section-title">
-        <SectionIcon id={id} />
-        <span>{title}</span>
-      </h2>
+      {/* Bedieningselementen van de sectie (bijv. weergavekeuze) rechts naast de kop. */}
+      {actions ? (
+        <div className="section-head">
+          {heading}
+          <div className="section-actions">{actions}</div>
+        </div>
+      ) : (
+        heading
+      )}
       {intro && <p className="section-intro">{intro}</p>}
       {children}
     </section>

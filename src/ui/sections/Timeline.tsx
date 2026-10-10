@@ -8,7 +8,7 @@ import { timelineReportTable, tubeSummary } from '../../report/buildReport';
 import { DataTable, TimeStamp } from '../DataTable';
 import { OI_ALERT_THRESHOLD, OI_FORMULA, formatOi, isOiAlert, oxygenationIndex } from '../../domain/oi';
 import { DateTimeField, NumberField, Section, Segmented, TextArea } from '../fields';
-import { ExpandIcon } from '../icons';
+import { ExpandIcon, ViewIcon } from '../icons';
 import { TimelineCharts } from '../TimelineCharts';
 import { formatNum } from '../../domain/num';
 import { useTimeZone } from '../context';
@@ -260,6 +260,36 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
   { value: 'grafiek', label: 'Grafiek' },
 ];
 
+/** Weergavekeuze rechts naast de kop: twee knoppen met icoon (radiogroep, één is altijd gekozen). */
+function ViewSwitch({ view, onChange }: { view: View; onChange: (v: View) => void }) {
+  return (
+    <div className="view-switch" role="radiogroup" aria-label="Weergave tijdlijn">
+      {VIEW_OPTIONS.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={view === o.value}
+          className={view === o.value ? 'checked' : ''}
+          title={o.value === 'tabel' ? 'Als tabel weergeven' : 'Als grafiek weergeven'}
+          onClick={() => onChange(o.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              e.preventDefault();
+              onChange(view === 'tabel' ? 'grafiek' : 'tabel');
+              (e.currentTarget.parentElement?.querySelector(`[aria-checked="false"]`) as HTMLElement | null)?.focus();
+            }
+          }}
+          tabIndex={view === o.value ? 0 : -1}
+        >
+          <ViewIcon view={o.value} />
+          <span>{o.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** Gekozen weergave onthouden op dit apparaat (alleen gemak; zonder opslag is de tabel de standaard). */
 function useView(): [View, (v: View) => void] {
   const [view, setView] = useState<View>(() => {
@@ -313,7 +343,7 @@ export function TimelineSection({ t, update }: SectionProps) {
   };
 
   return (
-    <Section id="s6" title="Tijdlijn" intro="Ademhalingsondersteuning, monitorgegevens en bloedgassen">
+    <Section id="s6" title="Tijdlijn" intro="Ademhalingsondersteuning, monitorgegevens en bloedgassen" actions={t.measurements.length > 0 ? <ViewSwitch view={view} onChange={setView} /> : undefined}>
       {!draft && (
         <button type="button" className="primary" onClick={startNew}>
           + Nieuw meetmoment
@@ -336,7 +366,6 @@ export function TimelineSection({ t, update }: SectionProps) {
         !draft && <p className="muted">Nog geen meetmomenten.</p>
       ) : (
         <>
-          <Segmented legend="Weergave" className="view-toggle" name="tijdlijn-weergave" value={view} onChange={(v) => v && setView(v)} options={VIEW_OPTIONS} allowClear={false} />
           {view === 'grafiek' ? (
             <TimelineCharts
               measurements={t.measurements}

@@ -864,8 +864,66 @@ fieldset.group > legend {
   overflow: hidden;
 }
 /* Tijdlijn als grafiek: kleine grafieken per waarde, gedeelde tijd-as */
-.view-toggle {
-  margin: 1rem 0 0.5rem;
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  /* Zelfde ruimte als een losse h2 (0,83em van 1,3rem), zodat de kop niet verspringt. */
+  margin: 1.08rem 0;
+}
+.section-head .section-title {
+  margin: 0;
+}
+.view-switch {
+  display: inline-flex;
+  flex: none;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.view-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: var(--tap);
+  padding: 0 0.7rem;
+  border: none;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.view-switch button + button {
+  border-left: 1px solid var(--primary);
+}
+.view-switch button.checked {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+.view-icon {
+  display: inline-flex;
+  font-size: 1.25rem;
+}
+/* Op een smal scherm alleen de iconen (de naam blijft via title en voor schermlezers). */
+@media (max-width: 480px) {
+  .view-switch button span:not(.view-icon) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .view-switch button {
+    padding: 0 0.6rem;
+  }
+}
+.timeline-charts {
+  margin-top: 0.75rem;
 }
 .timeline-charts .chart-group {
   margin-top: 0.75rem;
@@ -980,12 +1038,7 @@ fieldset.group > legend {
   border-top: 1px solid var(--border);
   color: var(--primary);
 }
-.section-title + .abcd textarea {
-  /* Begint op één regel en groeit mee met de tekst. */
-  resize: none;
-  overflow: hidden;
-}
-.subsection-title {
+.section-title + .subsection-title {
   margin-top: 0;
   padding-top: 0;
   border-top: none;
