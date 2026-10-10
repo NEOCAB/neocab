@@ -858,13 +858,23 @@ fieldset.group > legend {
   flex: none;
   accent-color: var(--primary);
 }
+.abcd textarea {
+  /* Begint op één regel en groeit mee met de tekst. */
+  resize: none;
+  overflow: hidden;
+}
 .subsection-title {
   margin: 1.25rem 0 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
   color: var(--primary);
 }
-.section-title + .subsection-title {
+.section-title + .abcd textarea {
+  /* Begint op één regel en groeit mee met de tekst. */
+  resize: none;
+  overflow: hidden;
+}
+.subsection-title {
   margin-top: 0;
   padding-top: 0;
   border-top: none;

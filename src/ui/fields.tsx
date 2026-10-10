@@ -61,11 +61,17 @@ export function TextField({ label, value, onChange, type = 'text', list, hint, p
 export function TextArea({ label, value, onChange, hint, rows = 3, className, placeholder }: { label: ReactNode; value: string; onChange: (v: string) => void; hint?: ReactNode; rows?: number; className?: string; placeholder?: string }) {
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
+  // Groeit mee met de tekst; ook opnieuw bij een andere breedte (bijv. draaien van het scherm).
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight + 2}px`;
+    const fit = () => {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight + 2}px`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
   }, [value]);
   return (
     <FieldShell id={id} label={label} hint={hint} className={className}>

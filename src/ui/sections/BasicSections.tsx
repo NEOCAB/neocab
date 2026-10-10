@@ -159,7 +159,7 @@ function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdN
           }
           value={notes[k]}
           onChange={(v) => onChange({ ...notes, [k]: v })}
-          rows={2}
+          rows={1}
         />
       ))}
     </div>

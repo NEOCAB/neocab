@@ -161,6 +161,12 @@ async function basisLayout(page) {
   await page.getByLabel(/alleen de letter tonen/).uncheck();
   await page.getByRole('button', { name: 'Hervatten' }).first().click();
   await page.waitForSelector('#s3');
+  const airway = page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true });
+  const h1 = await airway.evaluate((e) => e.getBoundingClientRect().height);
+  await airway.fill('Regel 1\nRegel 2\nRegel 3');
+  const h3 = await airway.evaluate((e) => e.getBoundingClientRect().height);
+  check('ABCD-veld begint op één regel en groeit mee met de tekst', h1 <= 46 && h3 > h1 + 30, `${h1} → ${h3}`);
+  await airway.fill('');
   const sub3 = await page.locator('#s3 h3.subsection-title').allTextContents();
   const letters = await page.locator('#s3 .abcd-letter').allTextContents();
   check('ABCD-kopjes met beginletter in een rondje (Verwijzing en Stabilisatie)', letters.join('') === 'ABCDEFGHI' && (await page.locator('#s5 .abcd-letter').count()) === 9 && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, letters.join(''));
