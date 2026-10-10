@@ -83,7 +83,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 - **Alleen lokaal in de browser** (`localStorage`), per apparaat en per browser. Er is geen server, geen account en geen synchronisatie tussen apparaten.
 - Elke transportregistratie is één JSON-document onder sleutel `neonataal-transport:v1:<id>`, met een index `neonataal-transport:v1:index`. Instellingen (tijdzone, toedieningsroutes) staan onder `neonataal-transport:v1:instellingen`.
-- Wijzigingen worden kort na elke invoer automatisch als concept opgeslagen, en ook bij het verlaten of wegklikken van de pagina; een aparte opslagknop is er niet. De statusregel bovenin toont het tijdstip van de laatste opslag.
+- Wijzigingen worden kort na elke invoer automatisch als concept opgeslagen, en ook bij het verlaten of wegklikken van de pagina; een aparte opslagknop is er niet. Links naast *Verslag & export* staat met een diskette-icoon *Concept lokaal opgeslagen* en het tijdstip van de laatste opslag (op een smal scherm alleen icoon en tijd).
 - Op het startscherm staan alle concepten op dit apparaat: **Hervatten** en **Verwijderen** (met bevestiging).
 - Het opslaan loopt via de interface `TransportRepository` (`src/storage/repository.ts`). Een centrale opslag kan later dezelfde interface implementeren; alle onderliggende records (meetmomenten, medicatietoedieningen, infusen en snelheidswijzigingen, lijnen, tubeversies) hebben al stabiele identifiers.
 - Wissen van browsergegevens of een privévenster betekent verlies van de concepten. Gebruik dit prototype niet voor echte patiëntgegevens.
@@ -128,7 +128,7 @@ Unit-tests (`npm test`, 52 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 151 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 152 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 

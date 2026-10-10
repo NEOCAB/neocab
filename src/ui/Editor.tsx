@@ -3,7 +3,7 @@ import type { Transport } from '../domain/types';
 import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
-import { Logo, SectionIcon } from './icons';
+import { Logo, SaveIcon, SectionIcon } from './icons';
 import {
   ChecklistSection,
   ChildSection,
@@ -124,9 +124,6 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           <span className="muted">
             {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
           </span>
-          <span className={`save-status ${saveError ? 'error' : dirty ? 'pending' : 'ok'}`} role="status">
-            {saveError ?? (dirty ? 'Wijzigingen worden opgeslagen…' : savedLabel ? `Concept lokaal opgeslagen ${savedLabel}` : 'Nog niet opgeslagen')}
-          </span>
         </div>
         <div className="topbar-actions">
           <div className="section-jump">
@@ -148,6 +145,18 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
               ))}
             </select>
           </div>
+          {/* Opslagstatus links van Verslag & export; op een smal scherm alleen icoon en tijd. */}
+          <span className={`save-status ${saveError ? 'error' : dirty ? 'pending' : 'ok'}`} role="status" title={savedLabel ? `Concept lokaal opgeslagen om ${savedLabel}` : undefined}>
+            <SaveIcon />
+            {saveError ?? (dirty ? 'Opslaan…' : savedLabel ? (
+              <>
+                <span className="wide-only">Concept lokaal opgeslagen </span>
+                {savedLabel}
+              </>
+            ) : (
+              'Nog niet opgeslagen'
+            ))}
+          </span>
           <button type="button" className="primary small" onClick={() => { saveNow(); onReport(); }}>
             Verslag<span className="wide-only"> &amp; export</span>
           </button>

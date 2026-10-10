@@ -694,8 +694,22 @@ fieldset.group > legend {
   padding-inline: 0.6rem;
 }
 .save-status {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: none;
+  margin-left: auto;
+  font-size: 0.8rem;
   color: var(--muted);
+  white-space: nowrap;
+}
+.save-icon {
+  display: inline-flex;
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+.save-status.error .save-icon {
+  color: var(--danger);
 }
 .save-status.pending {
   color: var(--muted);

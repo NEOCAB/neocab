@@ -306,6 +306,12 @@ async function basisLayout(page) {
   // Geen knop Concept opslaan meer: wachten tot de automatische opslag klaar is.
   check('Geen knop Concept opslaan en geen knop Overzicht; logo leidt terug', (await page.getByRole('button', { name: /Concept opslaan|^Opslaan$/ }).count()) === 0 && (await page.locator('.topbar .back').count()) === 0 && (await page.locator('.topbar').getByText('Actieve registratie').count()) === 0);
   await page.locator('.save-status.ok').waitFor();
+  const saveLayout = await page.evaluate(() => {
+    const st = document.querySelector('.topbar-actions .save-status');
+    const btn = [...document.querySelectorAll('.topbar-actions button')].find((b) => b.textContent.includes('Verslag'));
+    return !!st && !!btn && st.nextElementSibling === btn && !!st.querySelector('.save-icon svg');
+  });
+  check('Opslagstatus met diskette-icoon links naast Verslag', saveLayout);
   const timesBefore = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   await page.reload();
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
