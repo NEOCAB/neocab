@@ -169,6 +169,22 @@ async function unlabeledControls(page) {
   const mb = await mother.boundingBox();
   const pb = await partner.boundingBox();
   check('Moeder en partner naast elkaar', !!mb && !!pb && Math.abs(mb.y - pb.y) < 2 && pb.x > mb.x, JSON.stringify([mb?.x, mb?.y, pb?.x, pb?.y]));
+  // Checklist: vakje leeg -> groen ✓ -> rood ✕ -> leeg
+  const rows = page.locator('#s13 .check-row');
+  check('Checklist: 6 punten, alle vakjes leeg, geen statusknoppen', (await rows.count()) === 6 && (await page.locator('#s13 .check-box.nog_niet').count()) === 6 && (await page.locator('#s13 input[type=radio]').count()) === 0);
+  const cls = async (i) => (await rows.nth(i).locator('.check-box').getAttribute('class')) ?? '';
+  await rows.nth(0).click();
+  const c1 = await cls(0);
+  await rows.nth(0).click();
+  const c2 = await cls(0);
+  await rows.nth(0).click();
+  const c3 = await cls(0);
+  check('Checklist: tik wisselt leeg → groen → rood → leeg', c1.includes('gedaan') && c2.includes('nvt') && c3.includes('nog_niet'), [c1, c2, c3].join(' / '));
+  check('Checklist: groen vakje toont ✓', (await (async () => { await rows.nth(1).click(); return rows.nth(1).locator('.check-box').textContent(); })()) === '✓');
+  await rows.nth(2).click();
+  await rows.nth(2).click();
+  check('Checklist: rood vakje toont ✕', (await rows.nth(2).locator('.check-box').textContent()) === '✕');
+  check('Checklist: schermlezer hoort status', ((await rows.nth(1).getAttribute('aria-label')) ?? '').includes(': gedaan'));
   await mother.fill('0612345678');
   await partner.fill('0687654321');
 
@@ -180,6 +196,7 @@ async function unlabeledControls(page) {
   await page.getByRole('button', { name: 'Concept opslaan' }).click();
   const timesBefore = await page.locator('#s6 .data-table tbody th').allTextContents();
   await page.reload();
+  check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
   check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('Patiëntnummer', { exact: true }).inputValue()) === '0007788');
   check('Na herladen: verwijstijd ongewijzigd', (await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue()) === referred);

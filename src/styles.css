@@ -881,30 +881,74 @@ fieldset.group > legend {
   margin-bottom: 0;
 }
 
-/* Checklist */
+/* Checklist: één vakje per punt, leeg / groen ✓ / rood ✕ */
+.checklist-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.4rem 0 0.4rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.checklist-legend .check-box {
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 0.75rem;
+  margin-left: 0.4rem;
+}
+.checklist-legend .check-box:first-child {
+  margin-left: 0;
+}
 .checklist {
-  padding-left: 1.4rem;
+  list-style: none;
   margin: 0;
+  padding: 0;
 }
-.checklist > li {
-  padding: 0.4rem 0 0.6rem;
-  border-bottom: 1px solid #eef1f4;
+.checklist > li + li {
+  border-top: 1px solid #eef1f4;
 }
-.checklist .segmented legend {
-  font-weight: 600;
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.45rem 0.25rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  color: var(--text);
+  font-weight: 400;
 }
-.status-gedaan .seg.checked span {
+.check-row:hover {
+  background: #f4f7fa;
+}
+.check-row.nvt .check-text {
+  color: var(--muted);
+}
+.check-box {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid #8a98a6;
+  border-radius: 5px;
+  background: #fff;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+.check-box.gedaan {
   background: var(--ok);
   border-color: var(--ok);
 }
-.status-nvt .seg.checked span {
-  background: #5b6875;
-  border-color: #5b6875;
-}
-.status-nog_niet .seg.checked span {
-  background: #fff4e0;
-  border-color: var(--warning);
-  color: var(--warning);
+.check-box.nvt {
+  background: var(--danger);
+  border-color: var(--danger);
 }
 .phone-row {
   display: flex;

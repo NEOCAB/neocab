@@ -1,9 +1,8 @@
-import type { AbcdNotes, BloodGasCord, Transport } from '../../domain/types';
+import type { AbcdNotes, BloodGasCord, ChecklistStatus, Transport } from '../../domain/types';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
 import {
   ABCD_LABELS,
   CHECKLIST_LABELS,
-  CHECKLIST_STATUS_OPTIONS,
   CORTICO_OPTIONS,
   HOSPITAL_SUGGESTIONS,
   VITAMIN_K_OPTIONS,
@@ -223,23 +222,35 @@ export function ParentsSection({ t, update }: SectionProps) {
   );
 }
 
+const NEXT_STATUS: Record<ChecklistStatus, ChecklistStatus> = { nog_niet: 'gedaan', gedaan: 'nvt', nvt: 'nog_niet' };
+const STATUS_TEXT: Record<ChecklistStatus, string> = { nog_niet: 'nog niet gedaan', gedaan: 'gedaan', nvt: 'niet van toepassing' };
+
 export function ChecklistSection({ t, update }: SectionProps) {
   return (
     <Section id="s13" title="14 Checklist voor vertrek">
-      <ol className="checklist">
-        {CHECKLIST_KEYS.map((k) => (
-          <li key={k}>
-            <Segmented
-              legend={CHECKLIST_LABELS[k]}
-              value={t.checklist[k]}
-              allowClear={false}
-              onChange={(v) => update((x) => ({ ...x, checklist: { ...x.checklist, [k]: v || 'nog_niet' } }))}
-              options={CHECKLIST_STATUS_OPTIONS}
-              className={`status-${t.checklist[k]}`}
-            />
-          </li>
-        ))}
-      </ol>
+      <p className="checklist-legend">
+        <span className="check-box gedaan" aria-hidden="true">✓</span> gedaan <span className="check-box nvt" aria-hidden="true">✕</span> niet van toepassing
+      </p>
+      <ul className="checklist">
+        {CHECKLIST_KEYS.map((k) => {
+          const status = t.checklist[k];
+          return (
+            <li key={k}>
+              <button
+                type="button"
+                className={`check-row ${status}`}
+                aria-label={`${CHECKLIST_LABELS[k]}: ${STATUS_TEXT[status]}. Tik om te wijzigen.`}
+                onClick={() => update((x) => ({ ...x, checklist: { ...x.checklist, [k]: NEXT_STATUS[x.checklist[k]] } }))}
+              >
+                <span className={`check-box ${status}`} aria-hidden="true">
+                  {status === 'gedaan' ? '✓' : status === 'nvt' ? '✕' : ''}
+                </span>
+                <span className="check-text">{CHECKLIST_LABELS[k]}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </Section>
   );
 }
