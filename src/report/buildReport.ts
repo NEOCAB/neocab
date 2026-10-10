@@ -254,7 +254,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Lopende infusen', blocks });
   }
 
-  // 10 Lijnen, sondes, drains en endotracheale tube
+  // 10 Plastic
   {
     const blocks: ReportBlock[] = [];
     for (const l of t.lines) {
@@ -278,11 +278,11 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `Endotracheale tube ${tubes.length > 1 ? i + 1 : ''}`.trim(), rows: b.rows });
     });
     if (blocks.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen lijnen, sondes, drains of tube geregistreerd.' }] });
-    sections.push({ title: 'Lijnen, sondes, drains en endotracheale tube', blocks });
+    sections.push({ title: 'Plastic', blocks });
   }
 
   // 11, 12
-  sections.push({ title: 'Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
+  sections.push({ title: 'Notities', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
     b.kv('Telefoonnummer moeder', t.motherPhone.trim()).kv('Telefoonnummer partner', t.partnerPhone.trim());
@@ -296,7 +296,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const c = t.closure;
     const b = new RowBuilder();
     b.kv('Vertrek met kind', fi(c.departedCotsideAt)).para('Gebeurtenissen tijdens transport', c.eventsDuringTransport).kv('Aankomst ontvangend centrum', fi(c.arrivedReceivingAt));
-    sections.push({ title: 'Afsluiting transport', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Transport', blocks: [{ rows: b.orEmpty() }] });
   }
 
   const meta = [

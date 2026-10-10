@@ -178,7 +178,7 @@ export function LinesSection({ t, update }: SectionProps) {
   const setTube = (tb: EndotrachealTube) => update((x) => ({ ...x, tubes: x.tubes.map((y) => (y.id === tb.id ? tb : y)) }));
 
   return (
-    <Section id="s10" title="Lijnen, sondes, drains en endotracheale tube">
+    <Section id="s10" title="Plastic">
       <div className="list">
         {t.lines.map((l) => (
           <LineCard

@@ -48,11 +48,11 @@ const ID_BY_TITLE: Record<string, string> = {
   'Overige diagnostiek': 's7',
   Medicatietoedieningen: 's8',
   'Lopende infusen': 's9',
-  'Lijnen, sondes, drains en endotracheale tube': 's10',
-  'Procedures en gebeurtenissen': 's11',
+  Plastic: 's10',
+  Notities: 's11',
   'Ouders en gezin': 's12',
   'Checklist voor vertrek': 's13',
-  'Afsluiting transport': 's14',
+  Transport: 's14',
 };
 
 /** Icoon bij een sectie: op id (formulier, navigatie) of op titel (verslag). */

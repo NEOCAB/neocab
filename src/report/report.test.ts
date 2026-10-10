@@ -35,7 +35,7 @@ function bigTransport(): Transport {
 describe('verslag', () => {
   it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'STABILISATIE\n', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', 'OUDERS EN GEZIN', 'AFSLUITING TRANSPORT']) expect(text).toContain(h);
+    for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'STABILISATIE\n', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', 'OUDERS EN GEZIN', '\nTRANSPORT\n']) expect(text).toContain(h);
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     for (const gone of ['CHECKLIST', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
     expect(text).not.toContain('Allergie');
@@ -48,7 +48,7 @@ describe('verslag', () => {
     expect(buildReport(noAdvice, TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing']);
     // Koppen zonder nummer.
     expect(buildReport(sampleTransport(TZ), TZ).sections.every((sec) => !/^\d/.test(sec.title))).toBe(true);
-    const s12 = text.slice(text.indexOf('OUDERS EN GEZIN'), text.indexOf('AFSLUITING TRANSPORT'));
+    const s12 = text.slice(text.indexOf('OUDERS EN GEZIN'), text.indexOf('\nTRANSPORT\n'));
     expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
     expect(text).not.toContain('LUMC');

@@ -218,8 +218,8 @@ export function OtherDiagnosticsSection({ t, update }: SectionProps) {
 
 export function ProceduresSection({ t, update }: SectionProps) {
   return (
-    <Section id="s11" title="Procedures en gebeurtenissen">
-      <TextArea label="Procedures en gebeurtenissen" value={t.proceduresAndEvents} onChange={(v) => update((x) => ({ ...x, proceduresAndEvents: v }))} rows={5} />
+    <Section id="s11" title="Notities">
+      <TextArea label="Notities" value={t.proceduresAndEvents} onChange={(v) => update((x) => ({ ...x, proceduresAndEvents: v }))} rows={5} />
     </Section>
   );
 }
@@ -270,7 +270,7 @@ export function ClosureSection({ t, update }: SectionProps) {
   const c = t.closure;
   const set = <K extends keyof Transport['closure']>(k: K, v: Transport['closure'][K]) => update((x) => ({ ...x, closure: { ...x.closure, [k]: v } }));
   return (
-    <Section id="s14" title="Afsluiting transport">
+    <Section id="s14" title="Transport">
       <TimepointField label="Vertrek met kind" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
       <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
       <TimepointField label="Aankomst ontvangend centrum" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />

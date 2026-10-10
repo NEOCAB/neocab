@@ -61,15 +61,15 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
   | Ambulance aangevraagd | Dispatch |
   | Vertrek transportteam | Dispatch |
   | Aankomst bij kind | Dispatch |
-  | Vertrek met kind | Afsluiting transport |
-  | Aankomst ontvangend centrum | Afsluiting transport |
+  | Vertrek met kind | Transport |
+  | Aankomst ontvangend centrum | Transport |
 - Gecorrigeerde leeftijd: opgemaakt als een invoerveld (label erboven, zelfde hoogte, rand en lettergrootte), met lichtblauwe achtergrond en niet invulbaar.
 - Alle datum/tijdvelden hebben icoonknoppen: klok = *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en kruis = *Wissen* (met tooltip en volledige naam voor schermlezers); bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
 - Basisgegevens kind: acht velden in een raster van 2 kolommen × 4 rijen (telefoon) of 4 kolommen × 2 rijen (vanaf 720 px breed).
 - Koppen zonder nummer; de tijdlijn heet *Tijdlijn* met als toelichting *Ademhalingsondersteuning, monitorgegevens en bloedgassen*. Geen veld Allergieën en geen legenda bij de checklist.
 - Sectiekoppen, zijnavigatie en verslagkoppen hebben een Material Symbols-icoon (outlined, gewicht 700 passend bij de vette koppen, via `@material-symbols/svg-700`, alleen de gebruikte SVG's): id_card, route, clinical_notes (Verwijzing), ambulance, stethoscope (Stabilisatie), timeline, lab_research, medication, vaccines, ventilator, surgical, family_home, checklist, flag. De zes vaste tijdstippen hebben het icoon safety_check.
 - De acht klinische kopjes (Airway … Infection) bij Verwijzing en Stabilisatie hebben hun beginletter in een donkerblauw rondje vóór het woord (alleen visueel; de veldnaam voor schermlezers blijft het woord).
-- Secties: Basisgegevens kind, *Herkomst en bestemming*, *Verwijzing* (samengevoegd uit Zwangerschap en geboorte en Toestand bij verwijzing, met subkoppen *Zwangerschap en geboorte*, *Toestand bij verwijzing* en *Advies*; het veld Advies bij verwijzing is optioneel en het blok Advies staat alleen in het verslag als het is ingevuld), Dispatch, *Stabilisatie* (voorheen Onderzoek door transportteam), Tijdlijn, Overige diagnostiek, Medicatie, Infusen, Lijnen/sondes/tube, Procedures en gebeurtenissen, Ouders en gezin, Checklist voor vertrek, Afsluiting transport (14 secties).
+- Secties: Basisgegevens kind, *Herkomst en bestemming*, *Verwijzing* (samengevoegd uit Zwangerschap en geboorte en Toestand bij verwijzing, met subkoppen *Zwangerschap en geboorte*, *Toestand bij verwijzing* en *Advies*; het veld Advies bij verwijzing is optioneel en het blok Advies staat alleen in het verslag als het is ingevuld), Dispatch, *Stabilisatie* (voorheen Onderzoek door transportteam), Tijdlijn, Overige diagnostiek, Medicatie, Infusen, *Plastic* (lijnen, sondes, drains en endotracheale tube; voorheen zo genoemd), *Notities* (voorheen Procedures en gebeurtenissen), Ouders en gezin, Checklist voor vertrek, *Transport* (voorheen Afsluiting transport) (14 secties).
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
 - PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
 

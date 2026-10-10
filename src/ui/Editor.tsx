@@ -32,11 +32,11 @@ export const SECTIONS = [
   { id: 's7', label: 'Overige diagnostiek' },
   { id: 's8', label: 'Medicatie' },
   { id: 's9', label: 'Infusen' },
-  { id: 's10', label: 'Lijnen, sondes, tube' },
-  { id: 's11', label: 'Procedures en gebeurtenissen' },
+  { id: 's10', label: 'Plastic' },
+  { id: 's11', label: 'Notities' },
   { id: 's12', label: 'Ouders en gezin' },
   { id: 's13', label: 'Checklist voor vertrek' },
-  { id: 's14', label: 'Afsluiting transport' },
+  { id: 's14', label: 'Transport' },
 ];
 
 function goToSection(id: string) {
