@@ -7,8 +7,8 @@ export interface CorrectedAge {
   days: number;
   /** Totaal in dagen. */
   totalDays: number;
-  /** Verstreken kalenderdagen sinds geboorte (postnatale leeftijd), los van de gecorrigeerde leeftijd. */
-  postnatalDays: number;
+  /** Postnatale dag: de geboortedag is dag 1, de dag erna dag 2, enz. */
+  postnatalDay: number;
   transportDate: string;
 }
 
@@ -28,7 +28,7 @@ export function correctedAge(child: Pick<Child, 'birthDate' | 'gestationalAgeWee
   const elapsed = calendarDaysBetween(child.birthDate, transportDateLocal);
   if (elapsed === null || elapsed < 0) return null;
   const total = child.gestationalAgeWeeks * 7 + gaDays + elapsed;
-  return { weeks: Math.floor(total / 7), days: total % 7, totalDays: total, postnatalDays: elapsed, transportDate: transportDateLocal };
+  return { weeks: Math.floor(total / 7), days: total % 7, totalDays: total, postnatalDay: elapsed + 1, transportDate: transportDateLocal };
 }
 
 export function formatGestation(weeks: Num, days: Num): string | null {

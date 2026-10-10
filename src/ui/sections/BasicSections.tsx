@@ -53,7 +53,7 @@ export function ChildSection({ t, update }: SectionProps) {
         </div>
         {ca && (
           <div>
-            <strong>Postnatale leeftijd:</strong> {ca.postnatalDays} {ca.postnatalDays === 1 ? 'dag' : 'dagen'}
+            <strong>Postnatale leeftijd:</strong> dag {ca.postnatalDay}
           </div>
         )}
       </div>

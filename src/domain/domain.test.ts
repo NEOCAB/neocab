@@ -12,9 +12,9 @@ const TZ = 'Europe/Amsterdam';
 describe('gecorrigeerde leeftijd', () => {
   const child = { birthDate: '2026-10-07', gestationalAgeWeeks: 33, gestationalAgeDays: 5 } as const;
   it('telt kalenderdagen tot de transportdatum, ook over een weekovergang', () => {
-    expect(correctedAge(child, '2026-10-08')).toMatchObject({ weeks: 33, days: 6, postnatalDays: 1 });
-    expect(correctedAge(child, '2026-10-09')).toMatchObject({ weeks: 34, days: 0, postnatalDays: 2 });
-    expect(correctedAge(child, '2026-10-16')).toMatchObject({ weeks: 35, days: 0, postnatalDays: 9 });
+    expect(correctedAge(child, '2026-10-08')).toMatchObject({ weeks: 33, days: 6, postnatalDay: 2 });
+    expect(correctedAge(child, '2026-10-09')).toMatchObject({ weeks: 34, days: 0, postnatalDay: 3 });
+    expect(correctedAge(child, '2026-10-16')).toMatchObject({ weeks: 35, days: 0, postnatalDay: 10 });
   });
   it('volgt een gewijzigde transportdatum (datum verwijzing)', () => {
     const t = newTransport(TZ);
@@ -23,6 +23,10 @@ describe('gecorrigeerde leeftijd', () => {
     expect(correctedAge(t.child, transportDate(t, TZ))).toMatchObject({ weeks: 34, days: 0 });
     t.referral.referredAt = wallToInstant('2026-10-10T00:01', TZ);
     expect(correctedAge(t.child, transportDate(t, TZ))).toMatchObject({ weeks: 34, days: 1 });
+  });
+  it('postnatale leeftijd: geboortedag is dag 1', () => {
+    expect(correctedAge(child, '2026-10-07')).toMatchObject({ weeks: 33, days: 5, postnatalDay: 1 });
+    expect(correctedAge(child, '2026-10-08')).toMatchObject({ postnatalDay: 2 });
   });
   it('rekent niet met lege dagen als 0', () => {
     expect(correctedAge({ ...child, gestationalAgeDays: null }, '2026-10-09')).toBeNull();

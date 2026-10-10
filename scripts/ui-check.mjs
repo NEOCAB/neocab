@@ -67,6 +67,7 @@ async function unlabeledControls(page) {
   await ga.blur();
   const ca = await page.locator('.computed').textContent();
   check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd: 33+5 weken'), ca);
+  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('Postnatale leeftijd: dag 1'), ca);
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();

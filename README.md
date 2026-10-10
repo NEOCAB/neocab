@@ -61,7 +61,7 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 ## Technische aannames
 
-- **Gecorrigeerde leeftijd** = amenorroeduur bij geboorte + het aantal verstreken **kalenderdagen** van geboortedatum tot de **transportdatum**. Als transportdatum geldt de lokale datum van *Datum en tijd verwijzing*. De amenorroeduur wordt in één veld ingevoerd als `weken+dagen` (bijv. `33+5`); alleen weken (`33`) betekent 33+0. Dagen 0–6. De postnatale leeftijd in dagen wordt apart getoond (geen extra formulierveld).
+- **Gecorrigeerde leeftijd** = amenorroeduur bij geboorte + het aantal verstreken **kalenderdagen** van geboortedatum tot de **transportdatum**. Als transportdatum geldt de lokale datum van *Datum en tijd verwijzing*. De amenorroeduur wordt in één veld ingevoerd als `weken+dagen` (bijv. `33+5`); alleen weken (`33`) betekent 33+0. Dagen 0–6. De postnatale leeftijd wordt apart getoond als postnatale dag: de geboortedag is dag 1, de volgende kalenderdag dag 2, enz. (geen extra formulierveld).
 - **Tijdstippen** worden opgeslagen als ISO-8601 met UTC-offset (bijv. `2026-10-09T23:45:00+02:00`) en getoond in de gekozen tijdzone (standaard Europe/Amsterdam, instelbaar op het startscherm). Geboortedatum en weegdatum zijn lokale kalenderdatums zonder tijdzone; geboortetijd is een lokale kloktijd. Bij het dubbele uur van de wintertijdovergang wordt het eerste voorkomen gekozen.
 - **Standaardtijd “nu”**: nieuwe records (meetmoment, medicatietoediening, infuus, snelheidswijziging, tubeplaatsing/-aanpassing) krijgen bij aanmaken de huidige tijd (afgerond op de minuut). *Datum en tijd verwijzing* krijgt “nu” bij het aanmaken van het transport. Losse tijdvelden die pas later relevant zijn (aankomst verwijzend ziekenhuis, laatste voeding, vertrek, aankomst ontvangend centrum) blijven leeg tot de gebruiker op **Nu invullen** drukt of zelf een tijd invoert; zo worden geen tijden geregistreerd die nog niet hebben plaatsgevonden. Een stoptijd wordt alleen bij **Infuus stoppen** ingevuld. Opgeslagen tijden veranderen nooit bij openen of herladen.
 - **Leeg / nul**: numerieke velden zijn leeg (niet ingevuld) of een ingevuld getal (0 is een echte nul); er zijn geen knoppen voor “onbekend”. Lege waarden worden niet in het verslag opgenomen. Keuzevelden die in de opdracht een optie *Onbekend* hebben (antenatale corticosteroïden, magnesiumsulfaat) houden die optie.
@@ -77,7 +77,7 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 32 tests):
+Unit-tests (`npm test`, 33 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 
@@ -93,7 +93,7 @@ Unit-tests (`npm test`, 32 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 63 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 64 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 

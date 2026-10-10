@@ -122,7 +122,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const ca = correctedAge(c, td);
     if (ca) {
       b.kv('Gecorrigeerde leeftijd', `${ca.weeks}+${ca.days} weken (op ${formatLocalDate(td)}, datum verwijzing)`);
-      b.kv('Postnatale leeftijd', `${ca.postnatalDays} ${ca.postnatalDays === 1 ? 'dag' : 'dagen'}`);
+      b.kv('Postnatale leeftijd', `dag ${ca.postnatalDay}`);
     }
     b.num('Geboortegewicht', c.birthWeightGram, 'g').num('Huidig gewicht', c.currentWeightGram, 'g');
     sections.push({ title: '1 Basisgegevens kind', blocks: [{ rows: b.orEmpty() }] });
