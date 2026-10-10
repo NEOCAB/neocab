@@ -297,6 +297,11 @@ for (const [w, h] of [
   check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 8 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   const groups = await page.locator('#s6 .data-table thead tr.group-row th').allTextContents();
+  const doubleLine = await page.evaluate(() => {
+    const g = document.querySelectorAll('#s6 .data-table .group-row th');
+    return [getComputedStyle(g[0]).borderRightWidth, getComputedStyle(g[1]).borderLeftWidth];
+  });
+  check(`${w}px: geen dubbele lijn tussen Meetmoment en Ademhalingsondersteuning`, doubleLine[0] === '3px' && doubleLine[1] === '0px', doubleLine.join(' / '));
   check(`${w}px: OI onder Ademhalingsondersteuning`, groups[0] === 'Meetmoment' && groups[1] === 'Ademhalingsondersteuning', groups.join(' | '));
   check(`${w}px: OI-kolom direct rechts van Tijd`, headers[0]?.trim() === 'Tijd' && headers[1]?.trim() === 'OI', headers.slice(0, 3).join(' | '));
   const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();

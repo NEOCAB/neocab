@@ -896,8 +896,9 @@ fieldset.group > legend {
   /* Dikke lichtblauwe lijn rechts van de tijdkolom. */
   border-right: 3px solid var(--primary-20);
 }
-/* Kolom direct na de tijdkolom: geen dubbele lijn. */
-.data-table .col-1.gstart {
+/* Kolom en groep direct na de tijdkolom: geen dubbele lijn (de tijdkolom heeft al een rechterlijn). */
+.data-table .col-1.gstart,
+.data-table .group-row .sticky-group + th {
   border-left: none;
 }
 .data-table thead .col-0,
