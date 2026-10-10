@@ -303,7 +303,9 @@ async function basisLayout(page) {
 
 
   // Herladen: gegevens en tijdstippen behouden
-  await page.getByRole('button', { name: 'Concept opslaan' }).click();
+  // Geen knop Concept opslaan meer: wachten tot de automatische opslag klaar is.
+  check('Geen knop Concept opslaan en geen knop Overzicht; logo leidt terug', (await page.getByRole('button', { name: /Concept opslaan|^Opslaan$/ }).count()) === 0 && (await page.locator('.topbar .back').count()) === 0 && (await page.locator('.topbar').getByText('Actieve registratie').count()) === 0);
+  await page.locator('.save-status.ok').waitFor();
   const timesBefore = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   await page.reload();
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
@@ -314,13 +316,13 @@ async function basisLayout(page) {
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));
   // Toetsenbord: Tab-volgorde begint bij de navigatie en bereikt de velden
   await page.keyboard.press('Tab');
-  const f1 = await page.evaluate(() => document.activeElement?.textContent);
+  const f1 = await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent);
   const tabbed = [];
   for (let i = 0; i < 8; i++) {
     await page.keyboard.press('Tab');
     tabbed.push(await page.evaluate(() => document.activeElement?.labels?.[0]?.textContent ?? document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent));
   }
-  check('Toetsenbord: eerste Tab op "Overzicht"', f1?.includes('Overzicht'), f1);
+  check('Toetsenbord: eerste Tab op logo (terug naar overzicht)', f1?.includes('terug naar overzicht'), f1);
   check('Toetsenbord: Tab bereikt Naam kind', tabbed.includes('Naam kind'), tabbed.join(' › '));
   await page.screenshot({ path: `${OUT}/390-formulier.png`, fullPage: true });
 

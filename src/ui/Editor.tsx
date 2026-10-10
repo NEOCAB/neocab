@@ -105,15 +105,21 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
   return (
     <div className="editor-layout">
       <header className="topbar" role="banner">
-        <div className="topbar-brand">
+        {/* Logo en naam: terug naar het overzicht van concepten (er wordt eerst opgeslagen). */}
+        <button
+          type="button"
+          className="topbar-brand"
+          onClick={() => {
+            saveNow();
+            onExit();
+          }}
+          aria-label="Neo.Cab – terug naar overzicht van concepten"
+          title="Terug naar overzicht"
+        >
           <Logo className="topbar-logo" />
           <span className="topbar-name">Neo.Cab</span>
-        </div>
-        <button type="button" className="ghost back" onClick={() => { saveNow(); onExit(); }} aria-label="Terug naar overzicht van concepten">
-          ←<span className="wide-only"> Overzicht</span>
         </button>
         <div className="active-transport">
-          <span className="active-label">Actieve registratie</span>
           <strong>{childLabel(t.child.name, anonymous)}</strong>
           <span className="muted">
             {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
@@ -142,10 +148,6 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
               ))}
             </select>
           </div>
-          <button type="button" className="secondary small" onClick={saveNow} aria-label="Concept opslaan">
-            <span className="show-wide">Concept opslaan</span>
-            <span className="show-narrow">Opslaan</span>
-          </button>
           <button type="button" className="primary small" onClick={() => { saveNow(); onReport(); }}>
             Verslag<span className="wide-only"> &amp; export</span>
           </button>

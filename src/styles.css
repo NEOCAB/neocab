@@ -625,16 +625,23 @@ fieldset.group > legend {
   gap: 0.25rem 0.75rem;
   width: 100%;
 }
-.topbar .back {
-  flex: none;
-}
 /* Naam en logo van de app links in de bovenbalk. */
 .topbar-brand {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   flex: none;
-  padding-right: 0.25rem;
+  min-height: var(--tap);
+  padding: 0 0.4rem 0 0.15rem;
+  margin-left: -0.15rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+}
+.topbar-brand:hover {
+  border-color: var(--primary-20);
+  background: var(--primary-10);
 }
 .topbar-logo {
   width: 2rem;
@@ -645,15 +652,7 @@ fieldset.group > legend {
   color: var(--primary);
   line-height: 1;
 }
-/* Smal scherm: alles op één regel houden (terugknop als pijl, geen label "Actieve registratie"). */
 @media (max-width: 559px) {
-  .topbar .back {
-    padding-inline: 0.5rem;
-    font-size: 1.2rem;
-  }
-  .topbar .active-label {
-    display: none;
-  }
   .topbar-logo {
     width: 1.75rem;
   }
@@ -1646,16 +1645,7 @@ fieldset.group > legend {
 }
 
 /* Korte knopteksten op smalle schermen; de volledige naam blijft voor schermlezers beschikbaar. */
-.show-narrow {
-  display: none;
-}
 @media (max-width: 559px) {
-  .show-wide {
-    display: none;
-  }
-  .show-narrow {
-    display: inline;
-  }
   .wide-only {
     position: absolute;
     width: 1px;
