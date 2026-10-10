@@ -143,7 +143,21 @@ function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdN
   return (
     <div className="abcd">
       {ABCD_KEYS.map((k) => (
-        <TextArea key={k} label={ABCD_LABELS[k]} value={notes[k]} onChange={(v) => onChange({ ...notes, [k]: v })} rows={2} />
+        <TextArea
+          key={k}
+          label={
+            <>
+              {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
+              <span className="abcd-letter" aria-hidden="true">
+                {ABCD_LABELS[k][0]}
+              </span>
+              {ABCD_LABELS[k]}
+            </>
+          }
+          value={notes[k]}
+          onChange={(v) => onChange({ ...notes, [k]: v })}
+          rows={2}
+        />
       ))}
     </div>
   );
