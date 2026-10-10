@@ -48,7 +48,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   doc.addFileToVFS('PTSans-Bold.ttf', fonts.bold);
   doc.addFont('PTSans-Bold.ttf', FONT, 'bold');
   doc.setFont(FONT, 'normal');
-  doc.setProperties({ title: report.title, subject: report.meta[0] ?? '', creator: 'Neonatale transportregistratie' });
+  doc.setProperties({ title: report.title, subject: report.meta[0] ?? '', creator: 'Neo.Cab' });
 
   let y = M.top;
   /** Paginageometrie; de tijdlijntabel staat op liggende pagina's. */
@@ -478,7 +478,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     const ph = doc.internal.pageSize.getHeight();
     if (p > 1) doc.text(pdfText(`${report.title}${report.meta[0] ? ` — ${report.meta[0]}` : ''}`), M.left, 10, { maxWidth: pw - M.left - M.right });
     doc.text(`Pagina ${p} van ${pages}`, pw - M.right, ph - 8, { align: 'right' });
-    doc.text('Neonatale transportregistratie — prototype', M.left, ph - 8);
+    doc.text('Neo.Cab — prototype', M.left, ph - 8);
   }
   return doc;
 }

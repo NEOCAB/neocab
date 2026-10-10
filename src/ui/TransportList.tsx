@@ -69,7 +69,7 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, settin
       <header className="home-header">
         <Logo className="home-logo" />
         <div>
-          <h1>Neonatale transportregistratie</h1>
+          <h1>Neo.Cab</h1>
           <p className="muted">Prototype · concepten worden alleen lokaal in deze browser op dit apparaat bewaard.</p>
         </div>
       </header>

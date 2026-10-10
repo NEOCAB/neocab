@@ -1,4 +1,4 @@
-# Neonatale transportregistratie
+# Neo.Cab
 
 Prototype van een Nederlandstalige webapp voor de registratie van neonatale transporten tussen ziekenhuizen, bedoeld voor gebruik op telefoon en iPad tijdens verwijzing, stabilisatie en transport. Het resultaat is een volledig transportverslag als pdf-bestand en als kopieerbare e-mailtekst.
 

@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 
 const html = readFileSync('dist/index.html', 'utf8');
-const title = /<title>[\s\S]*?<\/title>/.exec(html)?.[0] ?? '<title>Neonatale transportregistratie</title>';
+const title = /<title>[\s\S]*?<\/title>/.exec(html)?.[0] ?? '<title>Neo.Cab</title>';
 const links = [...html.matchAll(/<link rel="stylesheet"[^>]*>/g)].map((m) => m[0]);
 const scripts = [...html.matchAll(/<script type="module"[^>]*><\/script>/g)].map((m) => m[0]);
 const fragment = [title, ...links, '<div id="root"></div>', ...scripts, ''].join('\n');
