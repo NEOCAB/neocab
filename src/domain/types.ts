@@ -234,6 +234,8 @@ export interface Transport {
   proceduresAndEvents: string;
   parentsAndFamily: string;
   checklist: Record<ChecklistKey, ChecklistStatus>;
-  parentPhones: string[];
+  /** Contactgegevens ouders (als tekst bewaard). */
+  motherPhone: string;
+  partnerPhone: string;
   closure: Closure;
 }

@@ -67,7 +67,10 @@ async function unlabeledControls(page) {
   await ga.fill('33+5');
   await ga.blur();
   const ca = await page.locator('.computed').textContent();
-  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd: 33+5 weken'), ca);
+  const cb = await page.locator('#s1 .computed').boundingBox();
+  const gb = await ga.boundingBox();
+  check('Blauw vak links van amenorroeduur, gelijke onderkant', !!cb && !!gb && cb.x < gb.x && Math.abs(cb.y + cb.height - (gb.y + gb.height)) < 3, JSON.stringify([cb, gb]));
+  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd: 33+5 wk'), ca);
   check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('Postnatale leeftijd: dag 1'), ca);
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
@@ -129,10 +132,14 @@ async function unlabeledControls(page) {
   check('Stoptijd leeg zolang infuus loopt', await page.getByText('Loopt nog — stoptijd wordt ingevuld bij Stoppen.').isVisible());
 
   // Contactgegevens ouders in sectie 12
-  check('Telefoonnummers ouders staan in sectie 12', (await page.locator('#s12').getByLabel('Telefoonnummer 1', { exact: true }).count()) === 1 && (await page.locator('#s13 input[type=tel]').count()) === 0);
-  await page.getByRole('button', { name: '+ Telefoonnummer toevoegen' }).click();
-  await page.getByLabel('Telefoonnummer 1', { exact: true }).fill('0612345678');
-  await page.getByLabel('Telefoonnummer 2', { exact: true }).fill('0687654321');
+  const mother = page.locator('#s12').getByLabel('Telefoonnummer moeder', { exact: true });
+  const partner = page.locator('#s12').getByLabel('Telefoonnummer partner', { exact: true });
+  check('Telefoonnummer moeder en partner in sectie 12', (await mother.count()) === 1 && (await partner.count()) === 1 && (await page.locator('#s13 input[type=tel]').count()) === 0);
+  const mb = await mother.boundingBox();
+  const pb = await partner.boundingBox();
+  check('Moeder en partner naast elkaar', !!mb && !!pb && Math.abs(mb.y - pb.y) < 2 && pb.x > mb.x, JSON.stringify([mb?.x, mb?.y, pb?.x, pb?.y]));
+  await mother.fill('0612345678');
+  await partner.fill('0687654321');
 
   const unl = await unlabeledControls(page);
   check('Alle invoervelden hebben een label', unl.length === 0, unl.join(', '));

@@ -141,7 +141,8 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
     proceduresAndEvents: 'Intubatie bij tweede poging. Surfactant toegediend zonder complicaties.',
     parentsAndFamily: 'Ouders aanwezig, geïnformeerd over overplaatsing. Vader reist mee met eigen vervoer.',
     checklist: { fixatie: 'gedaan', gas: 'gedaan', tempGlucose: 'gedaan', beeldvorming: 'nog_niet', ouders: 'gedaan', voeding: 'nvt' },
-    parentPhones: ['06 0000 0001', '06 0000 0002'],
+    motherPhone: '06 0000 0001',
+    partnerPhone: '06 0000 0002',
     closure: {
       departedCotsideAt: at('2026-10-10T00:40'),
       eventsDuringTransport: 'Rustig transport, geen bijzonderheden.',

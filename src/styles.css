@@ -433,6 +433,24 @@ fieldset.group > legend {
   margin-bottom: 0.75rem;
   font-size: 0.95rem;
 }
+.gestation-row {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.gestation-row > .field {
+  align-self: end;
+}
+/* Blauw vak met berekende leeftijd: vult de hoogte van label + invoerveld ernaast. */
+.gestation-row .computed {
+  margin-bottom: 0.75rem;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
 .readonly-value {
   display: flex;
   align-items: center;

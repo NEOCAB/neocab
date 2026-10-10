@@ -89,7 +89,8 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
     proceduresAndEvents: '',
     parentsAndFamily: '',
     checklist: Object.fromEntries(CHECKLIST_KEYS.map((k) => [k, 'nog_niet'])) as Transport['checklist'],
-    parentPhones: [''],
+    motherPhone: '',
+    partnerPhone: '',
     closure: { departedCotsideAt: null, eventsDuringTransport: '', arrivedReceivingAt: null },
   };
 }

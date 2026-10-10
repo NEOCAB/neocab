@@ -77,7 +77,7 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 37 tests):
+Unit-tests (`npm test`, 38 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 
@@ -134,5 +134,6 @@ scripts/        ui-check.mjs (Playwright)
 - Amenorroeduur als één veld `weken+dagen`; gecorrigeerde leeftijd in plaats van postmenstruele leeftijd.
 - Sectie 2: eerst datum en tijd verwijzing, dan verwijzer (ziekenhuis, afdeling, naam, telefoon), dan ontvangende afdeling en ziekenhuis.
 - Infusen: *Medicatie en concentratie* in plaats van *Vloeistof of medicament*.
-- Telefoonnummers ouders staan bij sectie 12 (*Contactgegevens ouders*); checklistpunt 5 bevat alleen de status.
+- Contactgegevens ouders staan bij sectie 12: twee velden naast elkaar, *Telefoonnummer moeder* en *Telefoonnummer partner*; checklistpunt 5 bevat alleen de status. Oudere concepten met een lijst telefoonnummers worden bij laden omgezet (eerste nummer = moeder, overige = partner).
+- Sectie 1: het blauwe vak met gecorrigeerde leeftijd en postnatale dag staat links naast het veld Amenorroeduur, ook op een telefoon.
 - Geen toelichtingsteksten bij verwijzing en tijdlijn.

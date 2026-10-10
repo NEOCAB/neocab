@@ -38,7 +38,7 @@ describe('verslag', () => {
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     expect(text).toContain('Beeldvorming beschikbaar voor ontvangend ziekenhuis: Nog niet gedaan');
     const s12 = text.slice(text.indexOf('12 OUDERS EN GEZIN'), text.indexOf('13 CHECKLIST'));
-    expect(s12).toContain('Contactgegevens ouders:\n  06 0000 0001\n  06 0000 0002');
+    expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
     expect(text).not.toContain('LUMC-patiëntnummer');
     for (const gone of ['Doseergewicht', 'Geslacht', 'gewogen', 'Postmenstruele']) expect(text).not.toContain(gone);

@@ -28,7 +28,17 @@ export function normalizeTransport(raw: unknown): Transport | null {
   const defaults = newTransport();
   // Standaard-"nu" van een lege registratie mag een opgeslagen waarde nooit vervangen.
   const t = mergeDefaults({ ...defaults, id: raw.id }, raw);
-  return { ...t, measurements: t.measurements.map(migrateCpapToPeep) };
+  return migrateParentPhones({ ...t, measurements: t.measurements.map(migrateCpapToPeep) }, raw);
+}
+
+/** Oudere concepten hadden een lijst `parentPhones`; nu: eerste nummer = moeder, overige = partner. */
+function migrateParentPhones(t: Transport, raw: Record<string, unknown>): Transport {
+  const old = raw.parentPhones;
+  if (!Array.isArray(old) || 'motherPhone' in raw) return t;
+  const phones = old.filter((p): p is string => typeof p === 'string' && p.trim() !== '');
+  const { parentPhones: _drop, ...rest } = t as Transport & { parentPhones?: unknown };
+  void _drop;
+  return { ...rest, motherPhone: phones[0] ?? '', partnerPhone: phones.slice(1).join(', ') };
 }
 
 /** Oudere concepten bewaarden de CPAP-druk als `cpap`; die wordt nu als PEEP geregistreerd. */

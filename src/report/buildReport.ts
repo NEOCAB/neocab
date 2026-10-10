@@ -275,8 +275,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   sections.push({ title: '11 Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
-    const phones = t.parentPhones.map((p) => p.trim()).filter(Boolean);
-    if (phones.length) b.kv('Contactgegevens ouders', phones.join('\n'));
+    b.kv('Telefoonnummer moeder', t.motherPhone.trim()).kv('Telefoonnummer partner', t.partnerPhone.trim());
     sections.push({ title: '12 Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
   }
 

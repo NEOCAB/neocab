@@ -10,7 +10,6 @@ import {
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
 import { correctedAge, transportDate } from '../../domain/calc';
-import { formatLocalDate } from '../../domain/time';
 import { DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField } from '../fields';
 import { useTimeZone } from '../context';
 
@@ -33,29 +32,22 @@ export function ChildSection({ t, update }: SectionProps) {
         <TextField label="Patiëntnummer" value={c.patientNumber} onChange={(v) => set('patientNumber', v)} inputMode="numeric" />
         <DateField label="Geboortedatum" value={c.birthDate} onChange={(v) => set('birthDate', v)} />
         <TimeField label="Geboortetijd" value={c.birthTime} onChange={(v) => set('birthTime', v)} />
+      </div>
+      <div className="grid gestation-row">
+        <div className="computed" aria-live="polite">
+          <div>
+            Gecorrigeerde leeftijd: <strong>{ca ? `${ca.weeks}+${ca.days} wk` : '—'}</strong>
+          </div>
+          <div>
+            Postnatale leeftijd: <strong>{ca ? `dag ${ca.postnatalDay}` : '—'}</strong>
+          </div>
+        </div>
         <GestationField
           label="Amenorroeduur"
           weeks={c.gestationalAgeWeeks}
           days={c.gestationalAgeDays}
           onChange={(w, d) => update((x) => ({ ...x, child: { ...x.child, gestationalAgeWeeks: w, gestationalAgeDays: d } }))}
         />
-      </div>
-      <div className="computed" aria-live="polite">
-        <div>
-          <strong>Gecorrigeerde leeftijd:</strong>{' '}
-          {ca ? (
-            <>
-              {ca.weeks}+{ca.days} weken <span className="muted">(op {formatLocalDate(td)}, datum verwijzing)</span>
-            </>
-          ) : (
-            <span className="muted">wordt berekend zodra amenorroeduur, geboortedatum en datum verwijzing bekend zijn</span>
-          )}
-        </div>
-        {ca && (
-          <div>
-            <strong>Postnatale leeftijd:</strong> dag {ca.postnatalDay}
-          </div>
-        )}
       </div>
       <div className="grid">
         <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0 }} />
@@ -179,25 +171,15 @@ export function ProceduresSection({ t, update }: SectionProps) {
 }
 
 export function ParentsSection({ t, update }: SectionProps) {
-  const setPhones = (phones: string[]) => update((x) => ({ ...x, parentPhones: phones }));
   return (
     <Section id="s12" title="12 Ouders en gezin">
       <TextArea label="Ouders en gezin" value={t.parentsAndFamily} onChange={(v) => update((x) => ({ ...x, parentsAndFamily: v }))} rows={4} />
       <fieldset className="group phones">
         <legend>Contactgegevens ouders</legend>
-        {t.parentPhones.map((p, i) => (
-          <div className="phone-row" key={i}>
-            <TextField label={`Telefoonnummer ${i + 1}`} type="tel" value={p} onChange={(v) => setPhones(t.parentPhones.map((q, j) => (j === i ? v : q)))} />
-            {t.parentPhones.length > 1 && (
-              <button type="button" className="link-button danger" onClick={() => setPhones(t.parentPhones.filter((_, j) => j !== i))} aria-label={`Telefoonnummer ${i + 1} verwijderen`}>
-                Verwijderen
-              </button>
-            )}
-          </div>
-        ))}
-        <button type="button" className="secondary" onClick={() => setPhones([...t.parentPhones, ''])}>
-          + Telefoonnummer toevoegen
-        </button>
+        <div className="grid two">
+          <TextField label="Telefoonnummer moeder" type="tel" value={t.motherPhone} onChange={(v) => update((x) => ({ ...x, motherPhone: v }))} />
+          <TextField label="Telefoonnummer partner" type="tel" value={t.partnerPhone} onChange={(v) => update((x) => ({ ...x, partnerPhone: v }))} />
+        </div>
       </fieldset>
     </Section>
   );

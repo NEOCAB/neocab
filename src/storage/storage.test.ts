@@ -66,6 +66,21 @@ describe('lokale conceptopslag', () => {
     expect(loaded.measurements[0].resp.settingsByMode.cpap).toEqual({ peep: 7, fio2: 45 });
   });
 
+  it('zet een oude lijst met telefoonnummers ouders om naar moeder en partner', () => {
+    const storage = memoryStorage();
+    const t = sampleTransport();
+    const old = JSON.parse(JSON.stringify(t));
+    delete old.motherPhone;
+    delete old.partnerPhone;
+    old.parentPhones = ['0611111111', '0622222222', '0633333333'];
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
+    storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
+    const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
+    expect(loaded.motherPhone).toBe('0611111111');
+    expect(loaded.partnerPhone).toBe('0622222222, 0633333333');
+    expect('parentPhones' in loaded).toBe(false);
+  });
+
   it('bewaart configureerbare toedieningsroutes', () => {
     const storage = memoryStorage();
     saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'] });
