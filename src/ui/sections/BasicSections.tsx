@@ -211,13 +211,10 @@ export function ParentsSection({ t, update }: SectionProps) {
   return (
     <Section id="s12" title="13 Ouders en gezin">
       <TextArea label="Ouders en gezin" value={t.parentsAndFamily} onChange={(v) => update((x) => ({ ...x, parentsAndFamily: v }))} rows={4} />
-      <fieldset className="group phones">
-        <legend>Contactgegevens ouders</legend>
-        <div className="grid two">
-          <TextField label="Telefoonnummer moeder" type="tel" value={t.motherPhone} onChange={(v) => update((x) => ({ ...x, motherPhone: v }))} />
-          <TextField label="Telefoonnummer partner" type="tel" value={t.partnerPhone} onChange={(v) => update((x) => ({ ...x, partnerPhone: v }))} />
-        </div>
-      </fieldset>
+      <div className="grid two phones">
+        <TextField label="Telefoonnummer moeder" type="tel" value={t.motherPhone} onChange={(v) => update((x) => ({ ...x, motherPhone: v }))} />
+        <TextField label="Telefoonnummer partner" type="tel" value={t.partnerPhone} onChange={(v) => update((x) => ({ ...x, partnerPhone: v }))} />
+      </div>
     </Section>
   );
 }

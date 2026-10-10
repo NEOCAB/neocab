@@ -280,7 +280,7 @@ input[type='time'] {
   grid-column: 1 / -1;
 }
 /* Invoervakken naast elkaar op één lijn, ook als een label afbreekt. */
-.phones .grid {
+.grid.phones {
   align-items: end;
 }
 

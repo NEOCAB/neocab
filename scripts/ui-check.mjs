@@ -177,6 +177,7 @@ async function unlabeledControls(page) {
   const mother = page.locator('#s12').getByLabel('Telefoonnummer moeder', { exact: true });
   const partner = page.locator('#s12').getByLabel('Telefoonnummer partner', { exact: true });
   check('Telefoonnummer moeder en partner in sectie 12', (await mother.count()) === 1 && (await partner.count()) === 1 && (await page.locator('#s13 input[type=tel]').count()) === 0);
+  check('Telefoonnummers ouders zonder omlijsting', (await page.locator('#s12 fieldset').count()) === 0 && !(await page.locator('#s12').textContent()).includes('Contactgegevens ouders'));
   const mb = await mother.boundingBox();
   const pb = await partner.boundingBox();
   check('Moeder en partner naast elkaar', !!mb && !!pb && Math.abs(mb.y - pb.y) < 2 && pb.x > mb.x, JSON.stringify([mb?.x, mb?.y, pb?.x, pb?.y]));
