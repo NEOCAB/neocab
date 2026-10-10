@@ -863,6 +863,117 @@ fieldset.group > legend {
   resize: none;
   overflow: hidden;
 }
+/* Tijdlijn als grafiek: kleine grafieken per waarde, gedeelde tijd-as */
+.view-toggle {
+  margin: 1rem 0 0.5rem;
+}
+.timeline-charts .chart-group {
+  margin-top: 0.75rem;
+}
+.chart-group-title {
+  margin: 0.5rem 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 0.6rem;
+}
+.chart-card {
+  margin: 0;
+  padding: 0.45rem 0.55rem 0.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: crosshair;
+}
+.chart-card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.chart-title {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-unit {
+  font-weight: 400;
+  color: var(--muted);
+}
+.chart-value {
+  white-space: nowrap;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.chart-value.alert strong {
+  color: var(--alert-text);
+}
+.chart-time {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.chart-svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+.chart-gridline {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.chart-tick {
+  font-size: 11px;
+  fill: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.chart-line {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.chart-dot {
+  fill: var(--primary);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.chart-dot.alert {
+  fill: var(--alert-border);
+}
+.chart-crosshair {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+.chart-threshold {
+  stroke: var(--alert-border);
+  stroke-width: 1;
+}
+.chart-band {
+  cursor: default;
+  margin-bottom: 0.6rem;
+}
+.chart-mode {
+  fill: var(--primary-10);
+}
+.chart-mode.alt {
+  fill: var(--primary-20);
+}
+.chart-mode-label {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--primary);
+}
 .subsection-title {
   margin: 1.25rem 0 0.5rem;
   padding-top: 0.75rem;

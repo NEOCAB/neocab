@@ -424,6 +424,20 @@ for (const [w, h] of [
   check(`${w}px: OI-kolom is de laatste kolom`, headers[headers.length - 1]?.trim() === 'OI' && headers[1]?.trim() === 'Modaliteit', headers.slice(-2).join(' | '));
   const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();
   check(`${w}px: OI 29,5 oranje gemarkeerd in tabel`, alertCells.length === 1 && alertCells[0].includes('29,5'), JSON.stringify(alertCells));
+  // Tijdlijn als grafiek
+  await page.locator('#s6').getByRole('radio', { name: 'Grafiek' }).check();
+  const charts = page.locator('#s6 .chart-card:not(.chart-band)');
+  const nCharts = await charts.count();
+  check(`${w}px: grafiekweergave met één grafiek per waarde en modaliteitsband`, nCharts === headers.length - 3 && (await page.locator('#s6 .chart-band').count()) === 1 && (await page.locator('#s6 .data-table').count()) === 0, `${nCharts} grafieken`);
+  check(`${w}px: grafieken geen horizontaal scrollen`, await noHorizontalScroll(page));
+  const firstSvg = await charts.first().locator('svg').boundingBox();
+  await page.mouse.move(firstSvg.x + firstSvg.width - 12, firstSvg.y + firstSvg.height / 2);
+  check(`${w}px: aanwijzen toont in alle grafieken hetzelfde meetmoment`, (await page.locator('#s6 .chart-crosshair').count()) === nCharts);
+  check(`${w}px: OI > 25 oranje in de grafiek`, (await page.locator('#s6 .chart-dot.alert').count()) === 1);
+  await page.mouse.click(firstSvg.x + firstSvg.width - 12, firstSvg.y + firstSvg.height / 2);
+  check(`${w}px: klik in grafiek opent dat meetmoment`, (await page.getByRole('form', { name: 'Meetmoment bewerken' }).count()) === 1);
+  await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
+  await page.locator('#s6').getByRole('radio', { name: 'Tabel' }).check();
   await page.locator('#s6 .row-edit').nth(3).click();
   check(`${w}px: bewerkformulier toont OI-alert`, (await page.locator('#s6 .oi-line.alert').textContent())?.includes('29,5'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();

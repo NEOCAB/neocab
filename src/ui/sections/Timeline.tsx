@@ -9,6 +9,7 @@ import { DataTable, TimeStamp } from '../DataTable';
 import { OI_ALERT_THRESHOLD, OI_FORMULA, formatOi, isOiAlert, oxygenationIndex } from '../../domain/oi';
 import { DateTimeField, NumberField, Section, Segmented, TextArea } from '../fields';
 import { ExpandIcon } from '../icons';
+import { TimelineCharts } from '../TimelineCharts';
 import { formatNum } from '../../domain/num';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
@@ -252,8 +253,38 @@ function MeasurementEditor({
   );
 }
 
+type View = 'tabel' | 'grafiek';
+const VIEW_KEY = 'neocab:tijdlijn-weergave';
+const VIEW_OPTIONS: { value: View; label: string }[] = [
+  { value: 'tabel', label: 'Tabel' },
+  { value: 'grafiek', label: 'Grafiek' },
+];
+
+/** Gekozen weergave onthouden op dit apparaat (alleen gemak; zonder opslag is de tabel de standaard). */
+function useView(): [View, (v: View) => void] {
+  const [view, setView] = useState<View>(() => {
+    try {
+      return localStorage.getItem(VIEW_KEY) === 'grafiek' ? 'grafiek' : 'tabel';
+    } catch {
+      return 'tabel';
+    }
+  });
+  return [
+    view,
+    (v) => {
+      setView(v);
+      try {
+        localStorage.setItem(VIEW_KEY, v);
+      } catch {
+        /* alleen voor deze sessie */
+      }
+    },
+  ];
+}
+
 export function TimelineSection({ t, update }: SectionProps) {
   const tz = useTimeZone();
+  const [view, setView] = useView();
   const [draft, setDraft] = useState<Measurement | null>(null);
   const [isNew, setIsNew] = useState(false);
   const confirm = useConfirm();
@@ -305,27 +336,39 @@ export function TimelineSection({ t, update }: SectionProps) {
         !draft && <p className="muted">Nog geen meetmomenten.</p>
       ) : (
         <>
-          <DataTable
-            table={table}
-            caption="Tijdlijn: één rij per meetmoment"
-            rowClassName={(r) => (draft && !isNew && draft.id === rows[r].id ? 'editing' : '')}
-            renderKeyCell={(r, v) => (
-              <button
-                type="button"
-                className="row-edit"
-                aria-label={`Meetmoment van ${formatInstant(rows[r].at, tz) || 'onbekend tijdstip'} bewerken`}
-                onClick={() => {
-                  setDraft(structuredClone(rows[r]));
-                  setIsNew(false);
-                }}
-              >
-                <TimeStamp value={v} />
-                <span className="edit-icon" aria-hidden="true">
-                  ✎
-                </span>
-              </button>
-            )}
-          />
+          <Segmented legend="Weergave" className="view-toggle" name="tijdlijn-weergave" value={view} onChange={(v) => v && setView(v)} options={VIEW_OPTIONS} allowClear={false} />
+          {view === 'grafiek' ? (
+            <TimelineCharts
+              measurements={t.measurements}
+              timeZone={tz}
+              onPick={(m) => {
+                setDraft(structuredClone(m));
+                setIsNew(false);
+              }}
+            />
+          ) : (
+            <DataTable
+              table={table}
+              caption="Tijdlijn: één rij per meetmoment"
+              rowClassName={(r) => (draft && !isNew && draft.id === rows[r].id ? 'editing' : '')}
+              renderKeyCell={(r, v) => (
+                <button
+                  type="button"
+                  className="row-edit"
+                  aria-label={`Meetmoment van ${formatInstant(rows[r].at, tz) || 'onbekend tijdstip'} bewerken`}
+                  onClick={() => {
+                    setDraft(structuredClone(rows[r]));
+                    setIsNew(false);
+                  }}
+                >
+                  <TimeStamp value={v} />
+                  <span className="edit-icon" aria-hidden="true">
+                    ✎
+                  </span>
+                </button>
+              )}
+            />
+          )}
         </>
       )}
     </Section>
