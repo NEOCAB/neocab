@@ -12,15 +12,12 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
     child: {
       name: 'Baby Voorbeeld (fictief)',
       patientNumber: '0012345',
-      sex: 'vrouwelijk',
       birthDate: '2026-10-07',
       birthTime: '14:32',
       gestationalAgeWeeks: 33,
       gestationalAgeDays: 5,
       birthWeightGram: 1980,
       currentWeightGram: 1890,
-      currentWeightDate: '2026-10-09',
-      doseWeightOverrideGram: null,
     },
     referral: {
       referredAt: at('2026-10-09T22:10'),

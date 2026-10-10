@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { doseWeight, postmenstrualAge, transportDate } from './calc';
+import { correctedAge, parseGestation, transportDate } from './calc';
 import { newMeasurement, newTransport, newTube, newTubeVersion } from './factory';
 import { INVASIVE_MODES, NON_INVASIVE_MODES, respFieldsFor } from './labels';
 import { parseNum } from './num';
@@ -9,57 +9,41 @@ import type { Measurement, RespMode } from './types';
 
 const TZ = 'Europe/Amsterdam';
 
-describe('doseergewicht', () => {
-  const base = { birthWeightGram: null, currentWeightGram: null, doseWeightOverrideGram: null } as const;
-  it('neemt het hoogste van twee gewichten', () => {
-    expect(doseWeight({ ...base, birthWeightGram: 1980, currentWeightGram: 1890 }).value).toBe(1980);
-    expect(doseWeight({ ...base, birthWeightGram: 1980, currentWeightGram: 2100 }).value).toBe(2100);
-  });
-  it('gebruikt het enige bekende gewicht', () => {
-    expect(doseWeight({ ...base, currentWeightGram: 1500 }).value).toBe(1500);
-    expect(doseWeight({ ...base, birthWeightGram: 1200, currentWeightGram: 'onbekend' }).value).toBe(1200);
-  });
-  it('blijft leeg bij lege invoer (geen 0)', () => {
-    const d = doseWeight(base);
-    expect(d.value).toBeNull();
-    expect(d.auto).toBeNull();
-  });
-  it('behoudt een handmatige override bij gewijzigde gewichten', () => {
-    const d1 = doseWeight({ birthWeightGram: 1980, currentWeightGram: 1890, doseWeightOverrideGram: 2000 });
-    expect(d1).toEqual({ auto: 1980, value: 2000, manual: true });
-    const d2 = doseWeight({ birthWeightGram: 1980, currentWeightGram: 2300, doseWeightOverrideGram: 2000 });
-    expect(d2.value).toBe(2000);
-    expect(d2.auto).toBe(2300);
-  });
-  it('rekent opnieuw automatisch na wissen van de override', () => {
-    expect(doseWeight({ birthWeightGram: 1980, currentWeightGram: 2300, doseWeightOverrideGram: null })).toEqual({ auto: 2300, value: 2300, manual: false });
-  });
-  it('accepteert een expliciete handmatige 0 als ingevulde waarde', () => {
-    expect(doseWeight({ birthWeightGram: 1000, currentWeightGram: null, doseWeightOverrideGram: 0 }).value).toBe(0);
-  });
-});
-
-describe('postmenstruele leeftijd', () => {
+describe('gecorrigeerde leeftijd', () => {
   const child = { birthDate: '2026-10-07', gestationalAgeWeeks: 33, gestationalAgeDays: 5 } as const;
   it('telt kalenderdagen tot de transportdatum, ook over een weekovergang', () => {
-    expect(postmenstrualAge(child, '2026-10-08')).toMatchObject({ weeks: 33, days: 6, postnatalDays: 1 });
-    expect(postmenstrualAge(child, '2026-10-09')).toMatchObject({ weeks: 34, days: 0, postnatalDays: 2 });
-    expect(postmenstrualAge(child, '2026-10-16')).toMatchObject({ weeks: 35, days: 0, postnatalDays: 9 });
+    expect(correctedAge(child, '2026-10-08')).toMatchObject({ weeks: 33, days: 6, postnatalDays: 1 });
+    expect(correctedAge(child, '2026-10-09')).toMatchObject({ weeks: 34, days: 0, postnatalDays: 2 });
+    expect(correctedAge(child, '2026-10-16')).toMatchObject({ weeks: 35, days: 0, postnatalDays: 9 });
   });
   it('volgt een gewijzigde transportdatum (datum verwijzing)', () => {
     const t = newTransport(TZ);
     t.child = { ...t.child, ...child };
     t.referral.referredAt = wallToInstant('2026-10-09T23:59', TZ);
-    expect(postmenstrualAge(t.child, transportDate(t, TZ))).toMatchObject({ weeks: 34, days: 0 });
+    expect(correctedAge(t.child, transportDate(t, TZ))).toMatchObject({ weeks: 34, days: 0 });
     t.referral.referredAt = wallToInstant('2026-10-10T00:01', TZ);
-    expect(postmenstrualAge(t.child, transportDate(t, TZ))).toMatchObject({ weeks: 34, days: 1 });
+    expect(correctedAge(t.child, transportDate(t, TZ))).toMatchObject({ weeks: 34, days: 1 });
   });
   it('rekent niet met lege dagen als 0', () => {
-    expect(postmenstrualAge({ ...child, gestationalAgeDays: null }, '2026-10-09')).toBeNull();
-    expect(postmenstrualAge({ ...child, gestationalAgeDays: 0 }, '2026-10-09')).toMatchObject({ weeks: 33, days: 2 });
+    expect(correctedAge({ ...child, gestationalAgeDays: null }, '2026-10-09')).toBeNull();
+    expect(correctedAge({ ...child, gestationalAgeDays: 0 }, '2026-10-09')).toMatchObject({ weeks: 33, days: 2 });
   });
   it('geeft niets bij transportdatum vóór geboortedatum', () => {
-    expect(postmenstrualAge(child, '2026-10-01')).toBeNull();
+    expect(correctedAge(child, '2026-10-01')).toBeNull();
+  });
+});
+
+describe('amenorroeduur als weken+dagen', () => {
+  it('leest 33+5, met spaties en zonder dagen', () => {
+    expect(parseGestation('33+5')).toEqual({ ok: true, weeks: 33, days: 5 });
+    expect(parseGestation(' 33 + 5 ')).toEqual({ ok: true, weeks: 33, days: 5 });
+    expect(parseGestation('33')).toEqual({ ok: true, weeks: 33, days: 0 });
+    expect(parseGestation('')).toEqual({ ok: true, weeks: null, days: null });
+  });
+  it('weigert ongeldige invoer en dagen boven 6', () => {
+    expect(parseGestation('33+7').ok).toBe(false);
+    expect(parseGestation('33+').ok).toBe(false);
+    expect(parseGestation('abc').ok).toBe(false);
   });
 });
 

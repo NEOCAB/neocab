@@ -37,10 +37,14 @@ describe('verslag', () => {
     for (const h of ['1 BASISGEGEVENS KIND', '6 TIJDLIJN', '13 CHECKLIST VOOR VERTREK', '14 AFSLUITING TRANSPORT']) expect(text).toContain(h);
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     expect(text).toContain('Beeldvorming beschikbaar voor ontvangend ziekenhuis: Nog niet gedaan');
-    expect(text).toContain('Telefoonnummers ouders:\n  06 0000 0001\n  06 0000 0002');
-    expect(text).toContain('LUMC-patiëntnummer: 0012345');
-    expect(text).toContain('Doseergewicht: 1980 g');
-    expect(text).toContain('Postmenstruele leeftijd: 34+0 weken');
+    const s12 = text.slice(text.indexOf('12 OUDERS EN GEZIN'), text.indexOf('13 CHECKLIST'));
+    expect(s12).toContain('Contactgegevens ouders:\n  06 0000 0001\n  06 0000 0002');
+    expect(text).toContain('Patiëntnummer: 0012345');
+    expect(text).not.toContain('LUMC-patiëntnummer');
+    for (const gone of ['Doseergewicht', 'Geslacht', 'gewogen', 'Postmenstruele']) expect(text).not.toContain(gone);
+    expect(text).toContain('Amenorroeduur: 33+5 weken');
+    expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
+    expect(text).toContain('Medicatie en concentratie: Glucose 10%');
     expect(text).toContain('Pompsnelheid bij start: 09-10-2026 23:15: 3,2 mL/uur');
     expect(text).toContain('Snelheidswijziging: 10-10-2026 00:15: 4 mL/uur');
     expect(text).toContain('BE: -3,1 mmol/L');

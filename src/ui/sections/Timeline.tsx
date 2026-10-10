@@ -17,7 +17,6 @@ import { formatInstant } from '../../domain/time';
 import { tubeAt, upsertMeasurement } from '../../domain/timeline';
 import { timelineReportTable, tubeSummary } from '../../report/buildReport';
 import { DataTable } from '../DataTable';
-import { GAS_TYPE_LEGEND } from '../../domain/timelineTable';
 import { DateTimeField, NumberField, Section, Segmented, SelectField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
@@ -166,7 +165,7 @@ export function TimelineSection({ t, update }: SectionProps) {
   };
 
   return (
-    <Section id="s6" title="6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen" intro="Eén tabel; elke rij is één meetmoment, chronologisch op het ingevoerde tijdstip. Elk meetmoment mag gedeeltelijk worden ingevuld. Kies het tijdstip om een meetmoment te bewerken.">
+    <Section id="s6" title="6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen">
       {!draft && (
         <button type="button" className="primary" onClick={startNew}>
           + Nieuw meetmoment
@@ -189,7 +188,6 @@ export function TimelineSection({ t, update }: SectionProps) {
         !draft && <p className="muted">Nog geen meetmomenten.</p>
       ) : (
         <>
-          <p className="muted small-print table-hint">Lege kolommen worden niet getoond. Veeg of scrol horizontaal voor alle kolommen. {GAS_TYPE_LEGEND}</p>
           <DataTable
             table={table}
             caption="Tijdlijn: één rij per meetmoment"

@@ -61,11 +61,10 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 ## Technische aannames
 
-- **Postmenstruele leeftijd** = zwangerschapsduur bij geboorte (weken + dagen) + het aantal verstreken **kalenderdagen** van geboortedatum tot de **transportdatum**. Als transportdatum geldt de lokale datum van *Datum en tijd verwijzing*. Weken én dagen moeten ingevuld zijn (ook “0” dagen); een leeg dagenveld wordt nooit als 0 behandeld. De postnatale leeftijd in dagen wordt apart getoond (geen extra formulierveld).
-- **Doseergewicht**: automatisch het hoogste van geboortegewicht en huidig gewicht; bij één bekend gewicht dat gewicht; anders leeg. Via *Handmatig aanpassen* wordt het een handmatige waarde die behouden blijft als gewichten veranderen; *Automatisch berekende waarde gebruiken* zet het terug. Er worden geen doses berekend.
+- **Gecorrigeerde leeftijd** = amenorroeduur bij geboorte + het aantal verstreken **kalenderdagen** van geboortedatum tot de **transportdatum**. Als transportdatum geldt de lokale datum van *Datum en tijd verwijzing*. De amenorroeduur wordt in één veld ingevoerd als `weken+dagen` (bijv. `33+5`); alleen weken (`33`) betekent 33+0. Dagen 0–6. De postnatale leeftijd in dagen wordt apart getoond (geen extra formulierveld).
 - **Tijdstippen** worden opgeslagen als ISO-8601 met UTC-offset (bijv. `2026-10-09T23:45:00+02:00`) en getoond in de gekozen tijdzone (standaard Europe/Amsterdam, instelbaar op het startscherm). Geboortedatum en weegdatum zijn lokale kalenderdatums zonder tijdzone; geboortetijd is een lokale kloktijd. Bij het dubbele uur van de wintertijdovergang wordt het eerste voorkomen gekozen.
 - **Standaardtijd “nu”**: nieuwe records (meetmoment, medicatietoediening, infuus, snelheidswijziging, tubeplaatsing/-aanpassing) krijgen bij aanmaken de huidige tijd (afgerond op de minuut). *Datum en tijd verwijzing* krijgt “nu” bij het aanmaken van het transport. Losse tijdvelden die pas later relevant zijn (aankomst verwijzend ziekenhuis, laatste voeding, vertrek, aankomst ontvangend centrum) blijven leeg tot de gebruiker op **Nu invullen** drukt of zelf een tijd invoert; zo worden geen tijden geregistreerd die nog niet hebben plaatsgevonden. Een stoptijd wordt alleen bij **Infuus stoppen** ingevuld. Opgeslagen tijden veranderen nooit bij openen of herladen.
-- **Leeg / onbekend / nul**: numerieke velden zijn `leeg` (niet ingevuld), expliciet **Onbekend** (knop naast het veld) of een ingevuld getal (0 is een echte nul). Lege waarden worden niet in het verslag opgenomen; “onbekend” wordt letterlijk vermeld.
+- **Leeg / nul**: numerieke velden zijn leeg (niet ingevuld) of een ingevuld getal (0 is een echte nul); er zijn geen knoppen voor “onbekend”. Lege waarden worden niet in het verslag opgenomen. Keuzevelden die in de opdracht een optie *Onbekend* hebben (antenatale corticosteroïden, magnesiumsulfaat) houden die optie.
 - **Validatie** is alleen typevalidatie: geldig getal (komma of punt), geen negatieve waarden waar dat fysiek niet kan (BE mag negatief), percentages 0–100, Apgar 0–10 geheel, zwangerschapsdagen 0–6, pompsnelheid > 0. Er zijn geen klinische waarschuwingen.
 - **Ademhalingsondersteuning**: instellingen worden per modaliteit bewaard binnen een meetmoment. Alleen de instellingen van de gekozen modaliteit worden getoond en geëxporteerd; wisselen en terugwisselen verliest niets. Een nieuw meetmoment neemt de modaliteit, de instellingen van díe modaliteit en de fase van het laatste meetmoment over als voorstel (zichtbare melding); monitor- en bloedgaswaarden worden nooit overgenomen. VG alleen bij PTV/SIMV; iNO alleen bij PTV/SIMV/HFOV.
 - **Endotracheale tube**: een tube heeft een historie van versies (plaatsing, aanpassingen) met elk een ingangstijdstip. Op de tijdlijn toont een invasief meetmoment de tubeversie die op het tijdstip van dat meetmoment gold, dus latere aanpassingen veranderen eerdere meetmomenten niet. **Historische correctie** wijzigt bewust een bestaande versie en wordt in het verslag als correctie vermeld. **Nieuwe tube plaatsen** is een aparte handeling: de vorige tube wordt dan als vervangen geregistreerd op het tijdstip van plaatsing.
@@ -78,12 +77,12 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 36 tests):
+Unit-tests (`npm test`, 32 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 
-- doseergewicht bij twee gewichten, één bekend gewicht, lege invoer, handmatige override (blijft bij gewijzigde gewichten), opnieuw automatisch;
-- postmenstruele leeftijd bij weekovergang en bij gewijzigde transportdatum (verwijzing 23:59 vs. 00:01), geen rekening met lege dagen;
+- amenorroeduur als `weken+dagen` (33+5, 33, ongeldige dagen);
+- gecorrigeerde leeftijd bij weekovergang en bij gewijzigde transportdatum (verwijzing 23:59 vs. 00:01), geen rekening met lege dagen;
 - decimale komma/punt, leeg vs. 0, typevalidatie en positieve pompsnelheid;
 - tijdzone-opslag (zomer/winter), transport en bloedgas over middernacht, wintertijdovergang;
 - standaardtijd alleen bij nieuwe invoer; opgeslagen tijden blijven behouden na “herladen” (nieuwe repository op dezelfde opslag);
@@ -94,7 +93,7 @@ Unit-tests (`npm test`, 36 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 55 controles in Chromium): invoerscenario op 390 px (doseergewicht, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 63 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -117,3 +116,12 @@ scripts/        ui-check.mjs (Playwright)
 - Test op fysieke iOS/iPadOS-apparaten (Safari), met schermlezer (VoiceOver) en in liggende/staande oriëntatie.
 - Offline gebruik als installeerbare web-app (service worker) en https-hosting; wordt niet gepubliceerd zonder afzonderlijke opdracht.
 - Eventuele schema-migraties bij latere wijzigingen van het datamodel (`schemaVersion` staat al in elk record).
+
+## Formulieraanpassingen na eerste review
+
+- Patiëntnummer (vrije tekst) in plaats van LUMC-patiëntnummer; geen geslacht, weegdatum of doseergewicht.
+- Amenorroeduur als één veld `weken+dagen`; gecorrigeerde leeftijd in plaats van postmenstruele leeftijd.
+- Sectie 2: eerst datum en tijd verwijzing, dan verwijzer (ziekenhuis, afdeling, naam, telefoon), dan ontvangende afdeling en ziekenhuis.
+- Infusen: *Medicatie en concentratie* in plaats van *Vloeistof of medicament*.
+- Telefoonnummers ouders staan bij sectie 12 (*Contactgegevens ouders*); checklistpunt 5 bevat alleen de status.
+- Geen toelichtingsteksten bij verwijzing en tijdlijn.

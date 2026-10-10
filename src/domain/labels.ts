@@ -9,7 +9,6 @@ import type {
   MonitorKey,
   Phase,
   RespMode,
-  Sex,
   TubeRoute,
   VitaminK,
   YesNoUnknown,
@@ -28,12 +27,6 @@ export const ABCD_LABELS: Record<AbcdKey, string> = {
   haematological: 'Haematological',
   infection: 'Infection',
 };
-
-export const SEX_OPTIONS: Options<Sex> = [
-  { value: 'mannelijk', label: 'Mannelijk' },
-  { value: 'vrouwelijk', label: 'Vrouwelijk' },
-  { value: 'onbekend', label: 'Onbekend' },
-];
 
 export const CORTICO_OPTIONS: Options<Corticosteroids> = [
   { value: 'niet', label: 'Niet' },

@@ -46,15 +46,12 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
     child: {
       name: '',
       patientNumber: '',
-      sex: '',
       birthDate: '',
       birthTime: '',
       gestationalAgeWeeks: null,
       gestationalAgeDays: null,
       birthWeightGram: null,
       currentWeightGram: null,
-      currentWeightDate: '',
-      doseWeightOverrideGram: null,
     },
     referral: {
       referredAt: nowInstant(timeZone, now),

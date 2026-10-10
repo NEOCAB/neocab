@@ -44,30 +44,35 @@ async function unlabeledControls(page) {
 
   await page.getByRole('button', { name: '+ Nieuw transport' }).click();
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
-  await page.getByLabel('LUMC-patiëntnummer', { exact: true }).fill('0007788');
+  await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
   const referred = await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue();
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
   check('Aankomst verwijzend ziekenhuis blijft leeg', (await page.getByLabel('Datum en tijd aankomst bij het verwijzende ziekenhuis', { exact: true }).inputValue()) === '');
 
-  // Doseergewicht
+  // Basisgegevens: verwijderde velden en onbekend-knoppen
+  for (const gone of ['Geslacht', 'Weegdatum huidig gewicht', 'Doseergewicht', 'Weken', 'Dagen']) {
+    check(`Veld "${gone}" bestaat niet meer`, (await page.getByLabel(gone, { exact: true }).count()) === 0);
+  }
+  check('Geen knoppen voor onbekend', (await page.getByRole('button', { name: /onbekend/i }).count()) === 0);
   await page.getByLabel('Geboortegewicht', { exact: true }).fill('1980');
   await page.getByLabel('Huidig gewicht', { exact: true }).fill('1890');
-  const dw = () => page.locator('.dose-weight output').textContent();
-  check('Doseergewicht = hoogste gewicht', (await dw())?.includes('1980 g'), await dw());
-  await page.getByRole('button', { name: 'Handmatig aanpassen' }).click();
-  await page.getByLabel('Doseergewicht (handmatig)', { exact: true }).fill('2000');
-  await page.getByLabel('Huidig gewicht', { exact: true }).fill('2300');
-  check('Handmatig doseergewicht blijft bij gewijzigd gewicht', (await page.getByLabel('Doseergewicht (handmatig)', { exact: true }).inputValue()) === '2000');
-  await page.getByRole('button', { name: 'Automatisch berekende waarde gebruiken' }).click();
-  check('Opnieuw automatisch berekend', (await dw())?.includes('2300 g'), await dw());
 
-  // Komma als decimaal en validatie
-  await page.getByLabel('Weken', { exact: true }).fill('33');
-  await page.getByLabel('Dagen', { exact: true }).fill('5');
-  await page.getByLabel('Geboortedatum', { exact: true }).fill('2026-10-01');
-  await page.getByLabel('Dagen', { exact: true }).fill('9');
-  check('Validatiebericht bij ongeldige dagen', await page.getByText('De waarde kan niet hoger zijn dan 6.').isVisible());
-  await page.getByLabel('Dagen', { exact: true }).fill('5');
+  // Amenorroeduur als weken+dagen in één veld, gecorrigeerde leeftijd
+  await page.getByLabel('Geboortedatum', { exact: true }).fill(referred.slice(0, 10));
+  const ga = page.getByLabel('Amenorroeduur', { exact: true });
+  await ga.fill('33+9');
+  await ga.blur();
+  check('Validatiebericht bij ongeldige dagen', await page.getByText('Het aantal dagen is 0 tot en met 6.').isVisible());
+  await ga.fill('33+5');
+  await ga.blur();
+  const ca = await page.locator('.computed').textContent();
+  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd: 33+5 weken'), ca);
+
+  // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
+  const s2 = await page.locator('#s2 .field-label').allTextContents();
+  check('Sectie 2 in gevraagde volgorde', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Datum en tijd verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangende afdeling', 'Ontvangend ziekenhuis']), s2.join(' | '));
+  check('Geen toelichting bij verwijzing', (await page.locator('#s2 .field-hint').count()) === 0);
+  check('Geen toelichting bij tijdlijn', (await page.locator('#s6 .section-intro, #s6 .table-hint').count()) === 0);
 
   // Tijdlijn: meetmoment 1 met CPAP
   await page.locator('#s6').getByRole('button', { name: '+ Nieuw meetmoment' }).first().click();
@@ -111,7 +116,7 @@ async function unlabeledControls(page) {
 
   // Infuus
   await page.getByRole('button', { name: '+ Infuus starten' }).click();
-  await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('2. Vloeistof of medicament', { exact: true }).fill('Glucose 10%');
+  await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('2. Medicatie en concentratie', { exact: true }).fill('Glucose 10%');
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('3. Pompsnelheid', { exact: true }).fill('0');
   check('Pompsnelheid 0 geweigerd', await page.getByText('De waarde moet groter dan 0 zijn.').isVisible());
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('3. Pompsnelheid', { exact: true }).fill('3,2');
@@ -121,7 +126,8 @@ async function unlabeledControls(page) {
   await page.getByRole('button', { name: 'Wijziging opslaan' }).click();
   check('Stoptijd leeg zolang infuus loopt', await page.getByText('Loopt nog — stoptijd wordt ingevuld bij Stoppen.').isVisible());
 
-  // Checklist + telefoons
+  // Contactgegevens ouders in sectie 12
+  check('Telefoonnummers ouders staan in sectie 12', (await page.locator('#s12').getByLabel('Telefoonnummer 1', { exact: true }).count()) === 1 && (await page.locator('#s13 input[type=tel]').count()) === 0);
   await page.getByRole('button', { name: '+ Telefoonnummer toevoegen' }).click();
   await page.getByLabel('Telefoonnummer 1', { exact: true }).fill('0612345678');
   await page.getByLabel('Telefoonnummer 2', { exact: true }).fill('0687654321');
@@ -135,7 +141,7 @@ async function unlabeledControls(page) {
   const timesBefore = await page.locator('#s6 .data-table tbody th').allTextContents();
   await page.reload();
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
-  check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('LUMC-patiëntnummer', { exact: true }).inputValue()) === '0007788');
+  check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('Patiëntnummer', { exact: true }).inputValue()) === '0007788');
   check('Na herladen: verwijstijd ongewijzigd', (await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue()) === referred);
   const timesAfter = await page.locator('#s6 .data-table tbody th').allTextContents();
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));

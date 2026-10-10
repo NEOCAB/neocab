@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import type { AbcdNotes, BloodGasCord, Num, Transport } from '../../domain/types';
+import type { AbcdNotes, BloodGasCord, Transport } from '../../domain/types';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
 import {
   ABCD_LABELS,
@@ -7,14 +6,12 @@ import {
   CHECKLIST_STATUS_OPTIONS,
   CORTICO_OPTIONS,
   HOSPITAL_SUGGESTIONS,
-  SEX_OPTIONS,
   VITAMIN_K_OPTIONS,
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
-import { doseWeight, postmenstrualAge, transportDate } from '../../domain/calc';
-import { formatNum } from '../../domain/num';
+import { correctedAge, transportDate } from '../../domain/calc';
 import { formatLocalDate } from '../../domain/time';
-import { DateField, DateTimeField, NumberField, Section, Segmented, SelectField, TextArea, TextField, TimeField } from '../fields';
+import { DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField } from '../fields';
 import { useTimeZone } from '../context';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
@@ -28,95 +25,43 @@ export function ChildSection({ t, update }: SectionProps) {
   const c = t.child;
   const set = <K extends keyof Transport['child']>(k: K, v: Transport['child'][K]) => update((x) => ({ ...x, child: { ...x.child, [k]: v } }));
   const td = transportDate(t, tz);
-  const pma = postmenstrualAge(c, td);
+  const ca = correctedAge(c, td);
   return (
     <Section id="s1" title="1 Basisgegevens kind">
       <div className="grid">
         <TextField label="Naam kind" value={c.name} onChange={(v) => set('name', v)} />
-        <TextField label="LUMC-patiëntnummer" value={c.patientNumber} onChange={(v) => set('patientNumber', v)} inputMode="numeric" hint="Wordt als tekst bewaard; voorloopnullen blijven behouden." />
-        <SelectField label="Geslacht" value={c.sex} onChange={(v) => set('sex', v)} options={SEX_OPTIONS} />
+        <TextField label="Patiëntnummer" value={c.patientNumber} onChange={(v) => set('patientNumber', v)} inputMode="numeric" />
         <DateField label="Geboortedatum" value={c.birthDate} onChange={(v) => set('birthDate', v)} />
         <TimeField label="Geboortetijd" value={c.birthTime} onChange={(v) => set('birthTime', v)} />
+        <GestationField
+          label="Amenorroeduur"
+          weeks={c.gestationalAgeWeeks}
+          days={c.gestationalAgeDays}
+          onChange={(w, d) => update((x) => ({ ...x, child: { ...x.child, gestationalAgeWeeks: w, gestationalAgeDays: d } }))}
+        />
       </div>
-      <fieldset className="group">
-        <legend>Zwangerschapsduur bij geboorte</legend>
-        <div className="grid two">
-          <NumberField label="Weken" value={c.gestationalAgeWeeks} onChange={(v) => set('gestationalAgeWeeks', v)} unit="wk" rules={{ min: 0, integer: true }} />
-          <NumberField label="Dagen" value={c.gestationalAgeDays} onChange={(v) => set('gestationalAgeDays', v)} unit="d" rules={{ min: 0, max: 6, integer: true }} />
-        </div>
-      </fieldset>
       <div className="computed" aria-live="polite">
         <div>
-          <strong>Postmenstruele leeftijd:</strong>{' '}
-          {pma ? (
+          <strong>Gecorrigeerde leeftijd:</strong>{' '}
+          {ca ? (
             <>
-              {pma.weeks}+{pma.days} weken <span className="muted">(zwangerschapsduur + kalenderdagen tot transportdatum {formatLocalDate(td)} = datum verwijzing)</span>
+              {ca.weeks}+{ca.days} weken <span className="muted">(op {formatLocalDate(td)}, datum verwijzing)</span>
             </>
           ) : (
-            <span className="muted">wordt berekend zodra zwangerschapsduur (weken én dagen), geboortedatum en datum verwijzing bekend zijn</span>
+            <span className="muted">wordt berekend zodra amenorroeduur, geboortedatum en datum verwijzing bekend zijn</span>
           )}
         </div>
-        {pma && (
+        {ca && (
           <div>
-            <strong>Postnatale leeftijd:</strong> {pma.postnatalDays} {pma.postnatalDays === 1 ? 'dag' : 'dagen'}
+            <strong>Postnatale leeftijd:</strong> {ca.postnatalDays} {ca.postnatalDays === 1 ? 'dag' : 'dagen'}
           </div>
         )}
       </div>
       <div className="grid">
         <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0 }} />
         <NumberField label="Huidig gewicht" value={c.currentWeightGram} onChange={(v) => set('currentWeightGram', v)} unit="g" rules={{ min: 0 }} />
-        <DateField label="Weegdatum huidig gewicht" value={c.currentWeightDate} onChange={(v) => set('currentWeightDate', v)} todayButton />
       </div>
-      <DoseWeightField child={c} setOverride={(v) => set('doseWeightOverrideGram', v)} />
     </Section>
-  );
-}
-
-function DoseWeightField({ child, setOverride }: { child: Transport['child']; setOverride: (v: Num) => void }) {
-  const dw = doseWeight(child);
-  const [editing, setEditing] = useState(false);
-  const manualUi = dw.manual || editing;
-  const autoText = dw.auto !== null ? formatNum(dw.auto, 'g') : null;
-  return (
-    <div className="dose-weight">
-      {manualUi ? (
-        <NumberField
-          label="Doseergewicht (handmatig)"
-          value={child.doseWeightOverrideGram}
-          onChange={setOverride}
-          unit="g"
-          rules={{ min: 0 }}
-          allowUnknown={false}
-          hint={`Handmatige waarde blijft behouden als gewichten veranderen. Automatisch berekend: ${autoText ?? 'leeg (geen gewicht bekend)'}.`}
-        />
-      ) : (
-        <div className="field">
-          <span className="field-label" id="dose-weight-label">
-            Doseergewicht
-          </span>
-          <output className="readonly-value" aria-labelledby="dose-weight-label">
-            {autoText ?? <span className="muted">leeg (geen gewicht bekend)</span>}
-          </output>
-          <div className="field-hint">Automatisch: het hoogste van geboortegewicht en huidig gewicht.</div>
-        </div>
-      )}
-      {manualUi ? (
-        <button
-          type="button"
-          className="secondary"
-          onClick={() => {
-            setEditing(false);
-            setOverride(null);
-          }}
-        >
-          Automatisch berekende waarde gebruiken
-        </button>
-      ) : (
-        <button type="button" className="secondary" onClick={() => setEditing(true)}>
-          Handmatig aanpassen
-        </button>
-      )}
-    </div>
   );
 }
 
@@ -126,13 +71,17 @@ export function ReferralSection({ t, update }: SectionProps) {
   return (
     <Section id="s2" title="2 Verwijzing en bestemming">
       <div className="grid">
-        <DateTimeField label="Datum en tijd verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} hint="Deze datum geldt als transportdatum voor de postmenstruele leeftijd." />
-        <TextField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} list={HOSPITAL_SUGGESTIONS} hint="Kies uit de lijst of typ vrij." />
+        <DateTimeField label="Datum en tijd verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
+      </div>
+      <div className="grid">
+        <TextField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} list={HOSPITAL_SUGGESTIONS} />
         <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
         <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
         <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
-        <TextField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} list={HOSPITAL_SUGGESTIONS} />
+      </div>
+      <div className="grid">
         <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
+        <TextField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} list={HOSPITAL_SUGGESTIONS} />
       </div>
       <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
     </Section>
@@ -230,15 +179,31 @@ export function ProceduresSection({ t, update }: SectionProps) {
 }
 
 export function ParentsSection({ t, update }: SectionProps) {
+  const setPhones = (phones: string[]) => update((x) => ({ ...x, parentPhones: phones }));
   return (
     <Section id="s12" title="12 Ouders en gezin">
-      <TextArea label="Ouders en gezin" value={t.parentsAndFamily} onChange={(v) => update((x) => ({ ...x, parentsAndFamily: v }))} rows={4} hint="Telefoonnummers van ouders vult u in bij de checklist (sectie 13, punt 5)." />
+      <TextArea label="Ouders en gezin" value={t.parentsAndFamily} onChange={(v) => update((x) => ({ ...x, parentsAndFamily: v }))} rows={4} />
+      <fieldset className="group phones">
+        <legend>Contactgegevens ouders</legend>
+        {t.parentPhones.map((p, i) => (
+          <div className="phone-row" key={i}>
+            <TextField label={`Telefoonnummer ${i + 1}`} type="tel" value={p} onChange={(v) => setPhones(t.parentPhones.map((q, j) => (j === i ? v : q)))} />
+            {t.parentPhones.length > 1 && (
+              <button type="button" className="link-button danger" onClick={() => setPhones(t.parentPhones.filter((_, j) => j !== i))} aria-label={`Telefoonnummer ${i + 1} verwijderen`}>
+                Verwijderen
+              </button>
+            )}
+          </div>
+        ))}
+        <button type="button" className="secondary" onClick={() => setPhones([...t.parentPhones, ''])}>
+          + Telefoonnummer toevoegen
+        </button>
+      </fieldset>
     </Section>
   );
 }
 
 export function ChecklistSection({ t, update }: SectionProps) {
-  const setPhones = (phones: string[]) => update((x) => ({ ...x, parentPhones: phones }));
   return (
     <Section id="s13" title="13 Checklist voor vertrek">
       <ol className="checklist">
@@ -252,24 +217,6 @@ export function ChecklistSection({ t, update }: SectionProps) {
               options={CHECKLIST_STATUS_OPTIONS}
               className={`status-${t.checklist[k]}`}
             />
-            {k === 'ouders' && (
-              <fieldset className="group phones">
-                <legend>Telefoonnummers ouders</legend>
-                {t.parentPhones.map((p, i) => (
-                  <div className="phone-row" key={i}>
-                    <TextField label={`Telefoonnummer ${i + 1}`} type="tel" value={p} onChange={(v) => setPhones(t.parentPhones.map((q, j) => (j === i ? v : q)))} />
-                    {t.parentPhones.length > 1 && (
-                      <button type="button" className="link-button danger" onClick={() => setPhones(t.parentPhones.filter((_, j) => j !== i))} aria-label={`Telefoonnummer ${i + 1} verwijderen`}>
-                        Verwijderen
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" className="secondary" onClick={() => setPhones([...t.parentPhones, ''])}>
-                  + Telefoonnummer toevoegen
-                </button>
-              </fieldset>
-            )}
           </li>
         ))}
       </ol>

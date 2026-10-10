@@ -48,12 +48,10 @@ describe('lokale conceptopslag', () => {
     const t = sampleTransport();
     const partial = JSON.parse(JSON.stringify(t));
     delete partial.closure;
-    delete partial.child.doseWeightOverrideGram;
     storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(partial));
     storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
     const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
     expect(loaded.closure.arrivedReceivingAt).toBeNull();
-    expect(loaded.child.doseWeightOverrideGram).toBeNull();
     expect(loaded.referral.referredAt).toBe(t.referral.referredAt);
   });
 

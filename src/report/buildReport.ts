@@ -6,7 +6,6 @@ import {
   CHECKLIST_STATUS_OPTIONS,
   CORTICO_OPTIONS,
   LINE_TYPE_LABELS,
-  SEX_OPTIONS,
   TUBE_ROUTE_OPTIONS,
   VITAMIN_K_OPTIONS,
   YES_NO_UNKNOWN_OPTIONS,
@@ -15,7 +14,7 @@ import {
 } from '../domain/labels';
 import { formatNum } from '../domain/num';
 import { compareInstants, DEFAULT_TIME_ZONE, formatInstant, formatLocalDate } from '../domain/time';
-import { doseWeight, formatGestation, postmenstrualAge, transportDate } from '../domain/calc';
+import { correctedAge, formatGestation, transportDate } from '../domain/calc';
 import { sortedRates, sortedVersions } from '../domain/timeline';
 import { GAS_TYPE_LEGEND, TIMELINE_GROUP_LABELS, hasGas, timelineTable } from '../domain/timelineTable';
 
@@ -115,23 +114,17 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const c = t.child;
     const b = new RowBuilder();
     b.kv('Naam kind', c.name)
-      .kv('LUMC-patiëntnummer', c.patientNumber)
-      .kv('Geslacht', optionLabel(SEX_OPTIONS, c.sex))
+      .kv('Patiëntnummer', c.patientNumber)
       .kv('Geboortedatum', formatLocalDate(c.birthDate))
       .kv('Geboortetijd', c.birthTime)
-      .kv('Zwangerschapsduur bij geboorte', formatGestation(c.gestationalAgeWeeks, c.gestationalAgeDays));
+      .kv('Amenorroeduur', formatGestation(c.gestationalAgeWeeks, c.gestationalAgeDays));
     const td = transportDate(t, timeZone);
-    const pma = postmenstrualAge(c, td);
-    if (pma) {
-      b.kv('Postmenstruele leeftijd', `${pma.weeks}+${pma.days} weken (berekend op transportdatum ${formatLocalDate(td)})`);
-      b.kv('Postnatale leeftijd', `${pma.postnatalDays} ${pma.postnatalDays === 1 ? 'dag' : 'dagen'} (kalenderdagen tot transportdatum)`);
+    const ca = correctedAge(c, td);
+    if (ca) {
+      b.kv('Gecorrigeerde leeftijd', `${ca.weeks}+${ca.days} weken (op ${formatLocalDate(td)}, datum verwijzing)`);
+      b.kv('Postnatale leeftijd', `${ca.postnatalDays} ${ca.postnatalDays === 1 ? 'dag' : 'dagen'}`);
     }
-    b.num('Geboortegewicht', c.birthWeightGram, 'g');
-    const cw = formatNum(c.currentWeightGram, 'g');
-    if (cw || c.currentWeightDate) b.kv('Huidig gewicht', `${cw ?? 'niet ingevuld'}${c.currentWeightDate ? ` (gewogen ${formatLocalDate(c.currentWeightDate)})` : ''}`);
-    const dw = doseWeight(c);
-    const dwText = formatNum(dw.value, 'g');
-    if (dwText) b.kv('Doseergewicht', dw.manual ? `${dwText} (handmatig ingesteld${dw.auto !== null ? `; automatisch berekend: ${formatNum(dw.auto, 'g')}` : ''})` : `${dwText} (automatisch: hoogste bekende gewicht)`);
+    b.num('Geboortegewicht', c.birthWeightGram, 'g').num('Huidig gewicht', c.currentWeightGram, 'g');
     sections.push({ title: '1 Basisgegevens kind', blocks: [{ rows: b.orEmpty() }] });
   }
 
@@ -144,8 +137,8 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       .kv('Verwijzende afdeling', r.referringDepartment)
       .kv('Naam verwijzer', r.referrerName)
       .kv('Telefoonnummer verwijzer', r.referrerPhone)
-      .kv('Ontvangend ziekenhuis', r.receivingHospital)
       .kv('Ontvangende afdeling', r.receivingDepartment)
+      .kv('Ontvangend ziekenhuis', r.receivingHospital)
       .para('Reden van overplaatsing', r.reason);
     sections.push({ title: '2 Verwijzing en bestemming', blocks: [{ rows: b.orEmpty() }] });
   }
@@ -229,7 +222,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const infs = [...t.infusions].sort((a, b) => compareInstants(a.startAt, b.startAt));
     for (const inf of infs) {
       const b = new RowBuilder();
-      b.kv('Start', fi(inf.startAt)).kv('Vloeistof of medicament', inf.name);
+      b.kv('Start', fi(inf.startAt)).kv('Medicatie en concentratie', inf.name);
       sortedRates(inf).forEach((r, i) => {
         b.kv(i === 0 ? 'Pompsnelheid bij start' : 'Snelheidswijziging', `${fi(r.at) || 'tijdstip niet ingevuld'}: ${formatNum(r.rateMlPerHour, 'mL/uur') ?? 'niet ingevuld'}`);
       });
@@ -269,7 +262,12 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
 
   // 11, 12
   sections.push({ title: '11 Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
-  sections.push({ title: '12 Ouders en gezin', blocks: [{ rows: new RowBuilder().para(undefined, t.parentsAndFamily).orEmpty() }] });
+  {
+    const b = new RowBuilder().para(undefined, t.parentsAndFamily);
+    const phones = t.parentPhones.map((p) => p.trim()).filter(Boolean);
+    if (phones.length) b.kv('Contactgegevens ouders', phones.join('\n'));
+    sections.push({ title: '12 Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
+  }
 
   // 13 Checklist
   {
@@ -277,8 +275,6 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     CHECKLIST_KEYS.forEach((k, i) => {
       b.kv(`${i + 1}. ${CHECKLIST_LABELS[k]}`, CHECKLIST_STATUS_OPTIONS.find((o) => o.value === t.checklist[k])?.label ?? 'Nog niet gedaan');
     });
-    const phones = t.parentPhones.map((p) => p.trim()).filter(Boolean);
-    b.kv('Telefoonnummers ouders', phones.length ? phones.join('\n') : 'Niet ingevuld');
     sections.push({ title: '13 Checklist voor vertrek', blocks: [{ rows: b.rows }] });
   }
 
@@ -291,10 +287,10 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   }
 
   const meta = [
-    [t.child.name, t.child.patientNumber ? `LUMC-patiëntnummer ${t.child.patientNumber}` : ''].filter(Boolean).join(' · '),
+    [t.child.name, t.child.patientNumber ? `Patiëntnummer ${t.child.patientNumber}` : ''].filter(Boolean).join(' · '),
     `Verwijzing: ${fi(t.referral.referredAt) || 'niet ingevuld'}${t.referral.referringHospital ? ` · ${t.referral.referringHospital}` : ''} → ${[t.referral.receivingHospital, t.referral.receivingDepartment].filter(Boolean).join(' ') || 'niet ingevuld'}`,
     `Tijden in tijdzone ${timeZone}. Verslag gegenereerd op ${formatInstant(new Date(generatedAt).toISOString(), timeZone)}.`,
-    'Lege velden zijn weggelaten; "onbekend" betekent expliciet als onbekend geregistreerd.',
+    'Lege velden zijn weggelaten.',
   ].filter(Boolean);
 
   return { title: 'Transportverslag neonataal transport', meta, sections };

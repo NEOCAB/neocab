@@ -2,7 +2,8 @@
  * Datamodel van één transportregistratie.
  *
  * Conventies:
- * - `Num`: `null` = leeg (niet ingevuld), `'onbekend'` = expliciet onbekend, een getal = ingevulde waarde (0 is een echte nul).
+ * - `Num`: `null` = leeg (niet ingevuld), een getal = ingevulde waarde (0 is een echte nul).
+ *   `'onbekend'` kan alleen nog in oudere concepten voorkomen en wordt dan als zodanig getoond.
  * - `Instant`: volledig tijdstip als ISO-8601-string mét UTC-offset, bv. `2026-10-09T23:45:00+02:00`, of `null`.
  * - `LocalDate`: lokale kalenderdatum `YYYY-MM-DD` (geen tijdzone), of `''`.
  * - Keuzevelden gebruiken `''` voor leeg.
@@ -14,7 +15,6 @@ export type Instant = string | null;
 export type LocalDate = string;
 export type Id = string;
 
-export type Sex = '' | 'mannelijk' | 'vrouwelijk' | 'onbekend';
 export type Corticosteroids = '' | 'niet' | 'onvolledig' | 'volledig' | 'onbekend';
 export type YesNoUnknown = '' | 'ja' | 'nee' | 'onbekend';
 export type VitaminK = '' | 'ja_oraal' | 'nee' | 'anders';
@@ -35,17 +35,14 @@ export type AbcdNotes = Record<AbcdKey, string>;
 export interface Child {
   name: string;
   patientNumber: string;
-  sex: Sex;
   birthDate: LocalDate;
   /** Lokale kloktijd `HH:MM` of `''`. */
   birthTime: string;
+  /** Amenorroeduur bij geboorte: weken en dagen (ingevoerd als één waarde, bijv. 33+5). */
   gestationalAgeWeeks: Num;
   gestationalAgeDays: Num;
   birthWeightGram: Num;
   currentWeightGram: Num;
-  currentWeightDate: LocalDate;
-  /** Handmatig doseergewicht; `null` = automatisch berekenen. */
-  doseWeightOverrideGram: Num;
 }
 
 export interface Referral {

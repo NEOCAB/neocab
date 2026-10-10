@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { Instant, LocalDate, Num } from '../domain/types';
 import { numToInput, parseNum, type NumRules } from '../domain/num';
+import { gestationToInput, parseGestation } from '../domain/calc';
 import { instantToWall, isValidLocalDate, nowInstant, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
 
@@ -79,16 +80,14 @@ export interface NumberFieldProps {
   unit?: string;
   rules?: NumRules;
   hint?: ReactNode;
-  allowUnknown?: boolean;
   className?: string;
-  integer?: boolean;
 }
 
 /**
- * Numeriek veld: komma of punt, eenheid zichtbaar. Leeg = `null`, "Onbekend" is een aparte expliciete keuze.
+ * Numeriek veld: komma of punt, eenheid zichtbaar. Leeg = `null` (nooit automatisch 0).
  * Ongeldige invoer wordt niet doorgegeven en blijft zichtbaar met een foutmelding.
  */
-export function NumberField({ label, value, onChange, unit, rules, hint, allowUnknown = true, className }: NumberFieldProps) {
+export function NumberField({ label, value, onChange, unit, rules, hint, className }: NumberFieldProps) {
   const id = useId();
   const [text, setText] = useState(numToInput(value));
   const [error, setError] = useState<string | null>(null);
@@ -96,73 +95,89 @@ export function NumberField({ label, value, onChange, unit, rules, hint, allowUn
   useEffect(() => {
     // Synchroniseer bij externe wijziging (bijv. ander record), niet tijdens typen van gelijke waarde.
     const parsed = parseNum(text, rules);
-    if (!(parsed.ok && parsed.value === value) && value !== 'onbekend') {
+    if (!(parsed.ok && parsed.value === value)) {
       setText(numToInput(value));
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  const unknown = value === 'onbekend';
   const allowNegative = rules?.min === undefined && !rules?.positive;
   return (
-    <FieldShell
-      id={id}
-      label={label}
-      hint={hint}
-      error={error}
-      className={`num-field ${className ?? ''}`}
-    >
-      <div className="num-row">
-        <div className="num-input-wrap">
-          <input
-            id={id}
-            type="text"
-            inputMode={allowNegative ? 'text' : 'decimal'}
-            autoComplete="off"
-            enterKeyHint="next"
-            value={unknown ? '' : text}
-            placeholder={unknown ? 'onbekend' : ''}
-            disabled={unknown}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={describedBy(id, hint, error)}
-            onChange={(e) => {
-              setText(e.target.value);
-              const r = parseNum(e.target.value, rules);
-              if (r.ok) {
-                setError(null);
-                onChange(r.value);
-              } else setError(r.error);
-            }}
-          />
-          {unit && (
-            <span className="unit" aria-hidden="true">
-              {unit}
-            </span>
-          )}
-        </div>
-        {allowUnknown && (
-          <button
-            type="button"
-            className={`unknown-toggle ${unknown ? 'on' : ''}`}
-            aria-pressed={unknown}
-            aria-label={`${typeof label === 'string' ? label : 'Waarde'} onbekend`}
-            title="Markeer als onbekend"
-            onClick={() => {
-              if (unknown) {
-                onChange(null);
-                setText('');
-              } else {
-                setError(null);
-                onChange('onbekend');
-              }
-            }}
-          >
-            {unknown ? 'Onbekend ✓' : 'Onbekend'}
-          </button>
+    <FieldShell id={id} label={label} hint={hint} error={error} className={`num-field ${className ?? ''}`}>
+      <div className="num-input-wrap">
+        <input
+          id={id}
+          type="text"
+          inputMode={allowNegative ? 'text' : 'decimal'}
+          autoComplete="off"
+          enterKeyHint="next"
+          value={text}
+          // Oudere concepten kunnen nog "onbekend" bevatten.
+          placeholder={value === 'onbekend' ? 'onbekend' : ''}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(id, hint, error)}
+          onChange={(e) => {
+            setText(e.target.value);
+            const r = parseNum(e.target.value, rules);
+            if (r.ok) {
+              setError(null);
+              onChange(r.value);
+            } else setError(r.error);
+          }}
+        />
+        {unit && (
+          <span className="unit" aria-hidden="true">
+            {unit}
+          </span>
         )}
       </div>
       {unit && <span className="sr-only">Eenheid: {unit}</span>}
+    </FieldShell>
+  );
+}
+
+/** Amenorroeduur als één waarde `weken+dagen` (bijv. 33+5). Controle bij verlaten van het veld. */
+export function GestationField({ label, weeks, days, onChange }: { label: ReactNode; weeks: Num; days: Num; onChange: (weeks: Num, days: Num) => void }) {
+  const id = useId();
+  const [text, setText] = useState(gestationToInput(weeks, days));
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const p = parseGestation(text);
+    if (!(p.ok && p.weeks === weeks && p.days === days)) setText(gestationToInput(weeks, days));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weeks, days]);
+  return (
+    <FieldShell id={id} label={label} error={error} className="num-field gestation-field">
+      <div className="num-input-wrap">
+        <input
+          id={id}
+          type="text"
+          inputMode="text"
+          autoComplete="off"
+          placeholder="bijv. 33+5"
+          value={text}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(id, undefined, error)}
+          onChange={(e) => {
+            setText(e.target.value);
+            const p = parseGestation(e.target.value);
+            if (p.ok) {
+              setError(null);
+              onChange(p.weeks, p.days);
+            }
+          }}
+          onBlur={(e) => {
+            const p = parseGestation(e.target.value);
+            if (!p.ok) return setError(p.error);
+            setError(null);
+            setText(gestationToInput(p.weeks, p.days));
+          }}
+        />
+        <span className="unit" aria-hidden="true">
+          wk+d
+        </span>
+      </div>
     </FieldShell>
   );
 }

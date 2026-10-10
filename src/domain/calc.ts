@@ -2,33 +2,12 @@ import type { Child, Num, Transport } from './types';
 import { isKnown } from './num';
 import { calendarDaysBetween, DEFAULT_TIME_ZONE, localDateOf } from './time';
 
-export interface DoseWeight {
-  /** Automatisch berekende waarde (hoogste bekende gewicht) of `null`. */
-  auto: number | null;
-  /** Gebruikte waarde: handmatig als ingevuld, anders automatisch. */
-  value: Num;
-  manual: boolean;
-}
-
-/**
- * Doseergewicht: standaard het hoogste van geboortegewicht en huidig gewicht;
- * bij één bekend gewicht dat gewicht; anders leeg. Een handmatige waarde gaat altijd voor.
- */
-export function doseWeight(child: Pick<Child, 'birthWeightGram' | 'currentWeightGram' | 'doseWeightOverrideGram'>): DoseWeight {
-  const known = [child.birthWeightGram, child.currentWeightGram].filter(isKnown);
-  const auto = known.length > 0 ? Math.max(...known) : null;
-  if (child.doseWeightOverrideGram !== null) {
-    return { auto, value: child.doseWeightOverrideGram, manual: true };
-  }
-  return { auto, value: auto, manual: false };
-}
-
-export interface PostmenstrualAge {
+export interface CorrectedAge {
   weeks: number;
   days: number;
   /** Totaal in dagen. */
   totalDays: number;
-  /** Verstreken kalenderdagen sinds geboorte (postnatale leeftijd), los van de PML. */
+  /** Verstreken kalenderdagen sinds geboorte (postnatale leeftijd), los van de gecorrigeerde leeftijd. */
   postnatalDays: number;
   transportDate: string;
 }
@@ -39,10 +18,10 @@ export function transportDate(t: Pick<Transport, 'referral'>, timeZone = DEFAULT
 }
 
 /**
- * Postmenstruele leeftijd = zwangerschapsduur bij geboorte + verstreken kalenderdagen
+ * Gecorrigeerde leeftijd = amenorroeduur bij geboorte + verstreken kalenderdagen
  * van geboortedatum tot transportdatum (datum van verwijzing).
  */
-export function postmenstrualAge(child: Pick<Child, 'birthDate' | 'gestationalAgeWeeks' | 'gestationalAgeDays'>, transportDateLocal: string): PostmenstrualAge | null {
+export function correctedAge(child: Pick<Child, 'birthDate' | 'gestationalAgeWeeks' | 'gestationalAgeDays'>, transportDateLocal: string): CorrectedAge | null {
   // Beide delen moeten expliciet ingevuld zijn (ook 0 dagen); een lege waarde wordt nooit als 0 behandeld.
   if (!isKnown(child.gestationalAgeWeeks) || !isKnown(child.gestationalAgeDays)) return null;
   const gaDays = child.gestationalAgeDays;
@@ -58,4 +37,27 @@ export function formatGestation(weeks: Num, days: Num): string | null {
   const w = isKnown(weeks) ? String(weeks) : '?';
   const d = isKnown(days) ? String(days) : '?';
   return `${w}+${d} weken`;
+}
+
+/** Invoerwaarde `weken+dagen` (bijv. `33+5`). */
+export function gestationToInput(weeks: Num, days: Num): string {
+  if (!isKnown(weeks)) return '';
+  return isKnown(days) ? `${weeks}+${days}` : String(weeks);
+}
+
+export type GestationParse = { ok: true; weeks: number | null; days: number | null } | { ok: false; error: string };
+
+/**
+ * Leest amenorroeduur als één waarde: `33+5`, `33 + 5` of `33` (= 33+0). Dagen 0–6.
+ * Leeg geeft leeg (geen 0).
+ */
+export function parseGestation(input: string): GestationParse {
+  const t = input.trim();
+  if (t === '') return { ok: true, weeks: null, days: null };
+  const m = /^(\d{1,2})\s*(?:\+\s*(\d{1,2}))?$/.exec(t);
+  if (!m) return { ok: false, error: 'Voer de amenorroeduur in als weken+dagen, bijvoorbeeld 33+5.' };
+  const weeks = Number(m[1]);
+  const days = m[2] === undefined ? 0 : Number(m[2]);
+  if (days > 6) return { ok: false, error: 'Het aantal dagen is 0 tot en met 6.' };
+  return { ok: true, weeks, days };
 }

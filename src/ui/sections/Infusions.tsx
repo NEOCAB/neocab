@@ -20,7 +20,7 @@ function RateChangeForm({ onSave, onCancel }: { onSave: (at: Instant, rate: numb
     <div className="subform" role="group" aria-label="Snelheid wijzigen">
       <div className="grid two">
         <DateTimeField label="Tijdstip wijziging" value={at} onChange={setAt} clearable={false} />
-        <NumberField label="Nieuwe pompsnelheid" unit="mL/uur" value={rate} onChange={setRate} rules={RATE_RULES} allowUnknown={false} />
+        <NumberField label="Nieuwe pompsnelheid" unit="mL/uur" value={rate} onChange={setRate} rules={RATE_RULES} />
       </div>
       {error && (
         <p className="field-error" role="alert">
@@ -71,7 +71,7 @@ function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i
           clearable={false}
           onChange={(v) => onChange({ ...inf, startAt: v, rates: inf.rates.map((r) => (r.id === first?.id ? { ...r, at: v } : r)) })}
         />
-        <TextField label="2. Vloeistof of medicament" value={inf.name} onChange={(v) => onChange({ ...inf, name: v })} />
+        <TextField label="2. Medicatie en concentratie" value={inf.name} onChange={(v) => onChange({ ...inf, name: v })} />
       </div>
       <fieldset className="group">
         <legend>3. Pompsnelheid (mL/uur) en verloop</legend>
@@ -79,12 +79,12 @@ function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i
           {rates.map((r, i) => (
             <li key={r.id}>
               {i === 0 ? (
-                <NumberField label={`Startsnelheid (vanaf ${formatInstant(r.at, tz) || 'start'})`} unit="mL/uur" value={r.rateMlPerHour} onChange={(v) => setRate(r.id, { rateMlPerHour: v })} rules={RATE_RULES} allowUnknown={false} />
+                <NumberField label={`Startsnelheid (vanaf ${formatInstant(r.at, tz) || 'start'})`} unit="mL/uur" value={r.rateMlPerHour} onChange={(v) => setRate(r.id, { rateMlPerHour: v })} rules={RATE_RULES} />
               ) : (
                 <div className="grid two tight rate-row">
                   <DateTimeField label={`Wijziging ${i}: tijdstip`} value={r.at} onChange={(v) => setRate(r.id, { at: v })} clearable={false} />
                   <div className="with-action">
-                    <NumberField label={`Wijziging ${i}: snelheid`} unit="mL/uur" value={r.rateMlPerHour} onChange={(v) => setRate(r.id, { rateMlPerHour: v })} rules={RATE_RULES} allowUnknown={false} />
+                    <NumberField label={`Wijziging ${i}: snelheid`} unit="mL/uur" value={r.rateMlPerHour} onChange={(v) => setRate(r.id, { rateMlPerHour: v })} rules={RATE_RULES} />
                     <button
                       type="button"
                       className="link-button danger"
@@ -161,8 +161,8 @@ function NewInfusionForm({ onStart, onCancel }: { onStart: (i: Infusion) => void
       <h3>Infuus starten</h3>
       <div className="grid">
         <DateTimeField label="1. Startdatum en tijd" value={draft.startAt} clearable={false} onChange={(v) => setDraft({ ...draft, startAt: v, rates: [{ ...draft.rates[0], at: v }] })} />
-        <TextField label="2. Vloeistof of medicament" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
-        <NumberField label="3. Pompsnelheid" unit="mL/uur" value={rate} onChange={(v) => setDraft({ ...draft, rates: [{ ...draft.rates[0], rateMlPerHour: v }] })} rules={RATE_RULES} allowUnknown={false} />
+        <TextField label="2. Medicatie en concentratie" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
+        <NumberField label="3. Pompsnelheid" unit="mL/uur" value={rate} onChange={(v) => setDraft({ ...draft, rates: [{ ...draft.rates[0], rateMlPerHour: v }] })} rules={RATE_RULES} />
       </div>
       {error && (
         <p className="field-error" role="alert">
@@ -174,7 +174,7 @@ function NewInfusionForm({ onStart, onCancel }: { onStart: (i: Infusion) => void
           type="button"
           className="primary"
           onClick={() => {
-            if (!draft.name.trim()) return setError('Vul de vloeistof of het medicament in.');
+            if (!draft.name.trim()) return setError('Vul de medicatie en concentratie in.');
             onStart(draft);
           }}
         >
