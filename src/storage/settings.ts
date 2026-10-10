@@ -8,11 +8,18 @@ export interface AppSettings {
   medicationRoutes: string[];
   /** Bij de negen klinische kopjes (Airway … Infection) alleen de beginletter tonen, links van het invulveld. */
   abcdLettersOnly: boolean;
+  /**
+   * Soort apparaat. Op een persoonlijk apparaat worden transporten anoniem vastgelegd: geen naam en geen
+   * patiëntnummer (geboortedatum wel). Standaard: werkapparaat.
+   */
+  device: DeviceKind;
 }
+
+export type DeviceKind = 'werk' | 'persoonlijk';
 
 const KEY = 'neonataal-transport:v1:instellingen';
 
-export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, abcdLettersOnly: false };
+export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, abcdLettersOnly: false, device: 'werk' };
 
 export function loadSettings(storage: KeyValueStorage): AppSettings {
   try {
@@ -22,6 +29,7 @@ export function loadSettings(storage: KeyValueStorage): AppSettings {
       timeZone: typeof v.timeZone === 'string' && isValidTimeZone(v.timeZone) ? v.timeZone : DEFAULT_TIME_ZONE,
       medicationRoutes: Array.isArray(v.medicationRoutes) ? v.medicationRoutes.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_MEDICATION_ROUTES,
       abcdLettersOnly: v.abcdLettersOnly === true,
+      device: v.device === 'persoonlijk' ? 'persoonlijk' : 'werk',
     };
   } catch {
     return DEFAULT_SETTINGS;

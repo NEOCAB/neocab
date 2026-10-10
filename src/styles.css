@@ -1431,6 +1431,53 @@ fieldset.group > legend {
   padding: 0.5rem 1rem 1rem;
   margin-bottom: 1rem;
 }
+.device-choice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--line);
+}
+.device-choice legend {
+  padding: 0 0.25rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.device-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.6rem;
+}
+.device-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+.device-option.checked {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+  background: var(--primary-10);
+}
+.device-option input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.15rem;
+  flex: none;
+  accent-color: var(--primary);
+}
+.device-option strong {
+  display: block;
+  color: var(--primary);
+}
+.device-text {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
 .import-panel {
   margin: 1rem 0;
 }

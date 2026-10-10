@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ageInHoursIfYoung, correctedAge, parseGestation, transportDate } from './calc';
-import { newMeasurement, newTransport, newTube, newTubeVersion } from './factory';
+import { anonymize, isIdentifying, newMeasurement, newTransport, newTube, newTubeVersion } from './factory';
+import { sampleTransport } from './sample';
 import { INVASIVE_MODES, NON_INVASIVE_MODES, respFieldsFor } from './labels';
 import { parseNum } from './num';
 import { isOiAlert, oxygenationIndex } from './oi';
@@ -229,5 +230,20 @@ describe('endotracheale tube historie', () => {
     expect(tubeAt(tubes, wallToInstant('2026-10-10T00:00', TZ))?.version.sizeMm).toBe(2.5);
     expect(tubeAt(tubes, wallToInstant('2026-10-10T00:40', TZ))?.version.sizeMm).toBe(3);
     expect(tubeAt(tubes, wallToInstant('2026-10-10T00:40', TZ))?.version.route).toBe('nasaal');
+  });
+});
+
+describe('anoniem vastleggen (persoonlijk apparaat)', () => {
+  it('verwijdert naam en patiëntnummer, maar houdt geboortedatum en alle andere gegevens', () => {
+    const t = sampleTransport(TZ);
+    expect(isIdentifying(t)).toBe(true);
+    const a = anonymize(t);
+    expect(a.child.name).toBe('');
+    expect(a.child.patientNumber).toBe('');
+    expect(a.child.birthDate).toBe(t.child.birthDate);
+    expect(a.child.birthTime).toBe(t.child.birthTime);
+    expect(a.measurements).toEqual(t.measurements);
+    expect(isIdentifying(a)).toBe(false);
+    expect(anonymize(a)).toBe(a);
   });
 });

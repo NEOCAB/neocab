@@ -378,6 +378,35 @@ async function basisLayout(page) {
   await other.locator('.concept').first().waitFor();
   check('Geplakte, doorgestuurde e-mail geïmporteerd zonder dubbel concept', (await other.locator('.concept').count()) === 1);
   await ctx2.close();
+
+  // Persoonlijk apparaat: anoniem (geen naam en patiëntnummer), geboortedatum blijft
+  const ctx3 = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+  const own = await ctx3.newPage();
+  await own.goto(BASE);
+  check('Standaard werkapparaat gekozen', await own.getByRole('radio', { name: /Werkapparaat/ }).isChecked());
+  await own.getByRole('button', { name: 'Fictief voorbeeldtransport laden' }).click();
+  await own.waitForSelector('#s1');
+  await own.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
+  await own.getByRole('radio', { name: /Persoonlijk apparaat/ }).click();
+  const askedAnon = await own.getByRole('alertdialog').waitFor({ timeout: 5000 }).then(() => true, () => false);
+  check('Overstap naar persoonlijk apparaat vraagt om bestaande concepten anoniem te maken', askedAnon);
+  await own.getByRole('alertdialog').getByRole('button', { name: 'Anoniem maken' }).click();
+  await own.locator('.concept').first().waitFor();
+  const conceptText = await own.locator('.concept').first().textContent();
+  check('Concept daarna anoniem in de lijst, met geboortedatum', conceptText.includes('Anoniem transport') && !conceptText.includes('Baby Voorbeeld') && !conceptText.includes('0012345') && conceptText.includes('Geboren'), conceptText);
+  await own.getByRole('button', { name: 'Hervatten' }).first().click();
+  await own.waitForSelector('#s1');
+  const nameField = own.getByLabel('Naam kind', { exact: true });
+  const pnrField = own.getByLabel('Patiëntnummer', { exact: true });
+  check('Persoonlijk apparaat: naam en patiëntnummer leeg en niet in te vullen; geboortedatum ingevuld', (await nameField.isDisabled()) && (await pnrField.isDisabled()) && (await nameField.inputValue()) === '' && (await pnrField.inputValue()) === '' && (await own.getByLabel('Geboortedatum', { exact: true }).inputValue()) !== '');
+  await own.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
+  await own.getByRole('button', { name: 'Transport importeren' }).click();
+  await own.getByLabel('Of open een overdrachtsbestand', { exact: true }).setInputFiles(hoPath);
+  await own.waitForSelector('#s1');
+  check('Persoonlijk apparaat: geïmporteerd transport wordt anoniem', (await own.getByLabel('Naam kind', { exact: true }).inputValue()) === '' && !(await own.locator('.topbar').textContent()).includes('Testbaby'));
+  const stored = await own.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('neonataal-transport:v1:') && !k.endsWith('index') && !k.endsWith('instellingen')).map((k) => localStorage.getItem(k)).join(''));
+  check('Persoonlijk apparaat: geen naam of patiëntnummer in de lokale opslag', !stored.includes('Testbaby') && !stored.includes('0007788') && !stored.includes('Baby Voorbeeld') && !stored.includes('0012345'));
+  await ctx3.close();
   check('Geen JavaScript-fouten', errors.length === 0, errors.join('; '));
   await ctx.close();
 }

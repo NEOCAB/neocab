@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { newTransport } from './domain/factory';
+import { anonymize, isIdentifying, newTransport } from './domain/factory';
 import type { Transport } from './domain/types';
 import { sampleTransport } from './domain/sample';
 import { LocalStorageTransportRepository } from './storage/localRepository';
@@ -42,9 +42,11 @@ export function App() {
 
   const items = useMemo(() => repo.list(), [repo, listVersion, route]);
 
+  // Persoonlijk apparaat: transporten altijd anoniem (geen naam en patiëntnummer), ook bij voorbeeld en import.
+  const anonymous = settings.device === 'persoonlijk';
   const open = (t: Transport) => {
     try {
-      navigate(`#/t/${repo.save(t).id}`);
+      navigate(`#/t/${repo.save(anonymous ? anonymize(t) : t).id}`);
       setError(null);
     } catch {
       setError('Opslaan in de lokale opslag is mislukt. Verwijder oude concepten en probeer het opnieuw.');
@@ -69,6 +71,13 @@ export function App() {
         onNew={() => open(newTransport(settings.timeZone))}
         onSample={() => open(sampleTransport(settings.timeZone))}
         onImport={(t) => open(t)}
+        onAnonymizeAll={() => {
+          for (const s of repo.list()) {
+            const t = repo.load(s.id);
+            if (t && isIdentifying(t)) repo.save(anonymize(t));
+          }
+          setListVersion((v) => v + 1);
+        }}
         onDelete={(id) => {
           repo.remove(id);
           setListVersion((v) => v + 1);
@@ -76,7 +85,9 @@ export function App() {
       />
     );
   } else {
-    const t = repo.load(route.id);
+    let t = repo.load(route.id);
+    // Vangnet: op een persoonlijk apparaat nooit naam of patiëntnummer tonen of bewaren.
+    if (t && anonymous && isIdentifying(t)) t = repo.save(anonymize(t));
     if (!t) {
       content = (
         <main className="home">

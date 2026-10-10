@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { formatInstant } from '../domain/time';
+import { formatInstant, formatLocalDate } from '../domain/time';
 import type { TransportSummary } from '../storage/repository';
-import { isValidTimeZone, type AppSettings } from '../storage/settings';
+import { isValidTimeZone, type AppSettings, type DeviceKind } from '../storage/settings';
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
-import { useTimeZone } from './context';
+import { childLabel, useTimeZone } from './context';
 import { useConfirm } from './confirm';
 import { Logo } from './icons';
 import type { Transport } from '../domain/types';
@@ -66,6 +66,50 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
         {saved && <span role="status">Opgeslagen.</span>}
       </div>
     </details>
+  );
+}
+
+/**
+ * Keuze werk- of persoonlijk apparaat. Op een persoonlijk apparaat worden transporten anoniem vastgelegd (geen naam
+ * en geen patiëntnummer). Bij overstappen naar persoonlijk worden die gegevens na bevestiging uit bestaande concepten gehaald.
+ */
+function DeviceChoice({ items, settings, onSettings, onAnonymizeAll }: { items: TransportSummary[]; settings: AppSettings; onSettings: (s: AppSettings) => void; onAnonymizeAll: () => void }) {
+  const confirm = useConfirm();
+  const choose = async (device: DeviceKind) => {
+    if (device === settings.device) return;
+    if (device === 'persoonlijk') {
+      const n = items.filter((i) => i.childName.trim() || i.patientNumber.trim()).length;
+      if (n > 0) {
+        const ok = await confirm(
+          `Op dit apparaat ${n === 1 ? 'staat 1 concept' : `staan ${n} concepten`} met naam of patiëntnummer. Bij een persoonlijk apparaat worden naam en patiëntnummer uit ${n === 1 ? 'dat concept' : 'die concepten'} verwijderd; de geboortedatum en alle andere gegevens blijven. Doorgaan?`,
+          'Anoniem maken',
+        );
+        if (!ok) return;
+        onAnonymizeAll();
+      }
+    }
+    onSettings({ ...settings, device });
+  };
+  const options: { value: DeviceKind; title: string; text: string }[] = [
+    { value: 'werk', title: 'Werkapparaat', text: 'Computer, tablet of telefoon van de instelling. Naam en patiëntnummer kunnen worden ingevuld.' },
+    { value: 'persoonlijk', title: 'Persoonlijk apparaat', text: 'Eigen telefoon of tablet. Transporten worden anoniem vastgelegd: geen naam en geen patiëntnummer (geboortedatum wel).' },
+  ];
+  return (
+    <fieldset className="card device-choice">
+      <legend>Op welk apparaat werk je?</legend>
+      <div className="device-options">
+        {options.map((o) => (
+          <label key={o.value} className={`device-option ${settings.device === o.value ? 'checked' : ''}`}>
+            <input type="radio" name="device" value={o.value} checked={settings.device === o.value} onChange={() => void choose(o.value)} />
+            <span>
+              <strong>{o.title}</strong>
+              <span className="device-text">{o.text}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      <p className="muted small-print">De keuze geldt voor dit apparaat (standaard: werkapparaat).</p>
+    </fieldset>
   );
 }
 
@@ -139,7 +183,7 @@ function ImportPanel({ items, onImport, onClose }: { items: TransportSummary[]; 
   );
 }
 
-export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImport, settings, onSettings }: { items: TransportSummary[]; onOpen: (id: string) => void; onNew: () => void; onSample: () => void; onDelete: (id: string) => void; onImport: (t: Transport) => void; settings: AppSettings; onSettings: (s: AppSettings) => void }) {
+export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImport, onAnonymizeAll, settings, onSettings }: { items: TransportSummary[]; onOpen: (id: string) => void; onNew: () => void; onSample: () => void; onDelete: (id: string) => void; onImport: (t: Transport) => void; onAnonymizeAll: () => void; settings: AppSettings; onSettings: (s: AppSettings) => void }) {
   const tz = useTimeZone();
   const confirm = useConfirm();
   const [importing, setImporting] = useState(false);
@@ -150,6 +194,7 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
         <h1>Neo.Cab</h1>
       </header>
       <main>
+        <DeviceChoice items={items} settings={settings} onSettings={onSettings} onAnonymizeAll={onAnonymizeAll} />
         <div className="button-row">
           <button type="button" className="primary large" onClick={onNew}>
             + Nieuw transport
@@ -172,9 +217,10 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
             {items.map((s) => (
               <li key={s.id} className="card concept">
                 <div>
-                  <strong>{s.childName || 'Naam kind niet ingevuld'}</strong>
+                  <strong>{childLabel(s.childName, settings.device === 'persoonlijk')}</strong>
                   <div className="muted">
                     {s.patientNumber ? `Pt.nr. ${s.patientNumber} · ` : ''}
+                    {s.birthDate ? `Geboren ${formatLocalDate(s.birthDate)} · ` : ''}
                     Verwijzing {formatInstant(s.referredAt, tz) || '—'}
                     {s.referringHospital ? ` · ${s.referringHospital}` : ''}
                   </div>

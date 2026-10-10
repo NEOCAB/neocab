@@ -149,3 +149,13 @@ export function newTube(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Endotra
 }
 
 export { MONITOR_KEYS, GAS_KEYS };
+
+/** Gegevens die een kind direct identificeren en op een persoonlijk apparaat niet worden vastgelegd. */
+export function isIdentifying(t: Transport): boolean {
+  return t.child.name.trim() !== '' || t.child.patientNumber.trim() !== '';
+}
+
+/** Anonieme versie voor een persoonlijk apparaat: zonder naam en patiëntnummer; geboortedatum en de rest blijven. */
+export function anonymize(t: Transport): Transport {
+  return isIdentifying(t) ? { ...t, child: { ...t.child, name: '', patientNumber: '' } } : t;
+}

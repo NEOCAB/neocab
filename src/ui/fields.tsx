@@ -32,7 +32,7 @@ function describedBy(id: string, hint?: unknown, error?: unknown) {
   return [hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined;
 }
 
-export function TextField({ label, value, onChange, type = 'text', list, hint, placeholder, autoComplete, className, inputMode }: { label: ReactNode; value: string; onChange: (v: string) => void; type?: 'text' | 'tel'; list?: string[]; hint?: ReactNode; placeholder?: string; autoComplete?: string; className?: string; inputMode?: 'text' | 'tel' | 'numeric' }) {
+export function TextField({ label, value, onChange, type = 'text', list, hint, placeholder, autoComplete, className, inputMode, disabled }: { label: ReactNode; value: string; onChange: (v: string) => void; type?: 'text' | 'tel'; list?: string[]; hint?: ReactNode; placeholder?: string; autoComplete?: string; className?: string; inputMode?: 'text' | 'tel' | 'numeric'; disabled?: boolean }) {
   const id = useId();
   return (
     <FieldShell id={id} label={label} hint={hint} className={className}>
@@ -40,6 +40,7 @@ export function TextField({ label, value, onChange, type = 'text', list, hint, p
         id={id}
         type={type}
         inputMode={inputMode}
+        disabled={disabled}
         value={value}
         placeholder={placeholder}
         autoComplete={autoComplete ?? 'off'}

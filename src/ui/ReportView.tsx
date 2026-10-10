@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToText } from '../report/text';
-import { useTimeZone } from './context';
+import { childLabel, useAnonymous, useTimeZone } from './context';
 import { DataTable } from './DataTable';
 import { Logo, SectionIcon } from './icons';
 import { canPrint, offerFile } from './viewer';
@@ -64,6 +64,7 @@ function Row({ row }: { row: ReportRow }) {
 export function ReportView({ transport, onBack }: { transport: Transport; onBack: () => void }) {
   const tz = useTimeZone();
   const report = useMemo(() => buildReport(transport, tz), [transport, tz]);
+  const anonymous = useAnonymous();
   const text = useMemo(() => reportToText(report), [report]);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -159,7 +160,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
           </button>
           <div className="active-transport">
             <span className="active-label">Verslag van</span>
-            <strong>{transport.child.name || 'Naam kind niet ingevuld'}</strong>
+            <strong>{childLabel(transport.child.name, anonymous)}</strong>
           </div>
         </div>
       </header>

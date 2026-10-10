@@ -3,6 +3,7 @@ import type { Transport } from '../domain/types';
 export interface TransportSummary {
   id: string;
   childName: string;
+  birthDate: string;
   patientNumber: string;
   referredAt: string | null;
   referringHospital: string;
@@ -24,6 +25,7 @@ export function summarize(t: Transport): TransportSummary {
   return {
     id: t.id,
     childName: t.child.name,
+    birthDate: t.child.birthDate,
     patientNumber: t.child.patientNumber,
     referredAt: t.referral.referredAt,
     referringHospital: t.referral.referringHospital,

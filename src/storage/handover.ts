@@ -85,7 +85,7 @@ export async function decodeHandover(text: string): Promise<{ transport: Transpo
 
 /** Onderwerp en tekst van de overdrachtsmail. */
 export function handoverEmail(t: Transport, code: string): { subject: string; body: string } {
-  const who = [t.child.name || 'naam kind niet ingevuld', t.child.patientNumber ? `patiëntnummer ${t.child.patientNumber}` : ''].filter(Boolean).join(', ');
+  const who = [t.child.name || (t.child.patientNumber ? '' : 'anoniem transport'), t.child.patientNumber ? `patiëntnummer ${t.child.patientNumber}` : ''].filter(Boolean).join(', ');
   return {
     subject: `Neo.Cab overdracht – ${who}`,
     body: [

@@ -98,7 +98,7 @@ describe('lokale conceptopslag', () => {
 
   it('bewaart configureerbare toedieningsroutes', () => {
     const storage = memoryStorage();
-    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], abcdLettersOnly: false });
+    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], abcdLettersOnly: false, device: 'werk' });
     expect(loadSettings(storage).medicationRoutes).toEqual(['IV', 'Oraal']);
   });
 
@@ -108,5 +108,14 @@ describe('lokale conceptopslag', () => {
     expect(loadSettings(storage).abcdLettersOnly).toBe(false);
     saveSettings(storage, { ...loadSettings(storage), abcdLettersOnly: true });
     expect(loadSettings(storage).abcdLettersOnly).toBe(true);
+  });
+
+  it('bewaart de keuze werk- of persoonlijk apparaat; standaard werkapparaat', () => {
+    const storage = memoryStorage();
+    expect(loadSettings(storage).device).toBe('werk');
+    saveSettings(storage, { ...loadSettings(storage), device: 'persoonlijk' });
+    expect(loadSettings(storage).device).toBe('persoonlijk');
+    storage.setItem('neonataal-transport:v1:instellingen', JSON.stringify({ device: 'iets anders' }));
+    expect(loadSettings(storage).device).toBe('werk');
   });
 });

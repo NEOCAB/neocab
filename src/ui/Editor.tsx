@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
-import { useTimeZone } from './context';
+import { childLabel, useAnonymous, useTimeZone } from './context';
 import { SectionIcon } from './icons';
 import {
   ChecklistSection,
@@ -51,6 +51,7 @@ const AUTOSAVE_MS = 700;
 export function Editor({ initial, repo, onExit, onReport }: { initial: Transport; repo: TransportRepository; onExit: () => void; onReport: () => void }) {
   const tz = useTimeZone();
   const [t, setT] = useState(initial);
+  const anonymous = useAnonymous();
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(initial.updatedAt);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -109,7 +110,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
         </button>
         <div className="active-transport">
           <span className="active-label">Actieve registratie</span>
-          <strong>{t.child.name || 'Naam kind niet ingevuld'}</strong>
+          <strong>{childLabel(t.child.name, anonymous)}</strong>
           <span className="muted">
             {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
           </span>

@@ -11,7 +11,7 @@ import {
 import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
 import { useEffect, useState } from 'react';
 import { DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
-import { useSettings, useTimeZone } from '../context';
+import { useAnonymous, useSettings, useTimeZone } from '../context';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
 export interface SectionProps {
@@ -27,12 +27,23 @@ export function ChildSection({ t, update }: SectionProps) {
   const ca = correctedAge(c, td);
   const now = useNow();
   const young = ageInHoursIfYoung(c, now, tz);
+  // Persoonlijk apparaat: geen naam en patiëntnummer (anoniem); de geboortedatum blijft.
+  const anonymous = useAnonymous();
+  const anonHint = 'Niet invullen op een persoonlijk apparaat';
   return (
-    <Section id="s1" title="Basisgegevens kind">
+    <Section id="s1" title="Basisgegevens kind" intro={anonymous ? 'Persoonlijk apparaat: dit transport wordt anoniem vastgelegd, zonder naam en patiëntnummer.' : undefined}>
       {/* Acht velden: 2 kolommen × 4 rijen (smal) of 4 kolommen × 2 rijen (breed). */}
       <div className="grid basis-grid">
-        <TextField label="Naam kind" value={c.name} onChange={(v) => set('name', v)} />
-        <TextField label="Patiëntnummer" value={c.patientNumber} onChange={(v) => set('patientNumber', v)} inputMode="numeric" />
+        <TextField label="Naam kind" value={anonymous ? '' : c.name} onChange={(v) => set('name', v)} disabled={anonymous} placeholder={anonymous ? 'Anoniem' : undefined} hint={anonymous ? anonHint : undefined} />
+        <TextField
+          label="Patiëntnummer"
+          value={anonymous ? '' : c.patientNumber}
+          onChange={(v) => set('patientNumber', v)}
+          inputMode="numeric"
+          disabled={anonymous}
+          placeholder={anonymous ? 'Anoniem' : undefined}
+          hint={anonymous ? anonHint : undefined}
+        />
         <DateField label="Geboortedatum" value={c.birthDate} onChange={(v) => set('birthDate', v)} />
         <TimeField label="Geboortetijd" value={c.birthTime} onChange={(v) => set('birthTime', v)} />
         <GestationField
