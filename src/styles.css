@@ -16,7 +16,7 @@
   --alert-bg: #ffe0b8;
   --alert-border: #e07b00;
   --alert-text: #7a3c00;
-  --bg: #cce5f3; /* kobaltblauw 20%: lichtblauwe pagina-achtergrond */
+  --bg: #e8f3fa; /* lichtblauwe pagina-achtergrond: zeer lichte tint van kobaltblauw */
   --surface: #ffffff;
   --text: #1a1a1a; /* lopende tekst bij voorkeur zwart */
   --muted: #4a545e;
@@ -269,8 +269,17 @@ input[type='time'] {
 .dt-row button {
   flex: none;
 }
-.dt-row .dt-now {
-  min-width: 3rem;
+/* Icoonknoppen (Nu = klok, Wissen = kruis): vierkant, zelfde hoogte als het invoerveld. */
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  min-width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+}
+.icon-button:disabled {
+  opacity: 0.35;
 }
 /* Datum/tijdveld met knoppen krijgt een eigen regel binnen een raster, maar wordt niet onnodig breed. */
 .dt-field {

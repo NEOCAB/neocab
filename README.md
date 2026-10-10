@@ -51,7 +51,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Hoofdtekst 15 px volgens de richtlijn; invoervelden 16 px (voorkomt inzoomen op iOS); koppen vet.
 - Kleuren: **donkerblauw `#003c7d`** als kernkleur (koppen, knoppen, tabelkop), **kobaltblauw `#007cc2`** als aanvullende kleur (focus, hover) en tinten daarvan (20%). Extra kleuren uit het palet: lichtblauw `#cee8ef` (berekende leeftijd, badges), zand `#f0e2d2` (meldingen), groen `#b9debc` (checklist gedaan) en rood `#ed1846` spaarzaam (checklist niet van toepassing, verwijderen).
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
-- Lichtblauwe pagina-achtergrond (kobaltblauw 20%, `#cce5f3`) met de secties als witte vlakken; strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
+- Lichtblauwe pagina-achtergrond (zeer lichte tint van kobaltblauw, `#e8f3fa`) met de secties als witte vlakken; strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
 - Tijdlijntabel: compacte waarden, verticale kolomkoppen in de tweede rij (eenheid tussen haakjes), getallen rechts uitgelijnd, groepen gescheiden door een lijn, tijd vet in de vaste eerste kolom. De datum staat alleen onder de tijd als de meetmomenten over meer dan één kalenderdag gaan.
 - Zes vaste tijdstippen in dezelfde vormgeving (naam, omschrijving, datum/tijd met *Nu* en *Wissen*, donkerblauwe streep links), op hun plek in het formulier en met dezelfde namen in verslag en pdf:
   | Tijdstip | Omschrijving | Sectie |
@@ -63,7 +63,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
   | Vertrek met kind | Vertrek van cotside na stabilisatie | 15 |
   | Aankomst ontvangend centrum | Aankomst aan de cotside van de ontvangende afdeling | 15 |
 - Gecorrigeerde leeftijd: opgemaakt als een invoerveld (label erboven, zelfde hoogte, rand en lettergrootte), met lichtblauwe achtergrond en niet invulbaar.
-- Alle datum/tijdvelden hebben de knoppen *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en *Wissen*; bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
+- Alle datum/tijdvelden hebben icoonknoppen: klok = *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en kruis = *Wissen* (met tooltip en volledige naam voor schermlezers); bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
 - PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
 

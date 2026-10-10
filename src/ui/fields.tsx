@@ -259,15 +259,34 @@ function DateTimeInputs({ id, name, value, onChange, clearable, describedBy: des
           } else setError('Voer een geldige datum en tijd in.');
         }}
       />
-      <button type="button" className="secondary small dt-now" aria-label={`${name} op nu zetten`} onClick={() => onChange(nowInstant(tz))}>
-        Nu
+      <button type="button" className="secondary icon-button dt-now" aria-label={`${name} op nu zetten`} title="Nu" onClick={() => onChange(nowInstant(tz))}>
+        <ClockIcon />
       </button>
       {clearable && (
-        <button type="button" className="secondary small dt-clear" aria-label={`${name} wissen`} disabled={value === null} onClick={() => onChange(null)}>
-          Wissen
+        <button type="button" className="secondary icon-button dt-clear" aria-label={`${name} wissen`} title="Wissen" disabled={value === null} onClick={() => onChange(null)}>
+          <ClearIcon />
         </button>
       )}
     </div>
+  );
+}
+
+/** Klokje: huidige tijd invullen. */
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+/** Kruisje: veld leegmaken. */
+function ClearIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" focusable="false">
+      <path d="M7 7l10 10M17 7L7 17" />
+    </svg>
   );
 }
 
