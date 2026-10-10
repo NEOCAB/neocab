@@ -2,7 +2,7 @@ import type { MedicationAdministration } from '../../domain/types';
 import { DOSE_UNIT_SUGGESTIONS } from '../../domain/labels';
 import { newMedication } from '../../domain/factory';
 import { formatInstant } from '../../domain/time';
-import { DateTimeField, NumberField, Section, SelectField, TextArea, TextField } from '../fields';
+import { DateTimeField, NumberField, Section, SelectField, TextField } from '../fields';
 import { useSettings } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
@@ -15,8 +15,7 @@ export function MedicationsSection({ t, update }: SectionProps) {
   // Invoervolgorde tijdens bewerken (kaarten springen niet weg); het verslag sorteert chronologisch.
   const meds = t.medications;
   return (
-    <Section id="s8" title="9 Medicatietoedieningen">
-      <TextArea label="Allergieën" value={t.allergies} onChange={(v) => update((x) => ({ ...x, allergies: v }))} rows={2} />
+    <Section id="s8" title="Medicatietoedieningen">
       <div className="list">
         {meds.length === 0 && <p className="muted">Nog geen toedieningen geregistreerd.</p>}
         {meds.map((m, i) => {

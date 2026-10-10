@@ -174,6 +174,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
                 <SectionIcon title={s.title} />
                 <span>{s.title}</span>
               </h2>
+              {s.subtitle && <p className="section-intro">{s.subtitle}</p>}
               {s.blocks.map((b, i) => (
                 <div key={i} className={b.card ? 'r-card' : 'r-block'}>
                   {b.title && <h3>{b.title}</h3>}

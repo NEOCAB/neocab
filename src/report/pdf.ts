@@ -427,6 +427,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     doc.setLineWidth(0.4);
     doc.line(M.left, y + 0.5, M.left + contentW, y + 0.5);
     y += 3;
+    if (section.subtitle) {
+      writeLines(split(section.subtitle, contentW, SIZE.meta), M.left, SIZE.meta, false, C.muted);
+      y += 1.5;
+    }
     for (const block of section.blocks) writeBlock(block);
   }
 

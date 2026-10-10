@@ -82,7 +82,6 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
     measurements: [],
     otherLabs: '',
     imaging: '',
-    allergies: '',
     medications: [],
     infusions: [],
     lines: [],

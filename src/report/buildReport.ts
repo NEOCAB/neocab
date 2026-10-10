@@ -54,6 +54,8 @@ export interface ReportBlock {
 
 export interface ReportSection {
   title: string;
+  /** Toelichting onder de kop. */
+  subtitle?: string;
   blocks: ReportBlock[];
 }
 
@@ -126,7 +128,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       b.kv('Postnatale leeftijd', `dag ${ca.postnatalDay}`);
     }
     b.num('Geboortegewicht', c.birthWeightGram, 'g').num('Huidig gewicht', c.currentWeightGram, 'g');
-    sections.push({ title: '1 Basisgegevens kind', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Basisgegevens kind', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 2 Verwijzing en bestemming
@@ -141,7 +143,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       .kv('Ontvangende afdeling', r.receivingDepartment)
       .kv('Ontvangend ziekenhuis', r.receivingHospital)
       .para('Reden van overplaatsing', r.reason);
-    sections.push({ title: '2 Verwijzing en bestemming', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Verwijzing en bestemming', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 3 Zwangerschap en geboorte
@@ -158,7 +160,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     cordGas(b, 'Arterieel navelstrengbloedgas', g.cordArterial);
     cordGas(b, 'Veneus navelstrengbloedgas', g.cordVenous);
     b.kv('Vitamine K', g.vitaminK === 'anders' ? `Anders${g.vitaminKOther.trim() ? `: ${g.vitaminKOther.trim()}` : ''}` : optionLabel(VITAMIN_K_OPTIONS, g.vitaminK));
-    sections.push({ title: '3 Zwangerschap en geboorte', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Zwangerschap en geboorte', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 4 Toestand bij verwijzing
@@ -167,14 +169,14 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const b = new RowBuilder();
     b.para('Advies bij verwijzing', t.referralCondition.advice);
     const all = [...rows, ...b.rows];
-    sections.push({ title: '4 Toestand bij verwijzing', blocks: [{ rows: all.length ? all : [NOT_FILLED] }] });
+    sections.push({ title: 'Toestand bij verwijzing', blocks: [{ rows: all.length ? all : [NOT_FILLED] }] });
   }
 
   // 5 Dispatch
   {
     const b = new RowBuilder();
     b.kv('Ambulance aangevraagd', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek transportteam', fi(t.dispatch.departedWithAmbulanceAt)).kv('Aankomst bij kind', fi(t.teamAssessment.arrivedAt));
-    sections.push({ title: '5 Dispatch', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Dispatch', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 6 Onderzoek door transportteam (aankomst bij kind staat bij 5 Dispatch)
@@ -183,14 +185,15 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const b = new RowBuilder();
     b.rows.push(...abcdRows(a.notes));
     b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan).kv('Laatste voeding', fi(a.lastFeedAt));
-    sections.push({ title: '6 Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 6 Tijdlijn: één tabel, elke rij is één meetmoment
   {
     const { table, rows } = timelineReportTable(t.measurements, timeZone);
     sections.push({
-      title: '7 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen',
+      title: 'Tijdlijn',
+      subtitle: 'Ademhalingsondersteuning, monitorgegevens en bloedgassen',
       blocks: rows.length
         ? [
             { rows: [], table },
@@ -209,15 +212,12 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   {
     const b = new RowBuilder();
     b.para('Overige laboratoriumuitslagen', t.otherLabs).para('Beeldvorming en overige onderzoeken', t.imaging);
-    sections.push({ title: '8 Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 8 Medicatie
   {
     const blocks: ReportBlock[] = [];
-    const head = new RowBuilder();
-    head.para('Allergieën', t.allergies);
-    if (head.rows.length) blocks.push({ rows: head.rows });
     const meds = [...t.medications].sort((a, b) => compareInstants(a.at, b.at));
     for (const m of meds) {
       const b = new RowBuilder();
@@ -228,7 +228,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `${fi(m.at) || 'Tijdstip niet ingevuld'} · ${m.name || 'Medicament niet ingevuld'}`, rows: b.orEmpty() });
     }
     if (meds.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] });
-    sections.push({ title: '9 Medicatietoedieningen', blocks });
+    sections.push({ title: 'Medicatietoedieningen', blocks });
   }
 
   // 9 Infusen
@@ -245,7 +245,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `${inf.name || 'Infuus'}${inf.stopAt ? ' (gestopt)' : ' (lopend)'}`, rows: b.rows });
     }
     if (infs.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] });
-    sections.push({ title: '10 Lopende infusen', blocks });
+    sections.push({ title: 'Lopende infusen', blocks });
   }
 
   // 10 Lijnen, sondes, drains en endotracheale tube
@@ -272,15 +272,15 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `Endotracheale tube ${tubes.length > 1 ? i + 1 : ''}`.trim(), rows: b.rows });
     });
     if (blocks.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen lijnen, sondes, drains of tube geregistreerd.' }] });
-    sections.push({ title: '11 Lijnen, sondes, drains en endotracheale tube', blocks });
+    sections.push({ title: 'Lijnen, sondes, drains en endotracheale tube', blocks });
   }
 
   // 11, 12
-  sections.push({ title: '12 Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
+  sections.push({ title: 'Procedures en gebeurtenissen', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
     b.kv('Telefoonnummer moeder', t.motherPhone.trim()).kv('Telefoonnummer partner', t.partnerPhone.trim());
-    sections.push({ title: '13 Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Ouders en gezin', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 14 Checklist voor vertrek: bewust niet in het verslag (alleen in het formulier).
@@ -290,7 +290,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     const c = t.closure;
     const b = new RowBuilder();
     b.kv('Vertrek met kind', fi(c.departedCotsideAt)).para('Gebeurtenissen tijdens transport', c.eventsDuringTransport).kv('Aankomst ontvangend centrum', fi(c.arrivedReceivingAt));
-    sections.push({ title: '15 Afsluiting transport', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Afsluiting transport', blocks: [{ rows: b.orEmpty() }] });
   }
 
   const meta = [

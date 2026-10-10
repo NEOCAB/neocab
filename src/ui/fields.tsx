@@ -350,7 +350,7 @@ export function Section({ id, title, children, intro }: { id: string; title: str
   return (
     <section id={id} className="form-section" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`} tabIndex={-1} className="section-title">
-        <SectionIcon title={title} />
+        <SectionIcon id={id} />
         <span>{title}</span>
       </h2>
       {intro && <p className="section-intro">{intro}</p>}

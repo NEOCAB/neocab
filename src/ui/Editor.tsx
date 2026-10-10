@@ -24,21 +24,21 @@ import { InfusionsSection } from './sections/Infusions';
 import { LinesSection } from './sections/Lines';
 
 export const SECTIONS = [
-  { id: 's1', label: '1 Basisgegevens kind' },
-  { id: 's2', label: '2 Verwijzing en bestemming' },
-  { id: 's3', label: '3 Zwangerschap en geboorte' },
-  { id: 's4', label: '4 Toestand bij verwijzing' },
-  { id: 'sdispatch', label: '5 Dispatch' },
-  { id: 's5', label: '6 Onderzoek transportteam' },
-  { id: 's6', label: '7 Tijdlijn' },
-  { id: 's7', label: '8 Overige diagnostiek' },
-  { id: 's8', label: '9 Medicatie' },
-  { id: 's9', label: '10 Infusen' },
-  { id: 's10', label: '11 Lijnen, sondes, tube' },
-  { id: 's11', label: '12 Procedures en gebeurtenissen' },
-  { id: 's12', label: '13 Ouders en gezin' },
-  { id: 's13', label: '14 Checklist voor vertrek' },
-  { id: 's14', label: '15 Afsluiting transport' },
+  { id: 's1', label: 'Basisgegevens kind' },
+  { id: 's2', label: 'Verwijzing en bestemming' },
+  { id: 's3', label: 'Zwangerschap en geboorte' },
+  { id: 's4', label: 'Toestand bij verwijzing' },
+  { id: 'sdispatch', label: 'Dispatch' },
+  { id: 's5', label: 'Onderzoek transportteam' },
+  { id: 's6', label: 'Tijdlijn' },
+  { id: 's7', label: 'Overige diagnostiek' },
+  { id: 's8', label: 'Medicatie' },
+  { id: 's9', label: 'Infusen' },
+  { id: 's10', label: 'Lijnen, sondes, tube' },
+  { id: 's11', label: 'Procedures en gebeurtenissen' },
+  { id: 's12', label: 'Ouders en gezin' },
+  { id: 's13', label: 'Checklist voor vertrek' },
+  { id: 's14', label: 'Afsluiting transport' },
 ];
 
 function goToSection(id: string) {
@@ -160,7 +160,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                     goToSection(s.id);
                   }}
                 >
-                  <SectionIcon title={s.label} />
+                  <SectionIcon id={s.id} />
                   <span>{s.label}</span>
                 </a>
               </li>

@@ -32,6 +32,7 @@ export function reportToText(report: Report): string {
   out.push(...report.meta);
   for (const section of report.sections) {
     out.push('', '', section.title.toUpperCase(), '-'.repeat(Math.min(section.title.length, 72)));
+    if (section.subtitle) out.push(section.subtitle);
     for (const block of section.blocks) {
       if (block.title) out.push('', `» ${block.title}`);
       if (block.table) out.push(...tableToText(block.table));

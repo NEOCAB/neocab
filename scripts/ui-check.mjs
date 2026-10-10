@@ -125,7 +125,9 @@ async function unlabeledControls(page) {
 
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
-  check('Dispatch als box 5 tussen 4 en 6', order[3]?.startsWith('4 ') && order[4] === '5 Dispatch' && order[5]?.startsWith('6 Onderzoek') && order.length === 15, order.join(' | '));
+  check('Dispatch tussen Toestand bij verwijzing en Onderzoek door transportteam', order[3] === 'Toestand bij verwijzing' && order[4] === 'Dispatch' && order[5] === 'Onderzoek door transportteam' && order.length === 15, order.join(' | '));
+  check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[6] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
+  check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
   const called = page.getByLabel('Ambulance aangevraagd', { exact: true });
   const departed = page.getByLabel('Vertrek transportteam', { exact: true });
   check('Dispatch-tijden standaard leeg', (await called.inputValue()) === '' && (await departed.inputValue()) === '');
@@ -136,7 +138,7 @@ async function unlabeledControls(page) {
   const s2 = await page.locator('#s2 .field-label').allTextContents();
   check('Sectie 2 in gevraagde volgorde', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangende afdeling', 'Ontvangend ziekenhuis']), s2.join(' | '));
   check('Geen toelichting bij verwijzing', (await page.locator('#s2 .field-hint').count()) === 0);
-  check('Geen toelichting bij tijdlijn', (await page.locator('#s6 .section-intro, #s6 .table-hint').count()) === 0);
+  check('Geen extra tekst boven de tijdlijntabel', (await page.locator('#s6 .table-hint').count()) === 0);
 
   // Tijdlijn: meetmoment 1 met CPAP
   await page.locator('#s6').getByRole('button', { name: '+ Nieuw meetmoment' }).first().click();

@@ -34,10 +34,13 @@ function bigTransport(): Transport {
 describe('verslag', () => {
   it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    for (const h of ['1 BASISGEGEVENS KIND', '5 DISPATCH', '6 ONDERZOEK DOOR TRANSPORTTEAM', '7 TIJDLIJN', '13 OUDERS EN GEZIN', '15 AFSLUITING TRANSPORT']) expect(text).toContain(h);
+    for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'ONDERZOEK DOOR TRANSPORTTEAM', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', 'OUDERS EN GEZIN', 'AFSLUITING TRANSPORT']) expect(text).toContain(h);
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     for (const gone of ['CHECKLIST', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
-    const s12 = text.slice(text.indexOf('13 OUDERS EN GEZIN'), text.indexOf('15 AFSLUITING'));
+    expect(text).not.toContain('Allergie');
+    // Koppen zonder nummer.
+    expect(buildReport(sampleTransport(TZ), TZ).sections.every((sec) => !/^\d/.test(sec.title))).toBe(true);
+    const s12 = text.slice(text.indexOf('OUDERS EN GEZIN'), text.indexOf('AFSLUITING TRANSPORT'));
     expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
     expect(text).not.toContain('LUMC');
@@ -46,7 +49,7 @@ describe('verslag', () => {
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
     expect(text).toContain('Ambulance aangevraagd: 09-10-2026 22:20');
     expect(text).toContain('Vertrek transportteam: 09-10-2026 22:35');
-    const s5 = text.slice(text.indexOf('5 DISPATCH'), text.indexOf('6 ONDERZOEK'));
+    const s5 = text.slice(text.indexOf('DISPATCH'), text.indexOf('ONDERZOEK DOOR TRANSPORTTEAM'));
     expect(s5).toContain('Aankomst bij kind: 09-10-2026 23:05');
     for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');
@@ -61,7 +64,7 @@ describe('verslag', () => {
 
   it('tijdlijn is één tabel met één rij per meetmoment, zonder #, fase en tube, type bloedgas als A/V/C', () => {
     const t = sampleTransport(TZ);
-    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('7 '))!;
+    const section = buildReport(t, TZ).sections.find((s) => s.title === 'Tijdlijn')!;
     const tables = section.blocks.filter((b) => b.table);
     expect(tables).toHaveLength(1);
     const table = tables[0].table!;
@@ -87,7 +90,7 @@ describe('verslag', () => {
   it('toont de datum in de tijdkolom alleen als meetmomenten over meerdere dagen gaan', () => {
     const t = sampleTransport(TZ);
     const tijd = (tt: typeof t) => {
-      const table = buildReport(tt, TZ).sections.find((s) => s.title.startsWith('7 '))!.blocks.find((b) => b.table)!.table!;
+      const table = buildReport(tt, TZ).sections.find((s) => s.title === 'Tijdlijn')!.blocks.find((b) => b.table)!.table!;
       return table.rows.map((r) => r[0]);
     };
     expect(tijd(t)[0]).toBe('09-10-2026\n23:10'); // over middernacht: met datum
@@ -97,7 +100,7 @@ describe('verslag', () => {
 
   it('berekent de OI in de tabel en markeert OI > 25 als alert', () => {
     const t = sampleTransport(TZ);
-    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('7 '))!;
+    const section = buildReport(t, TZ).sections.find((s) => s.title === 'Tijdlijn')!;
     const table = section.blocks.find((b) => b.table)!.table!;
     const oi = table.columns.findIndex((c) => c.header === 'OI');
     expect(table.columns[oi].group).toBe('Ademhalingsondersteuning');

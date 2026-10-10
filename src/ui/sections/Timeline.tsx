@@ -181,7 +181,7 @@ export function TimelineSection({ t, update }: SectionProps) {
   };
 
   return (
-    <Section id="s6" title="7 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen">
+    <Section id="s6" title="Tijdlijn" intro="Ademhalingsondersteuning, monitorgegevens en bloedgassen">
       {!draft && (
         <button type="button" className="primary" onClick={startNew}>
           + Nieuw meetmoment

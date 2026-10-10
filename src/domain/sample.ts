@@ -108,7 +108,6 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
     ],
     otherLabs: 'CRP 4 mg/L (fictief).',
     imaging: 'Thoraxfoto: beeld passend bij surfactantdeficiëntie; tubetip ter hoogte van Th2.',
-    allergies: 'Geen bekende allergieën.',
     medications: [
       { id: newId(), at: at('2026-10-09T23:30'), name: 'Surfactant (fictief voorbeeld)', dose: 200, doseUnit: 'mg/kg', route: 'Endotracheaal' },
       { id: newId(), at: at('2026-10-09T23:22'), name: 'Voorbeeldmedicament', dose: 0.5, doseUnit: 'mg', route: 'Intraveneus' },

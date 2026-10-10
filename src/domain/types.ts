@@ -233,7 +233,6 @@ export interface Transport {
   measurements: Measurement[];
   otherLabs: string;
   imaging: string;
-  allergies: string;
   medications: MedicationAdministration[];
   infusions: Infusion[];
   lines: Line[];

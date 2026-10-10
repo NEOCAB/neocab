@@ -1290,7 +1290,7 @@ button.danger-button {
   color: var(--primary);
 }
 .section-title .section-icon {
-  font-size: 1.6rem;
+  font-size: 1.85rem;
 }
 .sidenav a {
   display: flex !important;
@@ -1298,5 +1298,5 @@ button.danger-button {
   gap: 0.5rem;
 }
 .sidenav .section-icon {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
