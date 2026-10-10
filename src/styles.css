@@ -10,7 +10,6 @@
   --lightblue: #cee8ef; /* extra kleur lichtblauw */
   --sand: #f0e2d2; /* extra kleur zand */
   --sand-line: #d9c5ae;
-  --sand-soft: #f8f0e7;
   --green: #b9debc; /* extra kleur groen */
   --green-line: #7fb985;
   --danger: #ed1846; /* rood: highlight, spaarzaam */
@@ -887,13 +886,9 @@ fieldset.group > legend {
   border-bottom: 1px dashed var(--line);
 }
 .data-table td.note-cell {
-  background: var(--sand-soft);
   white-space: normal;
   padding-top: 0.35rem;
   padding-bottom: 0.45rem;
-}
-.data-table tbody tr.alt td.note-cell {
-  background: var(--sand-soft);
 }
 .note-text {
   display: block;
@@ -903,11 +898,9 @@ fieldset.group > legend {
   white-space: pre-line;
   line-height: 1.35;
 }
-.note-text strong {
-  color: var(--primary);
-}
 .data-table tbody tr:hover td,
-.data-table tbody tr:hover th {
+.data-table tbody tr:hover th,
+.data-table tbody tr.has-note:hover + tr.note-row td {
   background: var(--primary-10);
 }
 .data-table tbody tr.editing td,
