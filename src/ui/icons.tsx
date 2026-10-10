@@ -14,6 +14,7 @@ import familyHome from '@material-symbols/svg-700/outlined/family_home.svg?raw';
 import checklist from '@material-symbols/svg-700/outlined/checklist.svg?raw';
 import flag from '@material-symbols/svg-700/outlined/flag.svg?raw';
 import safetyCheck from '@material-symbols/svg-700/outlined/safety_check.svg?raw';
+import logoUrl from '../assets/neocab-logo.svg';
 import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
@@ -78,3 +79,10 @@ const TIMEPOINT = prep(safetyCheck);
 export function TimepointIcon() {
   return <span className="tp-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: TIMEPOINT }} />;
 }
+
+/** Logo Neo.Cab (als afbeelding, zodat de mask-id in de svg niet botst bij meerdere exemplaren). */
+export function Logo({ className }: { className?: string }) {
+  return <img src={logoUrl} alt="Neo.Cab" className={`brand-logo ${className ?? ''}`} width={512} height={512} />;
+}
+
+export { logoUrl };

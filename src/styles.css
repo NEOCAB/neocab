@@ -434,7 +434,35 @@ fieldset.group > legend {
   padding: 1.25rem 16px 3rem;
 }
 .home-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1rem;
+}
+.home-header h1 {
+  margin: 0 0 0.25rem;
+}
+.brand-logo {
+  display: block;
+  flex: none;
+  height: auto;
+}
+.home-logo {
+  width: 5.5rem;
+}
+.report-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.report-logo {
+  width: 4rem;
+}
+@media (max-width: 480px) {
+  .home-logo {
+    width: 4rem;
+  }
 }
 .concepts {
   list-style: none;

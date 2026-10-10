@@ -1,10 +1,13 @@
 import { jsPDF } from 'jspdf';
+import logoUrl from '../assets/neocab-logo.svg';
 import type { Report, ReportBlock, ReportRow, ReportTable, ReportTableColumn } from './buildReport';
 
 export interface PdfFonts {
   /** Base64 van PTSans-Regular.ttf (huisstijllettertype; bevat o.a. ₂, ₃, Δ, °). */
   regular: string;
   bold: string;
+  /** Logo als PNG-data-URL (optioneel); rechtsboven op de eerste pagina. */
+  logoPng?: string;
 }
 
 const A4 = { w: 210, h: 297 };
@@ -87,11 +90,14 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     }
   };
 
-  // Titel
-  writeLines(split(report.title, contentW, SIZE.title, true), M.left, SIZE.title, true, C.blue);
+  // Titel, met logo rechtsboven
+  const LOGO = 17;
+  if (fonts.logoPng) doc.addImage(fonts.logoPng, 'PNG', A4.w - M.right - LOGO, M.top - 4, LOGO, LOGO);
+  const titleW = fonts.logoPng ? contentW - LOGO - 4 : contentW;
+  writeLines(split(report.title, titleW, SIZE.title, true), M.left, SIZE.title, true, C.blue);
   y += 1;
-  for (const m of report.meta) writeLines(split(m, contentW, SIZE.meta), M.left, SIZE.meta, false, [70, 70, 70]);
-  y += 3;
+  for (const m of report.meta) writeLines(split(m, titleW, SIZE.meta), M.left, SIZE.meta, false, [70, 70, 70]);
+  y = Math.max(y + 3, fonts.logoPng ? M.top - 4 + LOGO + 3 : 0);
 
   const rowHeight = (row: ReportRow, width: number, labelW = LABEL_W): number => {
     const lh = LINE(SIZE.body);
@@ -510,4 +516,29 @@ export function loadPdfFonts(baseUrl = import.meta.env?.BASE_URL ?? './'): Promi
     });
   }
   return fontCache;
+}
+
+let logoCache: Promise<string | undefined> | null = null;
+
+/** Zet het logo (svg) in de browser om naar een png voor de pdf. Lukt dat niet, dan zonder logo. */
+export function loadPdfLogo(px = 256): Promise<string | undefined> {
+  if (!logoCache) {
+    logoCache = new Promise<string | undefined>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = px;
+          canvas.height = px;
+          canvas.getContext('2d')!.drawImage(img, 0, 0, px, px);
+          resolve(canvas.toDataURL('image/png'));
+        } catch {
+          resolve(undefined);
+        }
+      };
+      img.onerror = () => resolve(undefined);
+      img.src = logoUrl;
+    });
+  }
+  return logoCache;
 }

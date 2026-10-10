@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Neo.Cab">
+  <defs>
+    <mask id="cab-cutouts">
+      <rect width="24" height="24" fill="#fff"/>
+      <path d="M4 10V8.2Q4 7 5.2 7H8V10Z M9.3 7H13.2V10H9.3Z M14.5 7H14.9Q15.7 7 16.1 8.1L16.8 10H14.5Z" fill="#000"/>
+      <circle cx="6.2" cy="17" r="2.8" fill="#000"/>
+      <circle cx="17.8" cy="17" r="2.8" fill="#000"/>
+      <circle cx="21" cy="12.6" r=".7" fill="#000"/>
+    </mask>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#F1F3F4"/>
+  <g transform="translate(96 64) scale(13.333)" fill="#1A1A1A">
+    <path mask="url(#cab-cutouts)" d="M2 15.5V10Q2 5.8 5.5 5.5H14Q16.2 5.5 17.2 8L18 10.5H20.4Q22 10.5 22 12.3V15.5Q22 17 20.5 17H3.5Q2 17 2 15.5Z"/>
+    <rect x="9.5" y="3.6" width="4" height="2.2" rx=".6"/>
+    <circle cx="6.2" cy="17" r="2"/>
+    <circle cx="17.8" cy="17" r="2"/>
+  </g>
+</svg>

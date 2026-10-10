@@ -5,6 +5,7 @@ import { isValidTimeZone, type AppSettings } from '../storage/settings';
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
 import { useTimeZone } from './context';
 import { useConfirm } from './confirm';
+import { Logo } from './icons';
 
 const TIME_ZONES = ['Europe/Amsterdam', 'Europe/Brussels', 'Europe/London', 'UTC'];
 
@@ -66,8 +67,11 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, settin
   return (
     <div className="home">
       <header className="home-header">
-        <h1>Neonatale transportregistratie</h1>
-        <p className="muted">Prototype · concepten worden alleen lokaal in deze browser op dit apparaat bewaard.</p>
+        <Logo className="home-logo" />
+        <div>
+          <h1>Neonatale transportregistratie</h1>
+          <p className="muted">Prototype · concepten worden alleen lokaal in deze browser op dit apparaat bewaard.</p>
+        </div>
       </header>
       <main>
         <div className="button-row">

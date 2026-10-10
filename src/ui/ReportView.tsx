@@ -4,7 +4,7 @@ import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToText } from '../report/text';
 import { useTimeZone } from './context';
 import { DataTable } from './DataTable';
-import { SectionIcon } from './icons';
+import { Logo, SectionIcon } from './icons';
 import { canPrint, offerFile } from './viewer';
 
 /** Mailto-links worden door sommige mailprogramma's afgekapt; boven deze lengte gaat de tekst alleen via het klembord. */
@@ -72,9 +72,9 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
     setBusy(true);
     setStatus('Pdf wordt gemaakt…');
     try {
-      const { loadPdfFonts, pdfFileName, reportToPdf } = await import('../report/pdf');
-      const fonts = await loadPdfFonts();
-      const doc = reportToPdf(report, fonts);
+      const { loadPdfFonts, loadPdfLogo, pdfFileName, reportToPdf } = await import('../report/pdf');
+      const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadPdfLogo()]);
+      const doc = reportToPdf(report, { ...fonts, logoPng });
       const pages = doc.getNumberOfPages();
       const result = await offerFile(pdfFileName(transport.child.name, transport.child.patientNumber), doc.output('blob'));
       setStatus(
@@ -162,7 +162,10 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
         </section>
 
         <article className="report" aria-label="Transportverslag">
-          <h1>{report.title}</h1>
+          <div className="report-head">
+            <h1>{report.title}</h1>
+            <Logo className="report-logo" />
+          </div>
           {report.meta.map((m, i) => (
             <p key={i} className={i === 0 ? 'report-patient' : 'muted small-print'}>
               {m}

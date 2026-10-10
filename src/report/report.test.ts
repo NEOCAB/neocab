@@ -176,6 +176,14 @@ describe('verslag', () => {
     }
   });
 
+  it('zet een logo rechtsboven op de eerste pagina als dat is meegegeven', () => {
+    const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const without = reportToPdf(buildReport(sampleTransport(TZ), TZ), fonts);
+    const withLogo = reportToPdf(buildReport(sampleTransport(TZ), TZ), { ...fonts, logoPng: png });
+    expect(withLogo.getNumberOfPages()).toBe(without.getNumberOfPages());
+    expect(new TextDecoder().decode(withLogo.output('arraybuffer'))).toContain('/Subtype /Image');
+  });
+
   it('meetmoment over middernacht verschijnt met juiste datum', () => {
     const t = sampleTransport(TZ);
     t.measurements[1].at = wallToInstant('2026-10-10T00:02', TZ);

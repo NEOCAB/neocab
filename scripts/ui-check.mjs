@@ -50,6 +50,8 @@ async function basisLayout(page) {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.screenshot({ path: `${OUT}/390-start.png`, fullPage: true });
+  const homeLogo = await page.locator('.home-header img.brand-logo').evaluate((img) => ({ ok: img.complete && img.naturalWidth > 0, alt: img.alt, w: Math.round(img.getBoundingClientRect().width) }));
+  check('Logo Neo.Cab op de startpagina', homeLogo.ok && homeLogo.alt === 'Neo.Cab' && homeLogo.w > 40, JSON.stringify(homeLogo));
 
   await page.getByRole('button', { name: '+ Nieuw transport' }).click();
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
@@ -307,6 +309,7 @@ async function basisLayout(page) {
   await page.waitForSelector('.report');
   check('Geen horizontaal scrollen op 390 px (verslag)', await noHorizontalScroll(page));
   const reportText = await page.locator('#email-text').inputValue();
+  check('Logo Neo.Cab bovenaan het verslag', await page.locator('.report .report-head img.brand-logo').isVisible());
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
   check('E-mailtekst bevat infuushistorie', reportText.includes('3,2 mL/uur') && reportText.includes('4 mL/uur'));
