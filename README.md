@@ -49,7 +49,7 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of naam van de organisatie:
 
 - Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Hoofdtekst 15 px volgens de richtlijn; invoervelden 16 px (voorkomt inzoomen op iOS); koppen vet.
-- Logo **Neo.Cab** (`src/assets/neocab-logo.svg`): op de startpagina, bovenaan het verslag en rechtsboven op de eerste pdf-pagina (in de browser omgezet naar png; lukt dat niet, dan zonder logo). Favicon `public/favicon.svg` is hetzelfde beeldmerk zonder tekst, omdat die op klein formaat onleesbaar is.
+- Logo **Neo.Cab** (`src/assets/neocab-logo.svg`): alleen het beeldmerk (taxi), zonder achtergrond en tekst, in donkerblauw `#003c7d`. Op de startpagina, bovenaan het verslag en rechtsboven op de eerste pdf-pagina (in de browser omgezet naar png; lukt dat niet, dan zonder logo). Favicon `public/favicon.svg` is hetzelfde beeldmerk.
 - Kleuren: **donkerblauw `#003c7d`** als kernkleur (koppen, knoppen, tabelkop), **kobaltblauw `#007cc2`** als aanvullende kleur (focus, hover) en tinten daarvan (20%). Extra kleuren uit het palet: lichtblauw `#cee8ef` (berekende leeftijd, badges), zand `#f0e2d2` (meldingen), groen `#b9debc` (checklist gedaan) en rood `#ed1846` spaarzaam (checklist niet van toepassing, verwijderen).
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
 - Lichtblauwe pagina-achtergrond (zeer lichte tint van kobaltblauw, `#e8f3fa`) met de secties als witte vlakken; strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.

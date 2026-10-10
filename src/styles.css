@@ -448,7 +448,7 @@ fieldset.group > legend {
   height: auto;
 }
 .home-logo {
-  width: 5.5rem;
+  width: 4.5rem;
 }
 .report-head {
   display: flex;
@@ -457,11 +457,11 @@ fieldset.group > legend {
   gap: 1rem;
 }
 .report-logo {
-  width: 4rem;
+  width: 3.5rem;
 }
 @media (max-width: 480px) {
   .home-logo {
-    width: 4rem;
+    width: 3.25rem;
   }
 }
 .concepts {

@@ -14,6 +14,8 @@ const A4 = { w: 210, h: 297 };
 const M = { left: 12, right: 12, top: 18, bottom: 16 };
 
 const LABEL_W = 62;
+/** Hoogte/breedte van het logo (viewBox 21 × 17). */
+const LOGO_RATIO = 17 / 21;
 const FONT = 'PTSans';
 
 /** Huisstijlkleuren (RGB). */
@@ -92,12 +94,13 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
 
   // Titel, met logo rechtsboven
   const LOGO = 17;
-  if (fonts.logoPng) doc.addImage(fonts.logoPng, 'PNG', A4.w - M.right - LOGO, M.top - 4, LOGO, LOGO);
+  const LOGO_H = LOGO * LOGO_RATIO;
+  if (fonts.logoPng) doc.addImage(fonts.logoPng, 'PNG', A4.w - M.right - LOGO, M.top - 2, LOGO, LOGO_H);
   const titleW = fonts.logoPng ? contentW - LOGO - 4 : contentW;
   writeLines(split(report.title, titleW, SIZE.title, true), M.left, SIZE.title, true, C.blue);
   y += 1;
   for (const m of report.meta) writeLines(split(m, titleW, SIZE.meta), M.left, SIZE.meta, false, [70, 70, 70]);
-  y = Math.max(y + 3, fonts.logoPng ? M.top - 4 + LOGO + 3 : 0);
+  y = Math.max(y + 3, fonts.logoPng ? M.top - 2 + LOGO_H + 3 : 0);
 
   const rowHeight = (row: ReportRow, width: number, labelW = LABEL_W): number => {
     const lh = LINE(SIZE.body);
@@ -521,7 +524,7 @@ export function loadPdfFonts(baseUrl = import.meta.env?.BASE_URL ?? './'): Promi
 let logoCache: Promise<string | undefined> | null = null;
 
 /** Zet het logo (svg) in de browser om naar een png voor de pdf. Lukt dat niet, dan zonder logo. */
-export function loadPdfLogo(px = 256): Promise<string | undefined> {
+export function loadPdfLogo(px = 420): Promise<string | undefined> {
   if (!logoCache) {
     logoCache = new Promise<string | undefined>((resolve) => {
       const img = new Image();
@@ -529,8 +532,8 @@ export function loadPdfLogo(px = 256): Promise<string | undefined> {
         try {
           const canvas = document.createElement('canvas');
           canvas.width = px;
-          canvas.height = px;
-          canvas.getContext('2d')!.drawImage(img, 0, 0, px, px);
+          canvas.height = Math.round(px * LOGO_RATIO);
+          canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
           resolve(canvas.toDataURL('image/png'));
         } catch {
           resolve(undefined);

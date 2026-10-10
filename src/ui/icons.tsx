@@ -82,7 +82,7 @@ export function TimepointIcon() {
 
 /** Logo Neo.Cab (als afbeelding, zodat de mask-id in de svg niet botst bij meerdere exemplaren). */
 export function Logo({ className }: { className?: string }) {
-  return <img src={logoUrl} alt="Neo.Cab" className={`brand-logo ${className ?? ''}`} width={512} height={512} />;
+  return <img src={logoUrl} alt="Neo.Cab" className={`brand-logo ${className ?? ''}`} width={420} height={340} />;
 }
 
 export { logoUrl };
