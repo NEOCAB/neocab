@@ -29,13 +29,12 @@ export function ChildSection({ t, update }: SectionProps) {
   const young = ageInHoursIfYoung(c, now, tz);
   return (
     <Section id="s1" title="Basisgegevens kind">
-      <div className="grid">
+      {/* Acht velden: 2 kolommen × 4 rijen (smal) of 4 kolommen × 2 rijen (breed). */}
+      <div className="grid basis-grid">
         <TextField label="Naam kind" value={c.name} onChange={(v) => set('name', v)} />
         <TextField label="Patiëntnummer" value={c.patientNumber} onChange={(v) => set('patientNumber', v)} inputMode="numeric" />
         <DateField label="Geboortedatum" value={c.birthDate} onChange={(v) => set('birthDate', v)} />
         <TimeField label="Geboortetijd" value={c.birthTime} onChange={(v) => set('birthTime', v)} />
-      </div>
-      <div className="grid gestation-row">
         <GestationField
           label="Amenorroeduur"
           weeks={c.gestationalAgeWeeks}
@@ -62,8 +61,6 @@ export function ChildSection({ t, update }: SectionProps) {
             )}
           </output>
         </div>
-      </div>
-      <div className="grid">
         <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0 }} />
         <NumberField label="Huidig gewicht" value={c.currentWeightGram} onChange={(v) => set('currentWeightGram', v)} unit="g" rules={{ min: 0 }} />
       </div>

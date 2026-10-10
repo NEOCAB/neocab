@@ -29,6 +29,15 @@ async function unlabeledControls(page) {
   );
 }
 
+async function basisLayout(page) {
+  return page.evaluate(() => {
+    const fields = [...document.querySelectorAll('#s1 .basis-grid > .field')];
+    const xs = new Set(fields.map((f) => Math.round(f.getBoundingClientRect().left)));
+    const ys = new Set(fields.map((f) => Math.round(f.getBoundingClientRect().top)));
+    return { n: fields.length, cols: xs.size, rows: ys.size };
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Telefoon 390 px: invoerscenario
 {
@@ -122,6 +131,9 @@ async function unlabeledControls(page) {
   // Material Symbols bij alle 15 sectiekoppen
   const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
   check('Icoon bij alle 15 sectiekoppen', iconCount === 15, String(iconCount));
+
+  const bl = await basisLayout(page);
+  check('Basisgegevens op 390 px: 2 kolommen × 4 rijen', bl.n === 8 && bl.cols === 2 && bl.rows === 4, JSON.stringify(bl));
 
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
@@ -286,6 +298,8 @@ for (const [w, h] of [
   await page.getByRole('button', { name: 'Fictief voorbeeldtransport laden' }).click();
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
+  const blw = await basisLayout(page);
+  check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });
   await page.locator('#s6 .data-table').scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${OUT}/${w}-tijdlijn.png` });

@@ -64,6 +64,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
   | Aankomst ontvangend centrum | Aankomst aan de cotside van de ontvangende afdeling | 15 |
 - Gecorrigeerde leeftijd: opgemaakt als een invoerveld (label erboven, zelfde hoogte, rand en lettergrootte), met lichtblauwe achtergrond en niet invulbaar.
 - Alle datum/tijdvelden hebben icoonknoppen: klok = *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en kruis = *Wissen* (met tooltip en volledige naam voor schermlezers); bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
+- Basisgegevens kind: acht velden in een raster van 2 kolommen × 4 rijen (telefoon) of 4 kolommen × 2 rijen (vanaf 720 px breed).
 - Koppen zonder nummer; de tijdlijn heet *Tijdlijn* met als toelichting *Ademhalingsondersteuning, monitorgegevens en bloedgassen*. Geen veld Allergieën en geen legenda bij de checklist.
 - Sectiekoppen, zijnavigatie en verslagkoppen hebben een Material Symbols-icoon (outlined, gewicht 700 passend bij de vette koppen, via `@material-symbols/svg-700`, alleen de 15 gebruikte SVG's): id_card, route, pregnant_woman, sick, ambulance, clinical_notes, timeline, lab_research, medication, vaccines, ventilator, surgical, family_home, checklist, flag.
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
