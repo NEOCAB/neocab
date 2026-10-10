@@ -5,7 +5,6 @@ import type { TransportRepository } from '../storage/repository';
 import { useTimeZone } from './context';
 import { SectionIcon } from './icons';
 import {
-  BirthSection,
   ChecklistSection,
   ChildSection,
   ClosureSection,
@@ -13,7 +12,7 @@ import {
   OtherDiagnosticsSection,
   ParentsSection,
   ProceduresSection,
-  ReferralConditionSection,
+  ReferralInfoSection,
   ReferralSection,
   TeamAssessmentSection,
   type Update,
@@ -25,9 +24,8 @@ import { LinesSection } from './sections/Lines';
 
 export const SECTIONS = [
   { id: 's1', label: 'Basisgegevens kind' },
-  { id: 's2', label: 'Verwijzing en bestemming' },
-  { id: 's3', label: 'Zwangerschap en geboorte' },
-  { id: 's4', label: 'Toestand bij verwijzing' },
+  { id: 's2', label: 'Herkomst en bestemming' },
+  { id: 's3', label: 'Verwijzing' },
   { id: 'sdispatch', label: 'Dispatch' },
   { id: 's5', label: 'Stabilisatie' },
   { id: 's6', label: 'Tijdlijn' },
@@ -170,8 +168,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
         <main className="form" id="main">
           <ChildSection {...props} />
           <ReferralSection {...props} />
-          <BirthSection {...props} />
-          <ReferralConditionSection {...props} />
+          <ReferralInfoSection {...props} />
           <DispatchSection {...props} />
           <TeamAssessmentSection {...props} />
           <TimelineSection {...props} />

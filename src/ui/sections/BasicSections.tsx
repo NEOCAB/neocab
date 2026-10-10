@@ -82,7 +82,7 @@ export function ReferralSection({ t, update }: SectionProps) {
   const r = t.referral;
   const set = <K extends keyof Transport['referral']>(k: K, v: Transport['referral'][K]) => update((x) => ({ ...x, referral: { ...x.referral, [k]: v } }));
   return (
-    <Section id="s2" title="Verwijzing en bestemming">
+    <Section id="s2" title="Herkomst en bestemming">
       <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
       <div className="grid">
         <TextField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} list={HOSPITAL_SUGGESTIONS} />
@@ -112,12 +112,13 @@ function CordGas({ legend, value, onChange }: { legend: string; value: BloodGasC
   );
 }
 
-export function BirthSection({ t, update }: SectionProps) {
+function BirthFields({ t, update }: SectionProps) {
   const b = t.birth;
   const set = <K extends keyof Transport['birth']>(k: K, v: Transport['birth'][K]) => update((x) => ({ ...x, birth: { ...x.birth, [k]: v } }));
   const apgar = { min: 0, max: 10, integer: true };
   return (
-    <Section id="s3" title="Zwangerschap en geboorte">
+    <>
+      <h3 className="subsection-title">Zwangerschap en geboorte</h3>
       <TextArea label="Maternale en antenatale voorgeschiedenis" value={b.maternalHistory} onChange={(v) => set('maternalHistory', v)} />
       <Segmented legend="Antenatale corticosteroïden" value={b.antenatalCorticosteroids} onChange={(v) => set('antenatalCorticosteroids', v)} options={CORTICO_OPTIONS} />
       <Segmented legend="Antenataal magnesiumsulfaat" value={b.antenatalMagnesium} onChange={(v) => set('antenatalMagnesium', v)} options={YES_NO_UNKNOWN_OPTIONS} />
@@ -134,7 +135,7 @@ export function BirthSection({ t, update }: SectionProps) {
       <CordGas legend="Veneus navelstrengbloedgas" value={b.cordVenous} onChange={(v) => set('cordVenous', v)} />
       <Segmented legend="Vitamine K" value={b.vitaminK} onChange={(v) => set('vitaminK', v)} options={VITAMIN_K_OPTIONS} />
       {b.vitaminK === 'anders' && <TextField label="Vitamine K: anders, namelijk" value={b.vitaminKOther} onChange={(v) => set('vitaminKOther', v)} />}
-    </Section>
+    </>
   );
 }
 
@@ -148,10 +149,14 @@ function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdN
   );
 }
 
-export function ReferralConditionSection({ t, update }: SectionProps) {
+/** Verwijzing: zwangerschap en geboorte, en de toestand bij verwijzing, in één sectie. */
+export function ReferralInfoSection(props: SectionProps) {
+  const { t, update } = props;
   const rc = t.referralCondition;
   return (
-    <Section id="s4" title="Toestand bij verwijzing">
+    <Section id="s3" title="Verwijzing">
+      <BirthFields {...props} />
+      <h3 className="subsection-title">Toestand bij verwijzing</h3>
       <AbcdFields notes={rc.notes} onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))} />
       <TextArea label="Advies bij verwijzing (optioneel)" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
     </Section>

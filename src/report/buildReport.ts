@@ -135,7 +135,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Basisgegevens kind', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 2 Verwijzing en bestemming
+  // 2 Herkomst en bestemming
   {
     const r = t.referral;
     const b = new RowBuilder();
@@ -147,10 +147,10 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       .kv('Ontvangende afdeling', r.receivingDepartment)
       .kv('Ontvangend ziekenhuis', r.receivingHospital)
       .para('Reden van overplaatsing', r.reason);
-    sections.push({ title: 'Verwijzing en bestemming', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Herkomst en bestemming', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 3 Zwangerschap en geboorte
+  // 3 Verwijzing: zwangerschap en geboorte, toestand bij verwijzing
   {
     const g = t.birth;
     const b = new RowBuilder();
@@ -164,16 +164,16 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     cordGas(b, 'Arterieel navelstrengbloedgas', g.cordArterial);
     cordGas(b, 'Veneus navelstrengbloedgas', g.cordVenous);
     b.kv('Vitamine K', g.vitaminK === 'anders' ? `Anders${g.vitaminKOther.trim() ? `: ${g.vitaminKOther.trim()}` : ''}` : optionLabel(VITAMIN_K_OPTIONS, g.vitaminK));
-    sections.push({ title: 'Zwangerschap en geboorte', blocks: [{ rows: b.orEmpty() }] });
-  }
-
-  // 4 Toestand bij verwijzing
-  {
-    const rows = abcdRows(t.referralCondition.notes);
-    const b = new RowBuilder();
-    b.para('Advies bij verwijzing', t.referralCondition.advice);
-    const all = [...rows, ...b.rows];
-    sections.push({ title: 'Toestand bij verwijzing', blocks: [{ rows: all.length ? all : [NOT_FILLED] }] });
+    const advice = new RowBuilder();
+    advice.para('Advies bij verwijzing', t.referralCondition.advice);
+    const condition = [...abcdRows(t.referralCondition.notes), ...advice.rows];
+    sections.push({
+      title: 'Verwijzing',
+      blocks: [
+        { title: 'Zwangerschap en geboorte', rows: b.orEmpty() },
+        { title: 'Toestand bij verwijzing', rows: condition.length ? condition : [NOT_FILLED] },
+      ],
+    });
   }
 
   // 5 Dispatch

@@ -1,6 +1,5 @@
 import idCard from '@material-symbols/svg-700/outlined/id_card.svg?raw';
 import route from '@material-symbols/svg-700/outlined/route.svg?raw';
-import pregnantWoman from '@material-symbols/svg-700/outlined/pregnant_woman.svg?raw';
 import sick from '@material-symbols/svg-700/outlined/sick.svg?raw';
 import ambulance from '@material-symbols/svg-700/outlined/ambulance.svg?raw';
 import clinicalNotes from '@material-symbols/svg-700/outlined/clinical_notes.svg?raw';
@@ -24,8 +23,7 @@ const prep = (svg: string) => svg.replace('<svg ', '<svg fill="currentColor" wid
 const BY_ID: Record<string, string> = {
   s1: prep(idCard),
   s2: prep(route),
-  s3: prep(pregnantWoman),
-  s4: prep(sick),
+  s3: prep(sick),
   sdispatch: prep(ambulance),
   s5: prep(clinicalNotes),
   s6: prep(timeline),
@@ -42,9 +40,8 @@ const BY_ID: Record<string, string> = {
 /** Sectietitels in het verslag → sectie-id. */
 const ID_BY_TITLE: Record<string, string> = {
   'Basisgegevens kind': 's1',
-  'Verwijzing en bestemming': 's2',
-  'Zwangerschap en geboorte': 's3',
-  'Toestand bij verwijzing': 's4',
+  'Herkomst en bestemming': 's2',
+  Verwijzing: 's3',
   Dispatch: 'sdispatch',
   Stabilisatie: 's5',
   Tijdlijn: 's6',

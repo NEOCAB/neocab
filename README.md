@@ -57,7 +57,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Zes vaste tijdstippen in dezelfde vormgeving (icoon safety_check, naam zonder extra toelichting, datum/tijd met *Nu* en *Wissen*, donkerblauwe streep links), op hun plek in het formulier en met dezelfde namen in verslag en pdf:
   | Tijdstip | Sectie |
   |---|---|
-  | Verwijzing | Verwijzing en bestemming |
+  | Verwijzing | Herkomst en bestemming |
   | Ambulance aangevraagd | Dispatch |
   | Vertrek transportteam | Dispatch |
   | Aankomst bij kind | Dispatch |
@@ -67,7 +67,8 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Alle datum/tijdvelden hebben icoonknoppen: klok = *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en kruis = *Wissen* (met tooltip en volledige naam voor schermlezers); bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
 - Basisgegevens kind: acht velden in een raster van 2 kolommen × 4 rijen (telefoon) of 4 kolommen × 2 rijen (vanaf 720 px breed).
 - Koppen zonder nummer; de tijdlijn heet *Tijdlijn* met als toelichting *Ademhalingsondersteuning, monitorgegevens en bloedgassen*. Geen veld Allergieën en geen legenda bij de checklist.
-- Sectiekoppen, zijnavigatie en verslagkoppen hebben een Material Symbols-icoon (outlined, gewicht 700 passend bij de vette koppen, via `@material-symbols/svg-700`, alleen de 15 gebruikte SVG's): id_card, route, pregnant_woman, sick, ambulance, clinical_notes, timeline, lab_research, medication, vaccines, ventilator, surgical, family_home, checklist, flag. De zes vaste tijdstippen hebben het icoon safety_check.
+- Sectiekoppen, zijnavigatie en verslagkoppen hebben een Material Symbols-icoon (outlined, gewicht 700 passend bij de vette koppen, via `@material-symbols/svg-700`, alleen de gebruikte SVG's): id_card, route, sick, ambulance, clinical_notes, timeline, lab_research, medication, vaccines, ventilator, surgical, family_home, checklist, flag. De zes vaste tijdstippen hebben het icoon safety_check.
+- Secties: Basisgegevens kind, *Herkomst en bestemming*, *Verwijzing* (samengevoegd uit Zwangerschap en geboorte en Toestand bij verwijzing, met beide als subkop; in het verslag als twee blokken onder één kop), Dispatch, *Stabilisatie* (voorheen Onderzoek door transportteam), Tijdlijn, Overige diagnostiek, Medicatie, Infusen, Lijnen/sondes/tube, Procedures en gebeurtenissen, Ouders en gezin, Checklist voor vertrek, Afsluiting transport (14 secties).
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
 - PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
 
@@ -124,7 +125,7 @@ Unit-tests (`npm test`, 49 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 122 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 123 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 

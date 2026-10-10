@@ -56,7 +56,7 @@ async function basisLayout(page) {
   await page.getByRole('button', { name: '+ Nieuw transport' }).click();
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
   await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
-  const referred = await page.getByLabel('Verwijzing', { exact: true }).inputValue();
+  const referred = await page.locator('#s2').getByLabel('Verwijzing', { exact: true }).inputValue();
   check('Ontvangende afdeling en ziekenhuis standaard leeg', (await page.getByLabel('Ontvangende afdeling', { exact: true }).inputValue()) === '' && (await page.getByLabel('Ontvangend ziekenhuis', { exact: true }).inputValue()) === '');
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
   check('Aankomst verwijzend ziekenhuis blijft leeg', (await page.getByLabel('Aankomst bij kind', { exact: true }).inputValue()) === '');
@@ -133,15 +133,17 @@ async function basisLayout(page) {
 
   // Material Symbols bij alle 15 sectiekoppen
   const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
-  check('Icoon bij alle 15 sectiekoppen', iconCount === 15, String(iconCount));
+  check('Icoon bij alle 14 sectiekoppen', iconCount === 14, String(iconCount));
 
   const bl = await basisLayout(page);
   check('Basisgegevens op 390 px: 2 kolommen × 4 rijen', bl.n === 8 && bl.cols === 2 && bl.rows === 4, JSON.stringify(bl));
 
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
-  check('Dispatch tussen Toestand bij verwijzing en Stabilisatie', order[3] === 'Toestand bij verwijzing' && order[4] === 'Dispatch' && order[5] === 'Stabilisatie' && order.length === 15, order.join(' | '));
-  check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[6] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
+  check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
+  const sub3 = await page.locator('#s3 h3.subsection-title').allTextContents();
+  check('Verwijzing bevat Zwangerschap en geboorte en Toestand bij verwijzing', JSON.stringify(sub3) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing']) && (await page.locator('#s4').count()) === 0, sub3.join(' | '));
+  check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[5] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
   const called = page.getByLabel('Ambulance aangevraagd', { exact: true });
   const departed = page.getByLabel('Vertrek transportteam', { exact: true });
@@ -278,7 +280,7 @@ async function basisLayout(page) {
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
   check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('Patiëntnummer', { exact: true }).inputValue()) === '0007788');
-  check('Na herladen: verwijstijd ongewijzigd', (await page.getByLabel('Verwijzing', { exact: true }).inputValue()) === referred);
+  check('Na herladen: verwijstijd ongewijzigd', (await page.locator('#s2').getByLabel('Verwijzing', { exact: true }).inputValue()) === referred);
   const timesAfter = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));
   // Toetsenbord: Tab-volgorde begint bij de navigatie en bereikt de velden
