@@ -68,10 +68,7 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, settin
     <div className="home">
       <header className="home-header">
         <Logo className="home-logo" />
-        <div>
-          <h1>Neo.Cab</h1>
-          <p className="muted">Prototype · concepten worden alleen lokaal in deze browser op dit apparaat bewaard.</p>
-        </div>
+        <h1>Neo.Cab</h1>
       </header>
       <main>
         <div className="button-row">
