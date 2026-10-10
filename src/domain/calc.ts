@@ -1,6 +1,6 @@
 import type { Child, Num, Transport } from './types';
 import { isKnown } from './num';
-import { calendarDaysBetween, DEFAULT_TIME_ZONE, localDateOf } from './time';
+import { calendarDaysBetween, DEFAULT_TIME_ZONE, instantMs, isValidLocalDate, localDateOf, wallToInstant } from './time';
 
 export interface CorrectedAge {
   weeks: number;
@@ -60,4 +60,20 @@ export function parseGestation(input: string): GestationParse {
   const days = m[2] === undefined ? 0 : Number(m[2]);
   if (days > 6) return { ok: false, error: 'Het aantal dagen is 0 tot en met 6.' };
   return { ok: true, weeks, days };
+}
+
+/** Grens waaronder de leeftijd ook in uren en minuten wordt getoond. */
+export const AGE_IN_HOURS_LIMIT_H = 72;
+
+/**
+ * Leeftijd in uren en minuten op tijdstip `now`, alleen als het kind jonger is dan 72 uur.
+ * Vereist geboortedatum én geboortetijd; anders `null`.
+ */
+export function ageInHoursIfYoung(child: Pick<Child, 'birthDate' | 'birthTime'>, now: number, timeZone = DEFAULT_TIME_ZONE): { hours: number; minutes: number } | null {
+  if (!isValidLocalDate(child.birthDate) || !/^\d{2}:\d{2}$/.test(child.birthTime)) return null;
+  const birth = instantMs(wallToInstant(`${child.birthDate}T${child.birthTime}`, timeZone));
+  if (birth === null) return null;
+  const totalMinutes = Math.floor((now - birth) / 60000);
+  if (totalMinutes < 0 || totalMinutes >= AGE_IN_HOURS_LIMIT_H * 60) return null;
+  return { hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60 };
 }

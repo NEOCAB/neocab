@@ -9,7 +9,8 @@ import {
   VITAMIN_K_OPTIONS,
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
-import { correctedAge, transportDate } from '../../domain/calc';
+import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
+import { useEffect, useState } from 'react';
 import { DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField } from '../fields';
 import { useTimeZone } from '../context';
 
@@ -25,6 +26,8 @@ export function ChildSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['child']>(k: K, v: Transport['child'][K]) => update((x) => ({ ...x, child: { ...x.child, [k]: v } }));
   const td = transportDate(t, tz);
   const ca = correctedAge(c, td);
+  const now = useNow();
+  const young = ageInHoursIfYoung(c, now, tz);
   return (
     <Section id="s1" title="1 Basisgegevens kind">
       <div className="grid">
@@ -43,7 +46,21 @@ export function ChildSection({ t, update }: SectionProps) {
         <div className="computed" aria-live="polite">
           <div className="computed-item">
             <span className="computed-label">Gecorrigeerde leeftijd</span>
-            <span className="computed-value">{ca ? `${ca.weeks}+${ca.days} wk · dag ${ca.postnatalDay}` : '—'}</span>
+            <span className="computed-value">
+              {ca ? (
+                <>
+                  <span className="computed-hours">{`${ca.weeks}+${ca.days} wk · dag ${ca.postnatalDay}`}</span>
+                  {young && (
+                    <>
+                      {' '}
+                      <span className="computed-hours">{`· ${young.hours} u ${young.minutes} min`}</span>
+                    </>
+                  )}
+                </>
+              ) : (
+                '—'
+              )}
+            </span>
           </div>
         </div>
       </div>
@@ -53,6 +70,16 @@ export function ChildSection({ t, update }: SectionProps) {
       </div>
     </Section>
   );
+}
+
+/** Huidige tijd, elke 30 seconden bijgewerkt (voor de leeftijd in uren en minuten). */
+function useNow(): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const h = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(h);
+  }, []);
+  return now;
 }
 
 export function ReferralSection({ t, update }: SectionProps) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctedAge, parseGestation, transportDate } from './calc';
+import { ageInHoursIfYoung, correctedAge, parseGestation, transportDate } from './calc';
 import { newMeasurement, newTransport, newTube, newTubeVersion } from './factory';
 import { INVASIVE_MODES, NON_INVASIVE_MODES, respFieldsFor } from './labels';
 import { parseNum } from './num';
@@ -35,6 +35,19 @@ describe('gecorrigeerde leeftijd', () => {
   });
   it('geeft niets bij transportdatum vóór geboortedatum', () => {
     expect(correctedAge(child, '2026-10-01')).toBeNull();
+  });
+});
+
+describe('leeftijd in uren en minuten', () => {
+  const child = { birthDate: '2026-10-09', birthTime: '23:30' };
+  it('toont uren en minuten onder 72 uur, ook over middernacht', () => {
+    expect(ageInHoursIfYoung(child, Date.parse(wallToInstant('2026-10-10T00:45', TZ)!), TZ)).toEqual({ hours: 1, minutes: 15 });
+    expect(ageInHoursIfYoung(child, Date.parse(wallToInstant('2026-10-12T23:29', TZ)!), TZ)).toEqual({ hours: 71, minutes: 59 });
+  });
+  it('niets vanaf 72 uur, vóór geboorte of zonder geboortetijd', () => {
+    expect(ageInHoursIfYoung(child, Date.parse(wallToInstant('2026-10-12T23:30', TZ)!), TZ)).toBeNull();
+    expect(ageInHoursIfYoung(child, Date.parse(wallToInstant('2026-10-09T23:00', TZ)!), TZ)).toBeNull();
+    expect(ageInHoursIfYoung({ ...child, birthTime: '' }, Date.parse(wallToInstant('2026-10-10T00:45', TZ)!), TZ)).toBeNull();
   });
 });
 

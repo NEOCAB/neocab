@@ -81,6 +81,20 @@ async function unlabeledControls(page) {
   check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd33+5 wk · dag 1'), ca);
   check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('dag 1') && !ca?.includes('Postnatale'), ca);
 
+  // Leeftijd in uren en minuten (< 72 uur): geboren vandaag 00:00
+  await page.getByLabel('Geboortetijd', { exact: true }).fill('00:00');
+  const valueText = await page.locator('#s1 .computed-value').textContent();
+  check('Leeftijd in uren en minuten bij < 72 uur', /dag 1 · \d+ u \d+ min/.test(valueText ?? ''), valueText);
+  const firstLine = await page.evaluate(() => {
+    const v = document.querySelector('#s1 .computed-value');
+    const range = document.createRange();
+    range.selectNodeContents(v);
+    const r = range.getClientRects()[0];
+    const i = document.querySelector('#s1 .gestation-field input').getBoundingClientRect();
+    return [Math.round(r.top + r.height / 2), Math.round(i.top + i.height / 2)];
+  });
+  check('Eerste regel van de waarde op één lijn met ingevulde waarde', Math.abs(firstLine[0] - firstLine[1]) <= 2, firstLine.join(' / '));
+
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Dispatch als box 5 tussen 4 en 6', order[3]?.startsWith('4 ') && order[4] === '5 Dispatch' && order[5]?.startsWith('6 Onderzoek') && order.length === 15, order.join(' | '));

@@ -77,7 +77,7 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 38 tests):
+Unit-tests (`npm test`, 40 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 
@@ -135,6 +135,6 @@ scripts/        ui-check.mjs (Playwright)
 - Sectie 2: eerst datum en tijd verwijzing, dan verwijzer (ziekenhuis, afdeling, naam, telefoon), dan ontvangende afdeling en ziekenhuis.
 - Infusen: *Medicatie en concentratie* in plaats van *Vloeistof of medicament*.
 - Contactgegevens ouders staan bij sectie 13 (Ouders en gezin): twee velden naast elkaar, *Telefoonnummer moeder* en *Telefoonnummer partner*; checklistpunt 5 bevat alleen de status. Oudere concepten met een lijst telefoonnummers worden bij laden omgezet (eerste nummer = moeder, overige = partner).
-- Sectie 1: het blauwe vak met gecorrigeerde leeftijd en postnatale dag staat rechts naast het veld Amenorroeduur, ook op een telefoon. Eén label *Gecorrigeerde leeftijd* met daaronder de waarde inclusief postnatale dag (bijv. `34+0 wk · dag 3`), in dezelfde lettergrootte als ingevulde waarden en op één lijn met de ingevulde amenorroeduur. Het vak is even breed als het invoerveld.
+- Sectie 1: het blauwe vak met gecorrigeerde leeftijd en postnatale dag staat rechts naast het veld Amenorroeduur, ook op een telefoon. Eén label *Gecorrigeerde leeftijd* met daaronder de waarde inclusief postnatale dag (bijv. `34+0 wk · dag 3`); is het kind jonger dan 72 uur en zijn geboortedatum en -tijd ingevuld, dan volgt ook de leeftijd in uren en minuten tot nu (bijv. `· 50 u 12 min`, elke 30 seconden bijgewerkt), in dezelfde lettergrootte als ingevulde waarden en op één lijn met de ingevulde amenorroeduur. Het vak is even breed als het invoerveld.
 - Nieuwe sectie 5 *Dispatch* (tussen Toestand bij verwijzing en Onderzoek door transportteam): *Ambulance gebeld om* en *Vertrokken met ambulance om*, standaard leeg met knop *Nu invullen*. De secties daarna zijn één nummer opgeschoven (nu 15 secties).
 - Geen toelichtingsteksten bij verwijzing en tijdlijn.
