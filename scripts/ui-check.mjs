@@ -143,6 +143,18 @@ async function basisLayout(page) {
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
   check('Plastic staat vóór Medicatie', order.indexOf('Plastic') === order.indexOf('Medicatie') - 1, order.join(' | '));
+  // Plastic: toevoegknop met menu
+  const linesBefore = await page.locator('#s10 .card').count();
+  await page.locator('#s10').getByRole('button', { name: 'Toevoegen' }).click();
+  const menuItems = await page.locator('#s10').getByRole('menuitem').allTextContents();
+  check('Plastic: toevoegknop opent een menu met alle typen', menuItems.includes('Maagsonde') && menuItems.some((m) => m.includes('ndotracheale tube')) && menuItems.length >= 5, menuItems.join(' | '));
+  await page.keyboard.press('Escape');
+  check('Plastic: Escape sluit het menu', (await page.locator('#s10').getByRole('menu').count()) === 0);
+  await page.locator('#s10').getByRole('button', { name: 'Toevoegen' }).click();
+  await page.locator('#s10').getByRole('menuitem', { name: 'Maagsonde' }).click();
+  check('Plastic: keuze uit het menu voegt dat type toe', (await page.locator('#s10 .card').count()) === linesBefore + 1 && (await page.locator('#s10').getByRole('menu').count()) === 0);
+  await page.locator('#s10 .card').last().getByRole('button', { name: /verwijderen/i }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Verwijderen' }).click();
   // Instelling: alleen ABCD-letters (links van het invulveld)
   await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
   await page.locator('details.settings summary').click();
@@ -187,7 +199,7 @@ async function basisLayout(page) {
   check('Geen extra tekst boven de tijdlijntabel', (await page.locator('#s6 .table-hint').count()) === 0);
 
   // Tijdlijn: meetmoment 1 met CPAP
-  await page.locator('#s6').getByRole('button', { name: '+ Nieuw meetmoment' }).first().click();
+  await page.locator('#s6').getByRole('button', { name: 'Nieuw meetmoment' }).first().click();
   const editor = page.getByRole('form', { name: 'Nieuw meetmoment' });
   const folds = editor.locator('.fold-toggle');
   check('Meetmoment: geen veld Fase', (await editor.getByLabel('Fase', { exact: true }).count()) === 0);
@@ -213,7 +225,7 @@ async function basisLayout(page) {
   await editor.getByRole('button', { name: 'Meetmoment opslaan' }).click();
 
   // Meetmoment 2: voorstel modaliteit, geen monitorwaarden
-  await page.locator('#s6').getByRole('button', { name: '+ Nieuw meetmoment' }).first().click();
+  await page.locator('#s6').getByRole('button', { name: 'Nieuw meetmoment' }).first().click();
   const ed2 = page.getByRole('form', { name: 'Nieuw meetmoment' });
   const summary2 = await ed2.locator('.fold-summary').first().textContent();
   check('Ingeklapt: laatst ingevulde ademhalingsondersteuning als toelichting', summary2?.startsWith('Laatst ingevuld: CPAP · PEEP 7') && summary2.includes('30,5'), summary2);
@@ -253,7 +265,7 @@ async function basisLayout(page) {
   check('Geen horizontaal scrollen op 390 px (formulier)', await noHorizontalScroll(page));
 
   // Infuus
-  await page.getByRole('button', { name: '+ Infuus starten' }).click();
+  await page.getByRole('button', { name: 'Infuus starten' }).click();
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('2. Medicatie en concentratie', { exact: true }).fill('Glucose 10%');
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('3. Pompsnelheid', { exact: true }).fill('0');
   check('Pompsnelheid 0 geweigerd', await page.getByText('De waarde moet groter dan 0 zijn.').isVisible());
@@ -273,7 +285,7 @@ async function basisLayout(page) {
   check('Infusentabel toont het verloop van de pompsnelheid', /3,2\s*4 vanaf/.test(infRow), infRow);
 
   // Medicatie als tabel: toevoegen via editor, bewerken via de tijd in de tabel
-  await page.locator('#s8').getByRole('button', { name: '+ Toediening toevoegen' }).click();
+  await page.locator('#s8').getByRole('button', { name: 'Toediening toevoegen' }).click();
   const medForm = page.getByRole('form', { name: 'Nieuwe toediening' });
   await medForm.getByLabel('Medicament', { exact: true }).fill('Testmedicament');
   await medForm.getByLabel('Dosis', { exact: true }).fill('1,5');
@@ -291,9 +303,14 @@ async function basisLayout(page) {
   const partner = page.locator('#s12').getByLabel('Telefoonnummer partner', { exact: true });
   check('Telefoonnummer moeder en partner in sectie 12', (await mother.count()) === 1 && (await partner.count()) === 1 && (await page.locator('#s13 input[type=tel]').count()) === 0);
   check('Telefoonnummers ouders zonder omlijsting', (await page.locator('#s12 fieldset').count()) === 0 && !(await page.locator('#s12').textContent()).includes('Contactgegevens ouders'));
-  const mb = await mother.boundingBox();
-  const pb = await partner.boundingBox();
-  check('Moeder en partner naast elkaar', !!mb && !!pb && Math.abs(mb.y - pb.y) < 2 && pb.x > mb.x, JSON.stringify([mb?.x, mb?.y, pb?.x, pb?.y]));
+  // Beide posities in één meting (de pagina kan nog soepel aan het scrollen zijn).
+  const [mb, pb] = await page.evaluate(() => {
+    const r = (label) => [...document.querySelectorAll('#s12 label')].find((l) => l.textContent === label)?.control?.getBoundingClientRect();
+    const m = r('Telefoonnummer moeder');
+    const p = r('Telefoonnummer partner');
+    return [m && { x: m.x, y: m.y }, p && { x: p.x, y: p.y }];
+  });
+  check('Moeder en partner naast elkaar', !!mb && !!pb && Math.abs(mb.y - pb.y) < 2 && pb.x > mb.x, JSON.stringify([mb, pb]));
   // Checklist: vakje leeg -> groen ✓ -> rood ✕ -> leeg
   const rows = page.locator('#s13 .check-row');
   check('Checklist: 11 punten, alle vakjes leeg, geen statusknoppen', (await rows.count()) === 11 && (await page.locator('#s13 .check-box.nog_niet').count()) === 11 && (await page.locator('#s13 input[type=radio]').count()) === 0);
@@ -506,6 +523,17 @@ for (const [w, h] of [
     const sec = document.querySelector('#s6').getBoundingClientRect();
     return v ? { sameRow: Math.abs(v.top + v.height / 2 - (h.top + h.height / 2)) < 12, right: sec.right - v.right < 40, icons: document.querySelectorAll('#s6 .view-switch .view-icon svg').length } : null;
   });
+  const addButtons = await page.evaluate(() =>
+    ['s6', 's8', 's9', 's10'].map((id) => {
+      const sec = document.getElementById(id);
+      const h = sec.querySelector('.section-title').getBoundingClientRect();
+      const btn = sec.querySelector('.section-actions .add-button');
+      const b = btn.getBoundingClientRect();
+      const actions = sec.querySelector('.section-actions').getBoundingClientRect();
+      return Math.abs(b.top + b.height / 2 - (h.top + h.height / 2)) < 14 && b.left > h.right && sec.getBoundingClientRect().right - actions.right < 40 && !!btn.querySelector('.add-icon svg');
+    }),
+  );
+  check(`${w}px: toevoegknoppen (icoon add circle) rechtsboven naast de kop bij Tijdlijn, Plastic, Medicatie en Infusen`, addButtons.every(Boolean), JSON.stringify(addButtons));
   check(`${w}px: weergavekeuze rechtsboven naast de kop Tijdlijn, met iconen`, !!sw && sw.sameRow && sw.right && sw.icons === 2, JSON.stringify(sw));
   await page.locator('#s6').getByRole('radio', { name: 'Grafiek' }).check();
   const charts = page.locator('#s6 .chart-card:not(.chart-band)');

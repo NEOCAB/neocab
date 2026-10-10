@@ -1,10 +1,10 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Instant, LocalDate, Num } from '../domain/types';
 import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
 import { instantToWall, isValidLocalDate, nowInstant, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
-import { SectionIcon, TimepointIcon } from './icons';
+import { AddIcon, SectionIcon, TimepointIcon } from './icons';
 
 function FieldShell({ id, label, hint, error, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
   return (
@@ -372,5 +372,69 @@ export function Section({ id, title, children, intro, actions }: { id: string; t
       {intro && <p className="section-intro">{intro}</p>}
       {children}
     </section>
+  );
+}
+
+/** Toevoegknop rechtsboven in een sectie: icoon "add circle" met tekst (op een smal scherm alleen het icoon). */
+export function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" className="primary add-button" onClick={onClick} title={label}>
+      <AddIcon />
+      <span className="add-label">{label}</span>
+    </button>
+  );
+}
+
+/** Toevoegknop met een menu om te kiezen wát wordt toegevoegd (bijv. bij Plastic). */
+export function AddMenu<T extends string>({ label, options, onPick }: { label: string; options: { value: T; label: string }[]; onPick: (v: T) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  useEffect(() => {
+    if (!open) return;
+    ref.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    const onDoc = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const items = [...(ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setOpen(false);
+      ref.current?.querySelector<HTMLElement>('.add-button')?.focus();
+    } else if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault();
+      items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus();
+    }
+  };
+  return (
+    <div className="add-menu" ref={ref} onKeyDown={onKey}>
+      <button type="button" className="primary add-button" aria-haspopup="menu" aria-expanded={open} aria-controls={menuId} title={label} onClick={() => setOpen(!open)}>
+        <AddIcon />
+        <span className="add-label">{label}</span>
+      </button>
+      {open && (
+        <ul className="add-menu-list" role="menu" id={menuId} aria-label={label}>
+          {options.map((o) => (
+            <li key={o.value} role="none">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  onPick(o.value);
+                }}
+              >
+                {o.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

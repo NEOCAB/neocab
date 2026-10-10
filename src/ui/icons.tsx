@@ -18,6 +18,7 @@ import tableChart from '@material-symbols/svg-700/outlined/table_chart.svg?raw';
 import showChart from '@material-symbols/svg-700/outlined/show_chart.svg?raw';
 import save from '@material-symbols/svg-700/outlined/save.svg?raw';
 import saveClock from '@material-symbols/svg-700/outlined/save_clock.svg?raw';
+import addCircle from '@material-symbols/svg-700/outlined/add_circle.svg?raw';
 import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
@@ -101,4 +102,11 @@ const SAVE_CLOCK = prep(saveClock);
 /** Diskette: opgeslagen; met klokje als wijzigingen (te) lang wachten op opslag. */
 export function SaveIcon({ clock = false }: { clock?: boolean }) {
   return <span className="save-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: clock ? SAVE_CLOCK : SAVE }} />;
+}
+
+const ADD = prep(addCircle);
+
+/** Icoon "add circle" voor alle toevoegknoppen. */
+export function AddIcon() {
+  return <span className="add-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ADD }} />;
 }

@@ -7,7 +7,7 @@ import { tubeAt, upsertMeasurement } from '../../domain/timeline';
 import { timelineReportTable, tubeSummary } from '../../report/buildReport';
 import { DataTable, TimeStamp } from '../DataTable';
 import { OI_ALERT_THRESHOLD, OI_FORMULA, formatOi, isOiAlert, oxygenationIndex } from '../../domain/oi';
-import { DateTimeField, NumberField, Section, Segmented, TextArea } from '../fields';
+import { AddButton, DateTimeField, NumberField, Section, Segmented, TextArea } from '../fields';
 import { ExpandIcon, ViewIcon } from '../icons';
 import { TimelineCharts } from '../TimelineCharts';
 import { formatNum } from '../../domain/num';
@@ -343,12 +343,19 @@ export function TimelineSection({ t, update }: SectionProps) {
   };
 
   return (
-    <Section id="s6" title="Tijdlijn" intro="Ademhalingsondersteuning, monitorgegevens en bloedgassen" actions={t.measurements.length > 0 ? <ViewSwitch view={view} onChange={setView} /> : undefined}>
-      {!draft && (
-        <button type="button" className="primary" onClick={startNew}>
-          + Nieuw meetmoment
-        </button>
-      )}
+    <Section
+      id="s6"
+      title="Tijdlijn"
+      intro="Ademhalingsondersteuning, monitorgegevens en bloedgassen"
+      actions={
+        <>
+          {!draft && (
+            <AddButton label="Nieuw meetmoment" onClick={startNew} />
+          )}
+          {t.measurements.length > 0 && <ViewSwitch view={view} onChange={setView} />}
+        </>
+      }
+    >
       {draft && (
         <MeasurementEditor
           key={draft.id}

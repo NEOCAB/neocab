@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import type { EndotrachealTube, Line, LineType, TubeVersion } from '../../domain/types';
+import type { EndotrachealTube, Line, TubeVersion } from '../../domain/types';
 import { LINE_SIZE_UNIT_SUGGESTIONS, LINE_TYPE_LABELS, LINE_TYPES, TUBE_ROUTE_OPTIONS, optionLabel, tubeDepthLabel } from '../../domain/labels';
 import { newLine, newTube, newTubeVersion } from '../../domain/factory';
 import { formatNum } from '../../domain/num';
 import { compareInstants, formatInstant, nowInstant } from '../../domain/time';
 import { currentTube, sortedVersions, tubePlacedAt } from '../../domain/timeline';
-import { DateTimeField, NumberField, Section, Segmented, SelectField, TextArea, TextField } from '../fields';
+import { AddMenu, DateTimeField, NumberField, Section, Segmented, SelectField, TextArea, TextField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
@@ -170,7 +170,6 @@ function TubeCard({ tube, index, onChange, onDelete }: { tube: EndotrachealTube;
 export function LinesSection({ t, update }: SectionProps) {
   const tz = useTimeZone();
   const confirm = useConfirm();
-  const [newType, setNewType] = useState<LineType>('perifeer_infuus');
   const [placing, setPlacing] = useState<TubeVersion | null>(null);
   const tubes = [...t.tubes].sort((a, b) => compareInstants(tubePlacedAt(a), tubePlacedAt(b)));
   const active = currentTube(t.tubes);
@@ -178,7 +177,23 @@ export function LinesSection({ t, update }: SectionProps) {
   const setTube = (tb: EndotrachealTube) => update((x) => ({ ...x, tubes: x.tubes.map((y) => (y.id === tb.id ? tb : y)) }));
 
   return (
-    <Section id="s10" title="Plastic">
+    <Section
+      id="s10"
+      title="Plastic"
+      actions={
+        !placing && (
+          /* Eén toevoegknop met een menu: kies wat wordt toegevoegd. */
+          <AddMenu
+            label="Toevoegen"
+            options={LINE_TYPES.map((v) => ({ value: v, label: v === 'endotracheale_tube' && active ? 'Nieuwe endotracheale tube' : LINE_TYPE_LABELS[v] }))}
+            onPick={(type) => {
+              if (type === 'endotracheale_tube') setPlacing(newTubeVersion('plaatsing', {}, tz));
+              else update((x) => ({ ...x, lines: [...x.lines, { ...newLine(), type }] }));
+            }}
+          />
+        )
+      }
+    >
       <div className="list">
         {t.lines.map((l) => (
           <LineCard
@@ -220,21 +235,7 @@ export function LinesSection({ t, update }: SectionProps) {
             }}
           />
         </>
-      ) : (
-        <div className="add-row">
-          <SelectField label="Type toevoegen" value={newType} onChange={(v) => v && setNewType(v)} options={LINE_TYPES.map((v) => ({ value: v, label: LINE_TYPE_LABELS[v] }))} emptyLabel={null} />
-          <button
-            type="button"
-            className="primary"
-            onClick={() => {
-              if (newType === 'endotracheale_tube') setPlacing(newTubeVersion('plaatsing', {}, tz));
-              else update((x) => ({ ...x, lines: [...x.lines, { ...newLine(), type: newType }] }));
-            }}
-          >
-            {newType === 'endotracheale_tube' ? (active ? 'Nieuwe tube plaatsen' : 'Tube plaatsen') : 'Toevoegen'}
-          </button>
-        </div>
-      )}
+      ) : null}
       <p className="muted small-print">Tubegegevens worden hier één keer ingevoerd en verschijnen bij invasieve ademhalingsondersteuning op de tijdlijn, met de gegevens die op het tijdstip van het meetmoment golden.</p>
     </Section>
   );

@@ -4,7 +4,7 @@ import { newId, newInfusion } from '../../domain/factory';
 import { formatNum } from '../../domain/num';
 import { formatInstant, nowInstant } from '../../domain/time';
 import { sortedRates } from '../../domain/timeline';
-import { DateTimeField, NumberField, Section, TextField } from '../fields';
+import { AddButton, DateTimeField, NumberField, Section, TextField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import { infusionTable } from '../../report/buildReport';
@@ -203,8 +203,17 @@ export function InfusionsSection({ t, update }: SectionProps) {
   const { table, rows } = infusionTable(t.infusions, tz);
   const open = t.infusions.find((i) => i.id === openId) ?? null;
   return (
-    <Section id="s9" title="Infusen">
-      {adding ? (
+    <Section
+      id="s9"
+      title="Infusen"
+      actions={
+        !adding &&
+        !open && (
+          <AddButton label="Infuus starten" onClick={() => setAdding(true)} />
+        )
+      }
+    >
+      {adding && (
         <NewInfusionForm
           onCancel={() => setAdding(false)}
           onStart={(i) => {
@@ -212,12 +221,6 @@ export function InfusionsSection({ t, update }: SectionProps) {
             setAdding(false);
           }}
         />
-      ) : (
-        !open && (
-          <button type="button" className="primary" onClick={() => setAdding(true)}>
-            + Infuus starten
-          </button>
-        )
       )}
       {open && (
         <div className="list">

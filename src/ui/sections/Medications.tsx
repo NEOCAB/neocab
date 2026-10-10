@@ -5,7 +5,7 @@ import { newMedication } from '../../domain/factory';
 import { formatInstant } from '../../domain/time';
 import { medicationTable } from '../../report/buildReport';
 import { DataTable, TimeStamp } from '../DataTable';
-import { DateTimeField, NumberField, Section, SelectField, TextField } from '../fields';
+import { AddButton, DateTimeField, NumberField, Section, SelectField, TextField } from '../fields';
 import { useSettings } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
@@ -77,19 +77,21 @@ export function MedicationsSection({ t, update }: SectionProps) {
   };
 
   return (
-    <Section id="s8" title="Medicatie">
-      {!draft && (
-        <button
-          type="button"
-          className="primary"
-          onClick={() => {
-            setDraft(newMedication(timeZone));
-            setIsNew(true);
-          }}
-        >
-          + Toediening toevoegen
-        </button>
-      )}
+    <Section
+      id="s8"
+      title="Medicatie"
+      actions={
+        !draft && (
+          <AddButton
+            label="Toediening toevoegen"
+            onClick={() => {
+              setDraft(newMedication(timeZone));
+              setIsNew(true);
+            }}
+          />
+        )
+      }
+    >
       {draft && <MedicationEditor key={draft.id} draft={draft} setDraft={setDraft} isNew={isNew} onSave={save} onCancel={() => setDraft(null)} onDelete={isNew ? undefined : () => void remove(draft)} />}
       {rows.length === 0 ? (
         !draft && <p className="muted">Nog geen toedieningen geregistreerd.</p>
