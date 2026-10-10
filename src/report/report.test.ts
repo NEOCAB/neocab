@@ -44,8 +44,9 @@ describe('verslag', () => {
     for (const gone of ['Doseergewicht', 'Geslacht', 'gewogen', 'Postmenstruele']) expect(text).not.toContain(gone);
     expect(text).toContain('Amenorroeduur: 33+5 weken');
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
-    expect(text).toContain('Ambulance gebeld om: 09-10-2026 22:20');
-    expect(text).toContain('Vertrokken met ambulance om: 09-10-2026 22:35');
+    expect(text).toContain('Ambulance aangevraagd: 09-10-2026 22:20');
+    expect(text).toContain('Vertrek transportteam: 09-10-2026 22:35');
+    for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Aankomst bij kind: 09-10-2026 23:05', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');
     expect(text).toContain('Medicatie en concentratie: Glucose 10%');
     expect(text).toContain('Pompsnelheid bij start: 09-10-2026 23:15: 3,2 mL/uur');

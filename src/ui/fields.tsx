@@ -228,41 +228,73 @@ export function Segmented<T extends string>({ legend, value, onChange, options, 
  */
 export function DateTimeField({ label, value, onChange, hint, className, clearable = true }: { label: ReactNode; value: Instant; onChange: (v: Instant) => void; hint?: ReactNode; className?: string; clearable?: boolean }) {
   const id = useId();
-  const name = typeof label === 'string' ? label : 'Tijdstip';
-  const tz = useTimeZone();
   const [error, setError] = useState<string | null>(null);
   return (
     <FieldShell id={id} label={label} hint={hint} error={error} className={`dt-field ${className ?? ''}`}>
-      <div className="dt-row">
-        <input
-          id={id}
-          type="datetime-local"
-          value={instantToWall(value, tz)}
-          aria-describedby={describedBy(id, hint, error)}
-          aria-invalid={error ? true : undefined}
-          onChange={(e) => {
-            if (e.target.value === '') {
-              setError(null);
-              onChange(null);
-              return;
-            }
-            const i = wallToInstant(e.target.value, tz);
-            if (i) {
-              setError(null);
-              onChange(i);
-            } else setError('Voer een geldige datum en tijd in.');
-          }}
-        />
-        <button type="button" className="secondary small dt-now" aria-label={`${name} op nu zetten`} onClick={() => onChange(nowInstant(tz))}>
-          Nu
-        </button>
-        {clearable && (
-          <button type="button" className="secondary small dt-clear" aria-label={`${name} wissen`} disabled={value === null} onClick={() => onChange(null)}>
-            Wissen
-          </button>
-        )}
-      </div>
+      <DateTimeInputs id={id} name={typeof label === 'string' ? label : 'Tijdstip'} value={value} onChange={onChange} clearable={clearable} describedBy={describedBy(id, hint, error)} error={error} setError={setError} />
     </FieldShell>
+  );
+}
+
+function DateTimeInputs({ id, name, value, onChange, clearable, describedBy: desc, error, setError }: { id: string; name: string; value: Instant; onChange: (v: Instant) => void; clearable: boolean; describedBy?: string; error: string | null; setError: (e: string | null) => void }) {
+  const tz = useTimeZone();
+  return (
+    <div className="dt-row">
+      <input
+        id={id}
+        type="datetime-local"
+        value={instantToWall(value, tz)}
+        aria-describedby={desc}
+        aria-invalid={error ? true : undefined}
+        onChange={(e) => {
+          if (e.target.value === '') {
+            setError(null);
+            onChange(null);
+            return;
+          }
+          const i = wallToInstant(e.target.value, tz);
+          if (i) {
+            setError(null);
+            onChange(i);
+          } else setError('Voer een geldige datum en tijd in.');
+        }}
+      />
+      <button type="button" className="secondary small dt-now" aria-label={`${name} op nu zetten`} onClick={() => onChange(nowInstant(tz))}>
+        Nu
+      </button>
+      {clearable && (
+        <button type="button" className="secondary small dt-clear" aria-label={`${name} wissen`} disabled={value === null} onClick={() => onChange(null)}>
+          Wissen
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Vast tijdstip van het transport (verwijzing, ambulance aangevraagd, vertrek transportteam, aankomst bij kind,
+ * vertrek met kind, aankomst ontvangend centrum). Alle zes in dezelfde vormgeving: naam, omschrijving, datum/tijd met Nu en Wissen.
+ */
+export function TimepointField({ label, description, value, onChange }: { label: string; description: string; value: Instant; onChange: (v: Instant) => void }) {
+  const id = useId();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className={`field timepoint ${error ? 'has-error' : ''}`}>
+      <div className="tp-head">
+        <label htmlFor={id} className="field-label">
+          {label}
+        </label>
+        <div className="tp-desc" id={`${id}-hint`}>
+          {description}
+        </div>
+      </div>
+      <DateTimeInputs id={id} name={label} value={value} onChange={onChange} clearable describedBy={describedBy(id, description, error)} error={error} setError={setError} />
+      {error && (
+        <div className="field-error" id={`${id}-error`} role="alert">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
 

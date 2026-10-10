@@ -53,6 +53,15 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
 - Witte vlakken met dunne grijze scheidingslijnen, strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
 - Tijdlijntabel: compacte waarden, verticale kolomkoppen in de tweede rij (eenheid tussen haakjes), getallen rechts uitgelijnd, groepen gescheiden door een lijn, tijd vet in de vaste eerste kolom. De datum staat alleen onder de tijd als de meetmomenten over meer dan één kalenderdag gaan.
+- Zes vaste tijdstippen in dezelfde vormgeving (naam, omschrijving, datum/tijd met *Nu* en *Wissen*, donkerblauwe streep links), op hun plek in het formulier en met dezelfde namen in verslag en pdf:
+  | Tijdstip | Omschrijving | Sectie |
+  |---|---|---|
+  | Verwijzing | Start van het verwijsgesprek | 2 |
+  | Ambulance aangevraagd | Aanvraag van vervoer voor het transportteam | 5 |
+  | Vertrek transportteam | Vertrek vanaf de eigen locatie | 5 |
+  | Aankomst bij kind | Aankomst aan de cotside in het verwijzende ziekenhuis | 6 |
+  | Vertrek met kind | Vertrek van cotside na stabilisatie | 15 |
+  | Aankomst ontvangend centrum | Aankomst aan de cotside van de ontvangende afdeling | 15 |
 - Gecorrigeerde leeftijd: opgemaakt als een invoerveld (label erboven, zelfde hoogte, rand en lettergrootte), met lichtblauwe achtergrond en niet invulbaar.
 - Alle datum/tijdvelden hebben de knoppen *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en *Wissen*; bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
@@ -152,5 +161,5 @@ scripts/        ui-check.mjs (Playwright)
 - Sectie 1: het blauwe vak met gecorrigeerde leeftijd en postnatale dag staat rechts naast het veld Amenorroeduur, ook op een telefoon. Eén label *Gecorrigeerde leeftijd* met daaronder de waarde inclusief postnatale dag (bijv. `34+0 wk · dag 3`); is het kind jonger dan 72 uur en zijn geboortedatum en -tijd ingevuld, dan volgt ook de leeftijd in uren en minuten tot nu (bijv. `· 50 u 12 min`, elke 30 seconden bijgewerkt), in dezelfde lettergrootte als ingevulde waarden en op één lijn met de ingevulde amenorroeduur. Het vak is even breed als het invoerveld.
 - Checklist voor vertrek: per punt één vakje vóór de tekst; tikken op vakje of tekst wisselt leeg (nog niet gedaan) → groen met ✓ (gedaan) → rood met ✕ (niet van toepassing) → leeg.
 - De checklist voor vertrek (sectie 14) staat alleen in het formulier en wordt niet opgenomen in het verslag, de pdf of de e-mailtekst; het verslag springt daar van sectie 13 naar 15, zodat de nummers gelijk blijven aan het formulier.
-- Nieuwe sectie 5 *Dispatch* (tussen Toestand bij verwijzing en Onderzoek door transportteam): *Ambulance gebeld om* en *Vertrokken met ambulance om*, standaard leeg met knop *Nu invullen*. De secties daarna zijn één nummer opgeschoven (nu 15 secties).
+- Nieuwe sectie 5 *Dispatch* (tussen Toestand bij verwijzing en Onderzoek door transportteam): *Ambulance aangevraagd* en *Vertrek transportteam*, standaard leeg met knop *Nu invullen*. De secties daarna zijn één nummer opgeschoven (nu 15 secties).
 - Geen toelichtingsteksten bij verwijzing en tijdlijn.

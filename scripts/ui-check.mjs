@@ -45,10 +45,10 @@ async function unlabeledControls(page) {
   await page.getByRole('button', { name: '+ Nieuw transport' }).click();
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
   await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
-  const referred = await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue();
+  const referred = await page.getByLabel('Verwijzing', { exact: true }).inputValue();
   check('Ontvangende afdeling en ziekenhuis standaard leeg', (await page.getByLabel('Ontvangende afdeling', { exact: true }).inputValue()) === '' && (await page.getByLabel('Ontvangend ziekenhuis', { exact: true }).inputValue()) === '');
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
-  check('Aankomst verwijzend ziekenhuis blijft leeg', (await page.getByLabel('Datum en tijd aankomst bij het verwijzende ziekenhuis', { exact: true }).inputValue()) === '');
+  check('Aankomst verwijzend ziekenhuis blijft leeg', (await page.getByLabel('Aankomst bij kind', { exact: true }).inputValue()) === '');
 
   // Basisgegevens: verwijderde velden en onbekend-knoppen
   for (const gone of ['Geslacht', 'Weegdatum huidig gewicht', 'Doseergewicht', 'Weken', 'Dagen']) {
@@ -113,18 +113,24 @@ async function unlabeledControls(page) {
   check('Huisstijl: koppen en primaire knop donkerblauw #003c7d', style.h2 === 'rgb(0, 60, 125)' && style.primary === 'rgb(0, 60, 125)', `${style.h2} / ${style.primary}`);
   check('Geen verwijzing naar LUMC in de app', !(await page.content()).includes('LUMC'));
 
+  // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
+  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc').textContent, getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
+  const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance aangevraagd'], ['sdispatch', 'Vertrek transportteam'], ['s5', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst ontvangend centrum']];
+  check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
+  check('Tijdstippen gelijk vormgegeven (omschrijving, streep, Nu + Wissen)', tps.every((x) => x[2].length > 10 && x[3] === 'rgb(0, 60, 125)' && x[4] === 2));
+
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Dispatch als box 5 tussen 4 en 6', order[3]?.startsWith('4 ') && order[4] === '5 Dispatch' && order[5]?.startsWith('6 Onderzoek') && order.length === 15, order.join(' | '));
-  const called = page.getByLabel('Ambulance gebeld om', { exact: true });
-  const departed = page.getByLabel('Vertrokken met ambulance om', { exact: true });
+  const called = page.getByLabel('Ambulance aangevraagd', { exact: true });
+  const departed = page.getByLabel('Vertrek transportteam', { exact: true });
   check('Dispatch-tijden standaard leeg', (await called.inputValue()) === '' && (await departed.inputValue()) === '');
-  await page.getByRole('button', { name: 'Ambulance gebeld om op nu zetten' }).click();
-  check('Ambulance gebeld om: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(await called.inputValue()), await called.inputValue());
+  await page.getByRole('button', { name: 'Ambulance aangevraagd op nu zetten' }).click();
+  check('Ambulance aangevraagd: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(await called.inputValue()), await called.inputValue());
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
-  check('Sectie 2 in gevraagde volgorde', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Datum en tijd verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangende afdeling', 'Ontvangend ziekenhuis']), s2.join(' | '));
+  check('Sectie 2 in gevraagde volgorde', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangende afdeling', 'Ontvangend ziekenhuis']), s2.join(' | '));
   check('Geen toelichting bij verwijzing', (await page.locator('#s2 .field-hint').count()) === 0);
   check('Geen toelichting bij tijdlijn', (await page.locator('#s6 .section-intro, #s6 .table-hint').count()) === 0);
 
@@ -218,7 +224,7 @@ async function unlabeledControls(page) {
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
   check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('Patiëntnummer', { exact: true }).inputValue()) === '0007788');
-  check('Na herladen: verwijstijd ongewijzigd', (await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue()) === referred);
+  check('Na herladen: verwijstijd ongewijzigd', (await page.getByLabel('Verwijzing', { exact: true }).inputValue()) === referred);
   const timesAfter = await page.locator('#s6 .data-table tbody th').allTextContents();
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));
   // Toetsenbord: Tab-volgorde begint bij de navigatie en bereikt de velden

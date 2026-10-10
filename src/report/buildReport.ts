@@ -133,7 +133,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   {
     const r = t.referral;
     const b = new RowBuilder();
-    b.kv('Datum en tijd verwijzing', fi(r.referredAt))
+    b.kv('Verwijzing', fi(r.referredAt))
       .kv('Verwijzend ziekenhuis', r.referringHospital)
       .kv('Verwijzende afdeling', r.referringDepartment)
       .kv('Naam verwijzer', r.referrerName)
@@ -173,7 +173,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   // 5 Dispatch
   {
     const b = new RowBuilder();
-    b.kv('Ambulance gebeld om', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrokken met ambulance om', fi(t.dispatch.departedWithAmbulanceAt));
+    b.kv('Ambulance aangevraagd', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek transportteam', fi(t.dispatch.departedWithAmbulanceAt));
     sections.push({ title: '5 Dispatch', blocks: [{ rows: b.orEmpty() }] });
   }
 
@@ -181,7 +181,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   {
     const a = t.teamAssessment;
     const b = new RowBuilder();
-    b.kv('Aankomst bij verwijzend ziekenhuis', fi(a.arrivedAt));
+    b.kv('Aankomst bij kind', fi(a.arrivedAt));
     b.rows.push(...abcdRows(a.notes));
     b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan).kv('Laatste voeding', fi(a.lastFeedAt));
     sections.push({ title: '6 Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
@@ -290,7 +290,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   {
     const c = t.closure;
     const b = new RowBuilder();
-    b.kv('Vertrek van cotside', fi(c.departedCotsideAt)).para('Gebeurtenissen tijdens transport', c.eventsDuringTransport).kv('Aankomst ontvangend centrum', fi(c.arrivedReceivingAt));
+    b.kv('Vertrek met kind', fi(c.departedCotsideAt)).para('Gebeurtenissen tijdens transport', c.eventsDuringTransport).kv('Aankomst ontvangend centrum', fi(c.arrivedReceivingAt));
     sections.push({ title: '15 Afsluiting transport', blocks: [{ rows: b.orEmpty() }] });
   }
 
