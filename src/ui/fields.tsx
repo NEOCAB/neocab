@@ -222,11 +222,13 @@ export function Segmented<T extends string>({ legend, value, onChange, options, 
 }
 
 /**
- * Datum + tijd in de gekozen tijdzone. Opgeslagen als tijdstip met offset.
- * Een leeg veld blijft leeg tot de gebruiker "Nu invullen" kiest of zelf een tijd invoert.
+ * Datum + tijd in de gekozen tijdzone, opgeslagen als tijdstip met offset.
+ * Knop "Nu" vult de huidige tijd in (ook over een bestaande tijd heen); "Wissen" maakt het veld leeg.
+ * Een leeg veld blijft leeg tot de gebruiker een tijd invoert of "Nu" kiest.
  */
-export function DateTimeField({ label, value, onChange, hint, className, clearable = true, nowLabel = 'Nu invullen' }: { label: ReactNode; value: Instant; onChange: (v: Instant) => void; hint?: ReactNode; className?: string; clearable?: boolean; nowLabel?: string }) {
+export function DateTimeField({ label, value, onChange, hint, className, clearable = true }: { label: ReactNode; value: Instant; onChange: (v: Instant) => void; hint?: ReactNode; className?: string; clearable?: boolean }) {
   const id = useId();
+  const name = typeof label === 'string' ? label : 'Tijdstip';
   const tz = useTimeZone();
   const [error, setError] = useState<string | null>(null);
   return (
@@ -251,16 +253,13 @@ export function DateTimeField({ label, value, onChange, hint, className, clearab
             } else setError('Voer een geldige datum en tijd in.');
           }}
         />
-        {value === null ? (
-          <button type="button" className="secondary small" onClick={() => onChange(nowInstant(tz))}>
-            {nowLabel}
+        <button type="button" className="secondary small dt-now" aria-label={`${name} op nu zetten`} onClick={() => onChange(nowInstant(tz))}>
+          Nu
+        </button>
+        {clearable && (
+          <button type="button" className="secondary small dt-clear" aria-label={`${name} wissen`} disabled={value === null} onClick={() => onChange(null)}>
+            Wissen
           </button>
-        ) : (
-          clearable && (
-            <button type="button" className="link-button" aria-label={`${typeof label === 'string' ? label : 'Tijdstip'} wissen`} onClick={() => onChange(null)}>
-              Wissen
-            </button>
-          )
         )}
       </div>
     </FieldShell>

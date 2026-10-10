@@ -19,7 +19,7 @@
   --bg: #ffffff;
   --surface: #ffffff;
   --text: #1a1a1a; /* lopende tekst bij voorkeur zwart */
-  --muted: #5c6670;
+  --muted: #4a545e;
   --border: #b9bfc6;
   --line: #d9dcdf;
   --warning: #7a3c00;
@@ -27,7 +27,7 @@
   --radius: 2px;
   --tap: 44px;
   font-family: 'PT Sans', Calibri, 'Segoe UI', Arial, sans-serif;
-  font-size: 15px; /* huisstijl: hoofdtekst 15 px */
+  font-size: 16px; /* leesbaarheid op tablet/telefoon; huisstijl noemt 15 px voor hoofdtekst */
   line-height: 1.45;
   color: var(--text);
   background: var(--bg);
@@ -259,12 +259,29 @@ input[type='time'] {
 
 .dt-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   align-items: center;
-  flex-wrap: wrap;
 }
 .dt-row input {
-  flex: 1 1 12rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dt-row button {
+  flex: none;
+}
+.dt-row .dt-now {
+  min-width: 3rem;
+}
+/* Datum/tijdveld met knoppen krijgt een eigen regel binnen een raster, maar wordt niet onnodig breed. */
+.dt-field {
+  max-width: 34rem;
+}
+.grid > .dt-field {
+  grid-column: 1 / -1;
+}
+/* Invoervakken naast elkaar op één lijn, ook als een label afbreekt. */
+.phones .grid {
+  align-items: end;
 }
 
 fieldset {
@@ -755,47 +772,71 @@ fieldset.group > legend {
   max-width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  margin: 0.5rem 0 0.75rem;
-  background: #fff;
+  margin: 0.75rem 0;
+  background: var(--surface);
 }
 .data-table {
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   width: max-content;
   min-width: 100%;
 }
 .data-table th,
 .data-table td {
-  padding: 0.35rem 0.5rem;
-  border-right: 1px solid var(--line);
+  padding: 0.6rem 0.75rem;
   border-bottom: 1px solid var(--line);
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   white-space: nowrap;
+  background: var(--surface);
 }
-.data-table thead th {
-  background: var(--primary-20);
-  font-size: 0.78rem;
-  line-height: 1.2;
-  vertical-align: bottom;
+.data-table td.num,
+.data-table th.num {
+  text-align: right;
+}
+.data-table td.num {
+  min-width: 3.4rem;
+}
+/* Duidelijke scheiding tussen kolomgroepen. */
+.data-table .gstart {
+  border-left: 2px solid var(--primary-20);
 }
 .data-table .group-row th {
-  /* Witte tekst alleen op volle (100%) kleur. */
-  background: var(--primary);
-  color: #fff;
-  font-size: 0.8rem;
-  border-left: 2px solid #fff;
+  background: var(--primary-10);
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--primary-20);
 }
-.unit-head {
+.data-table .head-row th {
+  background: var(--primary-10);
+  color: var(--text);
+  vertical-align: bottom;
+  border-bottom: 2px solid var(--primary);
+  line-height: 1.15;
+}
+.th-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.th-unit {
   display: block;
   font-weight: 400;
+  font-size: 0.78rem;
   color: var(--muted);
+  margin-top: 0.15rem;
 }
 .data-table tbody tr:nth-child(even) td,
 .data-table tbody tr:nth-child(even) th {
   background: var(--tint);
+}
+.data-table tbody tr:hover td,
+.data-table tbody tr:hover th {
+  background: var(--primary-10);
 }
 .data-table tbody tr.editing td,
 .data-table tbody tr.editing th {
@@ -805,48 +846,51 @@ fieldset.group > legend {
   color: var(--warning);
   font-style: italic;
 }
-/* Eerste kolom (tijd) blijft staan bij horizontaal scrollen. */
+/* Tijdkolom blijft staan bij horizontaal scrollen. */
 .data-table .col-0,
 .data-table .sticky-group {
   position: sticky;
   left: 0;
   z-index: 1;
-  background: #fff;
-  border-right: 2px solid var(--border);
-  white-space: pre-line;
+  border-right: 2px solid var(--primary-20);
 }
 .data-table thead .col-0,
 .data-table .sticky-group {
-  background: var(--primary-20);
   z-index: 2;
 }
-.data-table .sticky-group {
-  background: var(--primary);
+.ts {
+  display: block;
+  line-height: 1.15;
+}
+.ts-time {
+  display: block;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.ts-date {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 .row-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   min-height: var(--tap);
-  padding: 0.2rem 0.4rem;
+  padding: 0.15rem 0.35rem;
+  margin: -0.15rem -0.35rem;
   background: none;
   border: 1px solid transparent;
-  color: var(--primary);
-  font-weight: 700;
   text-align: left;
-  white-space: pre-line;
-  line-height: 1.25;
 }
 .row-edit:hover {
   border-color: var(--primary);
 }
-.data-table.rotated thead tr:not(.group-row) th.data .th-text {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  white-space: nowrap;
-}
-.data-table.rotated thead tr:not(.group-row) th.data .unit-head {
-  display: inline;
-}
-.table-hint {
-  margin-bottom: 0;
+.row-edit .edit-icon {
+  color: var(--primary);
+  font-size: 0.9rem;
 }
 
 /* Oranje alert (bijv. OI > 25) */

@@ -173,7 +173,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
               {s.blocks.map((b, i) => (
                 <div key={i} className={b.card ? 'r-card' : 'r-block'}>
                   {b.title && <h3>{b.title}</h3>}
-                  {b.table && <DataTable table={b.table} caption={`${s.title}: één rij per meetmoment`} rotatedHeaders />}
+                  {b.table && <DataTable table={b.table} caption={`${s.title}: één rij per meetmoment`} />}
                   <dl>
                     {b.rows.map((r, j) => (
                       <Row key={j} row={r} />

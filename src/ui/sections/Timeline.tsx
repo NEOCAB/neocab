@@ -16,7 +16,7 @@ import { newMeasurement } from '../../domain/factory';
 import { formatInstant } from '../../domain/time';
 import { tubeAt, upsertMeasurement } from '../../domain/timeline';
 import { timelineReportTable, tubeSummary } from '../../report/buildReport';
-import { DataTable } from '../DataTable';
+import { DataTable, TimeStamp } from '../DataTable';
 import { OI_ALERT_THRESHOLD, OI_FORMULA, formatOi, isOiAlert, oxygenationIndex } from '../../domain/oi';
 import { DateTimeField, NumberField, Section, Segmented, SelectField } from '../fields';
 import { useTimeZone } from '../context';
@@ -207,7 +207,6 @@ export function TimelineSection({ t, update }: SectionProps) {
           <DataTable
             table={table}
             caption="Tijdlijn: één rij per meetmoment"
-            rotatedHeaders
             rowClassName={(r) => (draft && !isNew && draft.id === rows[r].id ? 'editing' : '')}
             renderKeyCell={(r, v) => (
               <button
@@ -219,7 +218,10 @@ export function TimelineSection({ t, update }: SectionProps) {
                   setIsNew(false);
                 }}
               >
-                <span className="pre">{v}</span> <span aria-hidden="true">✎</span>
+                <TimeStamp value={v} />
+                <span className="edit-icon" aria-hidden="true">
+                  ✎
+                </span>
               </button>
             )}
           />

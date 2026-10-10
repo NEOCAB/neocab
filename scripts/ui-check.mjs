@@ -112,8 +112,8 @@ async function unlabeledControls(page) {
   const called = page.getByLabel('Ambulance gebeld om', { exact: true });
   const departed = page.getByLabel('Vertrokken met ambulance om', { exact: true });
   check('Dispatch-tijden standaard leeg', (await called.inputValue()) === '' && (await departed.inputValue()) === '');
-  await page.locator('#sdispatch').getByRole('button', { name: 'Nu invullen' }).first().click();
-  check('Ambulance gebeld om: Nu invullen vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(await called.inputValue()), await called.inputValue());
+  await page.getByRole('button', { name: 'Ambulance gebeld om op nu zetten' }).click();
+  check('Ambulance gebeld om: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(await called.inputValue()), await called.inputValue());
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
