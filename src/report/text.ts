@@ -7,12 +7,13 @@ function tableToText(table: ReportTable): string[] {
     const key: string[] = [];
     const data: string[] = [];
     table.columns.forEach((c, i) => {
-      const v = (row[i] ?? '').replace(/\n/g, ' ');
-      if (!v) return;
-      if (c.keyColumn) key.push(v);
-      else data.push(`${c.fullLabel}: ${v}${c.unit ? ` ${c.unit}` : ''}${table.alerts?.[r]?.[i] ? ' (LET OP: > 25)' : ''}`);
+      const raw = row[i] ?? '';
+      if (!raw) return;
+      if (c.keyColumn) key.push(raw.replace(/\n/g, ' '));
+      else if (table.simple) data.push(`${c.fullLabel}${c.unit ? ` (${c.unit})` : ''}: ${raw.replace(/\n/g, ' → ')}`);
+      else data.push(`${c.fullLabel}: ${raw.replace(/\n/g, ' ')}${c.unit ? ` ${c.unit}` : ''}${table.alerts?.[r]?.[i] ? ' (LET OP: > 25)' : ''}`);
     });
-    out.push(`Meetmoment ${r + 1} · ${key.join(' · ')}`, `    ${data.join('; ') || 'geen waarden'}`);
+    out.push(`${table.rowLabel ?? 'Meetmoment'} ${r + 1} · ${key.join(' · ')}`, `    ${data.join('; ') || 'geen waarden'}`);
     const note = table.notes?.[r];
     if (note) out.push(`    ${table.noteLabel ?? 'Toelichting'}: ${note.replace(/\n/g, '\n      ')}`);
   });

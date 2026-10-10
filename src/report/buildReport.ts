@@ -1,4 +1,4 @@
-import type { AbcdNotes, BloodGasCord, Measurement, Num, Transport, TubeVersion } from '../domain/types';
+import type { AbcdNotes, BloodGasCord, Infusion, Instant, Measurement, MedicationAdministration, Num, Transport, TubeVersion } from '../domain/types';
 import { ABCD_KEYS } from '../domain/types';
 import {
   ABCD_LABELS,
@@ -45,6 +45,13 @@ export interface ReportTable {
   notes?: string[];
   /** Label van de toelichtingsrij. */
   noteLabel?: string;
+  /**
+   * Eenvoudige tabel (medicatie, infusen): geen kopregel met groepen, liggende kolomkoppen, tekst in cellen mag
+   * afbreken; in de pdf op een staande pagina.
+   */
+  simple?: boolean;
+  /** Naam van één rij in de e-mailtekst (standaard "Meetmoment"). */
+  rowLabel?: string;
 }
 
 export interface ReportBlock {
@@ -248,37 +255,16 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Plastic', blocks });
   }
 
-  // Medicatie
+  // Medicatie: tabel, één rij per toediening (chronologisch)
   {
-    const blocks: ReportBlock[] = [];
-    const meds = [...t.medications].sort((a, b) => compareInstants(a.at, b.at));
-    for (const m of meds) {
-      const b = new RowBuilder();
-      b.kv('Datum en tijd', fi(m.at)).kv('Medicament', m.name);
-      const dose = formatNum(m.dose);
-      if (dose !== null || m.doseUnit) b.kv('Dosis', `${dose ?? 'niet ingevuld'}${m.doseUnit ? ` ${m.doseUnit}` : ''}`);
-      b.kv('Toedieningsroute', m.route);
-      blocks.push({ card: true, title: `${fi(m.at) || 'Tijdstip niet ingevuld'} · ${m.name || 'Medicament niet ingevuld'}`, rows: b.orEmpty() });
-    }
-    if (meds.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] });
-    sections.push({ title: 'Medicatie', blocks });
+    const { table } = medicationTable(t.medications, timeZone);
+    sections.push({ title: 'Medicatie', blocks: [table.rows.length ? { rows: [], table } : { rows: [{ type: 'note', text: 'Geen medicatietoedieningen geregistreerd.' }] }] });
   }
 
-  // Infusen
+  // Infusen: tabel, één rij per infuus met het verloop van de pompsnelheid
   {
-    const blocks: ReportBlock[] = [];
-    const infs = [...t.infusions].sort((a, b) => compareInstants(a.startAt, b.startAt));
-    for (const inf of infs) {
-      const b = new RowBuilder();
-      b.kv('Start', fi(inf.startAt)).kv('Medicatie en concentratie', inf.name);
-      sortedRates(inf).forEach((r, i) => {
-        b.kv(i === 0 ? 'Pompsnelheid bij start' : 'Snelheidswijziging', `${fi(r.at) || 'tijdstip niet ingevuld'}: ${formatNum(r.rateMlPerHour, 'mL/uur') ?? 'niet ingevuld'}`);
-      });
-      b.kv('Stop', inf.stopAt ? fi(inf.stopAt) : 'Loopt nog (geen stoptijd)');
-      blocks.push({ card: true, title: `${inf.name || 'Infuus'}${inf.stopAt ? ' (gestopt)' : ' (lopend)'}`, rows: b.rows });
-    }
-    if (infs.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] });
-    sections.push({ title: 'Infusen', blocks });
+    const { table } = infusionTable(t.infusions, timeZone);
+    sections.push({ title: 'Infusen', blocks: [table.rows.length ? { rows: [], table } : { rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] }] });
   }
 
   // Notities, Gezin
@@ -331,4 +317,61 @@ export function tubeSummary(v: TubeVersion, timeZone: string): string {
     formatNum(v.depthCm, 'cm') ? `${tubeDepthLabel(v.route).replace(' (cm)', '').toLowerCase()} ${formatNum(v.depthCm, 'cm')}` : null,
   ].filter(Boolean);
   return `${parts.join(', ') || 'gegevens niet ingevuld'} (geldend vanaf ${formatInstant(v.validFrom, timeZone) || 'onbekend tijdstip'})`;
+}
+
+/** Tijdcel: "dd-mm-jjjj\nuu:mm" als de rijen over meer dan één dag gaan, anders alleen "uu:mm". */
+function timeCells(instants: Instant[], timeZone: string): (i: Instant) => string {
+  const days = new Set(instants.map((i) => formatInstant(i, timeZone).slice(0, 10)).filter(Boolean));
+  return (i) => {
+    const f = formatInstant(i, timeZone);
+    if (!f) return '—';
+    return days.size > 1 ? `${f.slice(0, 10)}\n${f.slice(11)}` : f.slice(11);
+  };
+}
+
+const simpleColumn = (header: string, unit = '', keyColumn = false) => ({ header, fullLabel: header, unit, keyColumn, group: '' });
+
+/** Medicatietoedieningen als tabel (chronologisch); `rows` in dezelfde volgorde als de tabelrijen. */
+export function medicationTable(meds: MedicationAdministration[], timeZone: string): { table: ReportTable; rows: MedicationAdministration[] } {
+  const rows = [...meds].sort((a, b) => compareInstants(a.at, b.at));
+  const time = timeCells(
+    rows.map((m) => m.at),
+    timeZone,
+  );
+  return {
+    rows,
+    table: {
+      simple: true,
+      rowLabel: 'Toediening',
+      columns: [simpleColumn('Tijd', '', true), simpleColumn('Medicament'), simpleColumn('Dosis'), simpleColumn('Toedieningsroute')],
+      rows: rows.map((m) => {
+        const dose = formatNum(m.dose);
+        return [time(m.at), m.name, dose !== null || m.doseUnit ? `${dose ?? '?'}${m.doseUnit ? ` ${m.doseUnit}` : ''}` : '', m.route];
+      }),
+    },
+  };
+}
+
+/** Infusen als tabel (op starttijd): pompsnelheid met verloop, en stoptijd of "loopt". */
+export function infusionTable(infusions: Infusion[], timeZone: string): { table: ReportTable; rows: Infusion[] } {
+  const rows = [...infusions].sort((a, b) => compareInstants(a.startAt, b.startAt));
+  const all = rows.flatMap((i) => [i.startAt, i.stopAt, ...i.rates.map((r) => r.at)]);
+  const time = timeCells(all, timeZone);
+  const short = (i: Instant) => time(i).replace('\n', ' ');
+  return {
+    rows,
+    table: {
+      simple: true,
+      rowLabel: 'Infuus',
+      columns: [simpleColumn('Start', '', true), simpleColumn('Medicatie en concentratie'), simpleColumn('Pompsnelheid', 'mL/uur'), simpleColumn('Stop')],
+      rows: rows.map((inf) => [
+        time(inf.startAt),
+        inf.name,
+        sortedRates(inf)
+          .map((r, i) => `${formatNum(r.rateMlPerHour) ?? '?'}${i === 0 ? '' : ` vanaf ${short(r.at)}`}`)
+          .join('\n'),
+        inf.stopAt ? short(inf.stopAt) : 'loopt',
+      ]),
+    },
+  };
 }

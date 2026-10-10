@@ -259,10 +259,30 @@ async function basisLayout(page) {
   check('Pompsnelheid 0 geweigerd', await page.getByText('De waarde moet groter dan 0 zijn.').isVisible());
   await page.getByRole('group', { name: 'Infuus starten' }).getByLabel('3. Pompsnelheid', { exact: true }).fill('3,2');
   await page.getByRole('button', { name: 'Starten' }).click();
+  const infRows = await page.locator('#s9 .data-table.simple tbody tr').allTextContents();
+  check('Infusen als tabel: gestart infuus staat als rij, met snelheid en "loopt"', infRows.length === 1 && infRows[0].includes('Glucose 10%') && infRows[0].includes('3,2') && infRows[0].includes('loopt'), JSON.stringify(infRows));
+  await page.locator('#s9 .row-edit').first().click();
   await page.getByRole('button', { name: 'Snelheid wijzigen' }).click();
   await page.getByLabel('Nieuwe pompsnelheid', { exact: true }).fill('4');
   await page.getByRole('button', { name: 'Wijziging opslaan' }).click();
   check('Stoptijd leeg zolang infuus loopt', await page.getByText('Loopt nog — stoptijd wordt ingevuld bij Stoppen.').isVisible());
+  await page.locator('#s9').getByRole('button', { name: 'Sluiten' }).click();
+  const infRow = await page.locator('#s9 .data-table.simple tbody tr').first().textContent();
+  check('Infusentabel toont het verloop van de pompsnelheid', /3,2\s*4 vanaf/.test(infRow), infRow);
+
+  // Medicatie als tabel: toevoegen via editor, bewerken via de tijd in de tabel
+  await page.locator('#s8').getByRole('button', { name: '+ Toediening toevoegen' }).click();
+  const medForm = page.getByRole('form', { name: 'Nieuwe toediening' });
+  await medForm.getByLabel('Medicament', { exact: true }).fill('Testmedicament');
+  await medForm.getByLabel('Dosis', { exact: true }).fill('1,5');
+  await medForm.getByLabel('Eenheid dosis', { exact: true }).fill('mg');
+  await medForm.getByRole('button', { name: 'Toediening opslaan' }).click();
+  const medRows = await page.locator('#s8 .data-table.simple tbody tr').allTextContents();
+  check('Medicatie als tabel: toediening als rij met dosis en eenheid', medRows.length === 1 && medRows[0].includes('Testmedicament') && medRows[0].includes('1,5 mg'), JSON.stringify(medRows));
+  await page.locator('#s8 .row-edit').first().click();
+  await page.getByRole('form', { name: 'Toediening bewerken' }).getByLabel('Dosis', { exact: true }).fill('2');
+  await page.getByRole('form', { name: 'Toediening bewerken' }).getByRole('button', { name: 'Toediening opslaan' }).click();
+  check('Medicatie: bewerken via de tijd in de tabel', (await page.locator('#s8 .data-table.simple tbody tr').first().textContent()).includes('2 mg'));
 
   // Contactgegevens ouders in sectie 12
   const mother = page.locator('#s12').getByLabel('Telefoonnummer moeder', { exact: true });
@@ -351,7 +371,7 @@ async function basisLayout(page) {
   check('Logo Neo.Cab bovenaan het verslag', await page.locator('.report .report-head img.brand-logo').isVisible());
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
-  check('E-mailtekst bevat infuushistorie', reportText.includes('3,2 mL/uur') && reportText.includes('4 mL/uur'));
+  check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid \(mL\/uur\): 3,2 → 4 vanaf/.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Pdf downloaden' }).click()]);
   const pdfPath = `${OUT}/${download.suggestedFilename()}`;
   await download.saveAs(pdfPath);
@@ -373,8 +393,8 @@ async function basisLayout(page) {
   check('Import: melding bij tekst zonder code', (await other.getByRole('alert').textContent())?.includes('Geen overdrachtscode gevonden'));
   await other.getByLabel('Of open een overdrachtsbestand', { exact: true }).setInputFiles(hoPath);
   await other.waitForSelector('#s1');
-  const imported = [await other.getByLabel('Naam kind', { exact: true }).inputValue(), await other.getByLabel('Patiëntnummer', { exact: true }).inputValue(), await other.locator('#s9 .card').count()];
-  check('Import van bestand opent het transport met alle gegevens', imported[0] === 'Testbaby UI' && imported[1] === '0007788' && imported[2] > 0, JSON.stringify(imported));
+  const imported = [await other.getByLabel('Naam kind', { exact: true }).inputValue(), await other.getByLabel('Patiëntnummer', { exact: true }).inputValue(), await other.locator('#s9 .data-table tbody tr').count(), await other.locator('#s8 .data-table tbody tr').count()];
+  check('Import van bestand opent het transport met alle gegevens', imported[0] === 'Testbaby UI' && imported[1] === '0007788' && imported[2] > 0 && imported[3] > 0, JSON.stringify(imported));
   await other.getByRole('button', { name: 'Terug naar overzicht van concepten' }).first().click();
   await other.getByRole('button', { name: 'Transport importeren' }).click();
   await other.getByLabel('Plak de overdrachtsmail of de overdrachtscode', { exact: true }).fill(`Hoi, kun jij dit afmaken?\n\n> ${hoText.split('\n').join('\n> ')}`);

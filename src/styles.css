@@ -1188,6 +1188,16 @@ fieldset.group > legend {
   white-space: nowrap;
   background: var(--surface);
 }
+/* Eenvoudige tabel (medicatie, infusen): liggende koppen, tekst mag afbreken (ook over regels in een cel). */
+.data-table.simple .head-row th:not(.key) {
+  text-align: left;
+  vertical-align: bottom;
+  padding: 0.45rem 0.55rem;
+}
+.data-table.simple td {
+  white-space: pre-line;
+  min-width: 6rem;
+}
 .data-table td.num,
 .data-table th.num {
   text-align: right;

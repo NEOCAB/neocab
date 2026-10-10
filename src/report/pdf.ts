@@ -218,9 +218,12 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
    * Bij een paginawissel worden de kopregels herhaald.
    */
   const writeTable = (table: ReportTable, title?: string, scale = 1): void => {
-    const TS = { cell: BASE_TS.cell * scale, head: BASE_TS.head * scale, group: BASE_TS.group * scale };
+    // Eenvoudige tabellen (medicatie, infusen) iets groter, dichter bij de lopende tekst.
+    const size = scale * (table.simple ? 1.25 : 1);
+    const TS = { cell: BASE_TS.cell * size, head: BASE_TS.head * size, group: BASE_TS.group * size };
     const CELL_PAD = BASE_PAD * scale;
-    const MAX_COL_W = BASE_MAX_COL_W * scale;
+    // Eenvoudige tabellen (medicatie, infusen): bredere kolommen, tekst breekt af binnen de cel.
+    const MAX_COL_W = (table.simple ? 80 : BASE_MAX_COL_W) * scale;
     const lhCell = LINE(TS.cell);
     const lhHead = LINE(TS.head);
     const headerLines = (c: ReportTableColumn) => [c.header, ...(c.unit ? [c.unit] : [])];
@@ -236,7 +239,7 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
     };
     // Identificatiekolommen hebben een liggende kop; de overige koppen staan verticaal (90°),
     // zodat de kolombreedte door de waarden wordt bepaald.
-    const rotated = (c: ReportTableColumn) => !c.keyColumn;
+    const rotated = (c: ReportTableColumn) => !c.keyColumn && !table.simple;
     const rotatedText = (c: ReportTableColumn) => (c.unit ? `${c.header} (${c.unit})` : c.header);
     const natural = table.columns.map((c, ci) => {
       const cells = Math.max(0, ...table.rows.map((r) => lineWidth(r[ci] ?? '', TS.cell, c.keyColumn)));
@@ -296,7 +299,8 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
         else spans.push({ label: c.group, x: xs[k], w: widths[k] });
       });
       const groupLines = spans.map((sp) => split(sp.label, sp.w - CELL_PAD * 2, TS.group, true));
-      const groupH = Math.max(...groupLines.map((l) => l.length)) * LINE(TS.group) + 1.5;
+      // Eenvoudige tabel: geen kopregel met groepen.
+      const groupH = table.simple ? 0 : Math.max(...groupLines.map((l) => l.length)) * LINE(TS.group) + 1.5;
       const headLines = cols.map((c, k) => (rotated(c) ? [] : headerLines(c).flatMap((l) => split(l, widths[k] - CELL_PAD * 2, TS.head, true))));
       const rotatedW = cols.map((c) => (rotated(c) ? lineWidth(rotatedText(c), TS.head, true) : 0));
       const headH = Math.max(Math.max(...headLines.map((l) => l.length)) * lhHead, ...rotatedW) + CELL_PAD * 2 + 0.5;
@@ -305,8 +309,8 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
         doc.setLineWidth(0.15);
         doc.setDrawColor(...C.line);
         doc.setFillColor(...C.blue);
-        doc.rect(M.left, y, total + extra * idx.length, groupH, 'FD');
-        spans.forEach((sp, k) => {
+        if (groupH > 0) doc.rect(M.left, y, total + extra * idx.length, groupH, 'FD');
+        if (groupH > 0) spans.forEach((sp, k) => {
           doc.line(sp.x, y, sp.x, y + groupH + headH);
           doc.setFont(FONT, 'bold');
           doc.setFontSize(TS.group);
@@ -457,7 +461,8 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   };
 
   for (const section of report.sections) {
-    const hasTable = section.blocks.some((b) => b.table);
+    // Alleen brede tabellen (tijdlijn) op liggende pagina's; medicatie en infusen blijven staand.
+    const hasTable = section.blocks.some((b) => b.table && !b.table.simple);
     if (hasTable && orientation !== 'landscape') newPage('landscape');
     else if (!hasTable && orientation !== 'portrait') newPage('portrait');
     const titleLines = split(section.title, contentW, SIZE.section, true);

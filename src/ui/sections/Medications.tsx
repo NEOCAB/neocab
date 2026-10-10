@@ -1,56 +1,121 @@
+import { useEffect, useRef, useState } from 'react';
 import type { MedicationAdministration } from '../../domain/types';
 import { DOSE_UNIT_SUGGESTIONS } from '../../domain/labels';
 import { newMedication } from '../../domain/factory';
 import { formatInstant } from '../../domain/time';
+import { medicationTable } from '../../report/buildReport';
+import { DataTable, TimeStamp } from '../DataTable';
 import { DateTimeField, NumberField, Section, SelectField, TextField } from '../fields';
 import { useSettings } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
+/** Invoer of wijziging van één toediening; pas bij Opslaan vastgelegd. */
+function MedicationEditor({ draft, setDraft, isNew, onSave, onCancel, onDelete }: { draft: MedicationAdministration; setDraft: (m: MedicationAdministration) => void; isNew: boolean; onSave: () => void; onCancel: () => void; onDelete?: () => void }) {
+  const { medicationRoutes } = useSettings();
+  const ref = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, []);
+  const routeOptions = [...new Set([...medicationRoutes, ...(draft.route ? [draft.route] : [])])].map((r) => ({ value: r, label: r }));
+  const title = isNew ? 'Nieuwe toediening' : 'Toediening bewerken';
+  return (
+    <form
+      ref={ref}
+      className="card editor"
+      aria-label={title}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave();
+      }}
+    >
+      <h3>{title}</h3>
+      <div className="grid">
+        <DateTimeField label="Datum en tijd toediening" value={draft.at} onChange={(v) => setDraft({ ...draft, at: v })} />
+        <TextField label="Medicament" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
+        <div className="grid two tight">
+          <NumberField label="Dosis" value={draft.dose} onChange={(v) => setDraft({ ...draft, dose: v })} rules={{ min: 0 }} />
+          <TextField label="Eenheid dosis" value={draft.doseUnit} onChange={(v) => setDraft({ ...draft, doseUnit: v })} list={DOSE_UNIT_SUGGESTIONS} />
+        </div>
+        <SelectField label="Toedieningsroute" value={draft.route} onChange={(v) => setDraft({ ...draft, route: v })} options={routeOptions} />
+      </div>
+      <div className="editor-actions">
+        <button type="submit" className="primary">
+          Toediening opslaan
+        </button>
+        <button type="button" className="secondary" onClick={onCancel}>
+          Annuleren
+        </button>
+        {onDelete && (
+          <button type="button" className="link-button danger" onClick={onDelete}>
+            Verwijderen
+          </button>
+        )}
+      </div>
+    </form>
+  );
+}
+
 export function MedicationsSection({ t, update }: SectionProps) {
-  const { timeZone, medicationRoutes } = useSettings();
+  const { timeZone } = useSettings();
   const confirm = useConfirm();
-  const setMed = (id: string, patch: Partial<MedicationAdministration>) =>
-    update((x) => ({ ...x, medications: x.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
-  // Invoervolgorde tijdens bewerken (kaarten springen niet weg); het verslag sorteert chronologisch.
-  const meds = t.medications;
+  const [draft, setDraft] = useState<MedicationAdministration | null>(null);
+  const [isNew, setIsNew] = useState(false);
+  // Tabel chronologisch; tik op de tijd om een toediening te bewerken.
+  const { table, rows } = medicationTable(t.medications, timeZone);
+
+  const save = () => {
+    if (!draft) return;
+    update((x) => ({ ...x, medications: x.medications.some((m) => m.id === draft.id) ? x.medications.map((m) => (m.id === draft.id ? draft : m)) : [...x.medications, draft] }));
+    setDraft(null);
+  };
+  const remove = async (m: MedicationAdministration) => {
+    if (await confirm(`Toediening ${m.name || ''} van ${formatInstant(m.at, timeZone) || 'onbekend tijdstip'} verwijderen?`)) {
+      update((x) => ({ ...x, medications: x.medications.filter((y) => y.id !== m.id) }));
+      setDraft(null);
+    }
+  };
+
   return (
     <Section id="s8" title="Medicatie">
-      <div className="list">
-        {meds.length === 0 && <p className="muted">Nog geen toedieningen geregistreerd.</p>}
-        {meds.map((m, i) => {
-          const routeOptions = [...new Set([...medicationRoutes, ...(m.route ? [m.route] : [])])].map((r) => ({ value: r, label: r }));
-          return (
-            <article className="card" key={m.id} aria-label={`Toediening ${i + 1}`}>
-              <div className="grid">
-                <DateTimeField label="Datum en tijd toediening" value={m.at} onChange={(v) => setMed(m.id, { at: v })} />
-                <TextField label="Medicament" value={m.name} onChange={(v) => setMed(m.id, { name: v })} />
-                <div className="grid two tight">
-                  <NumberField label="Dosis" value={m.dose} onChange={(v) => setMed(m.id, { dose: v })} rules={{ min: 0 }} />
-                  <TextField label="Eenheid dosis" value={m.doseUnit} onChange={(v) => setMed(m.id, { doseUnit: v })} list={DOSE_UNIT_SUGGESTIONS} />
-                </div>
-                <SelectField label="Toedieningsroute" value={m.route} onChange={(v) => setMed(m.id, { route: v })} options={routeOptions} />
-              </div>
-              <div className="card-actions end">
-                <button
-                  type="button"
-                  className="link-button danger"
-                  onClick={() => {
-                    void confirm(`Toediening ${m.name || ''} van ${formatInstant(m.at, timeZone) || 'onbekend tijdstip'} verwijderen?`).then((ok) => {
-                      if (ok) update((x) => ({ ...x, medications: x.medications.filter((y) => y.id !== m.id) }));
-                    });
-                  }}
-                >
-                  Toediening verwijderen
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      <button type="button" className="primary" onClick={() => update((x) => ({ ...x, medications: [...x.medications, newMedication(timeZone)] }))}>
-        + Toediening toevoegen
-      </button>
+      {!draft && (
+        <button
+          type="button"
+          className="primary"
+          onClick={() => {
+            setDraft(newMedication(timeZone));
+            setIsNew(true);
+          }}
+        >
+          + Toediening toevoegen
+        </button>
+      )}
+      {draft && <MedicationEditor key={draft.id} draft={draft} setDraft={setDraft} isNew={isNew} onSave={save} onCancel={() => setDraft(null)} onDelete={isNew ? undefined : () => void remove(draft)} />}
+      {rows.length === 0 ? (
+        !draft && <p className="muted">Nog geen toedieningen geregistreerd.</p>
+      ) : (
+        <DataTable
+          table={table}
+          caption="Medicatie: één rij per toediening"
+          rowClassName={(r) => (draft && !isNew && draft.id === rows[r].id ? 'editing' : '')}
+          renderKeyCell={(r, v) => (
+            <button
+              type="button"
+              className="row-edit"
+              aria-label={`Toediening ${rows[r].name || ''} van ${formatInstant(rows[r].at, timeZone) || 'onbekend tijdstip'} bewerken`}
+              onClick={() => {
+                setDraft({ ...rows[r] });
+                setIsNew(false);
+              }}
+            >
+              <TimeStamp value={v} />
+              <span className="edit-icon" aria-hidden="true">
+                ✎
+              </span>
+            </button>
+          )}
+        />
+      )}
       <p className="muted small-print">Opties voor toedieningsroute zijn aan te passen via Instellingen op het startscherm.</p>
     </Section>
   );

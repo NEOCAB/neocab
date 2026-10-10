@@ -7,6 +7,8 @@ import { sortedRates } from '../../domain/timeline';
 import { DateTimeField, NumberField, Section, TextField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
+import { infusionTable } from '../../report/buildReport';
+import { DataTable, TimeStamp } from '../DataTable';
 import type { SectionProps } from './BasicSections';
 
 const RATE_RULES = { positive: true };
@@ -47,7 +49,7 @@ function RateChangeForm({ onSave, onCancel }: { onSave: (at: Instant, rate: numb
   );
 }
 
-function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i: Infusion) => void; onDelete: () => void }) {
+function InfusionCard({ inf, onChange, onDelete, onClose }: { inf: Infusion; onChange: (i: Infusion) => void; onDelete: () => void; onClose: () => void }) {
   const tz = useTimeZone();
   const confirm = useConfirm();
   const [changing, setChanging] = useState(false);
@@ -142,7 +144,10 @@ function InfusionCard({ inf, onChange, onDelete }: { inf: Infusion; onChange: (i
           </div>
         )}
       </div>
-      <div className="card-actions end">
+      <div className="editor-actions">
+        <button type="button" className="primary" onClick={onClose}>
+          Sluiten
+        </button>
         <button type="button" className="link-button danger" onClick={onDelete}>
           Infuus verwijderen
         </button>
@@ -189,24 +194,16 @@ function NewInfusionForm({ onStart, onCancel }: { onStart: (i: Infusion) => void
 }
 
 export function InfusionsSection({ t, update }: SectionProps) {
+  const tz = useTimeZone();
   const [adding, setAdding] = useState(false);
+  // Geopend infuus (tik op de starttijd in de tabel); wijzigingen worden direct vastgelegd, zoals voorheen.
+  const [openId, setOpenId] = useState<string | null>(null);
   const confirm = useConfirm();
   const setInf = (i: Infusion) => update((x) => ({ ...x, infusions: x.infusions.map((y) => (y.id === i.id ? i : y)) }));
+  const { table, rows } = infusionTable(t.infusions, tz);
+  const open = t.infusions.find((i) => i.id === openId) ?? null;
   return (
     <Section id="s9" title="Infusen">
-      <div className="list">
-        {t.infusions.length === 0 && !adding && <p className="muted">Nog geen infusen.</p>}
-        {t.infusions.map((inf) => (
-          <InfusionCard
-            key={inf.id}
-            inf={inf}
-            onChange={setInf}
-            onDelete={() => {
-              void confirm(`Infuus ${inf.name || ''} met de volledige snelheidshistorie verwijderen?`).then((ok) => ok && update((x) => ({ ...x, infusions: x.infusions.filter((y) => y.id !== inf.id) })));
-            }}
-          />
-        ))}
-      </div>
       {adding ? (
         <NewInfusionForm
           onCancel={() => setAdding(false)}
@@ -216,9 +213,53 @@ export function InfusionsSection({ t, update }: SectionProps) {
           }}
         />
       ) : (
-        <button type="button" className="primary" onClick={() => setAdding(true)}>
-          + Infuus starten
-        </button>
+        !open && (
+          <button type="button" className="primary" onClick={() => setAdding(true)}>
+            + Infuus starten
+          </button>
+        )
+      )}
+      {open && (
+        <div className="list">
+          <InfusionCard
+            key={open.id}
+            inf={open}
+            onChange={setInf}
+            onClose={() => setOpenId(null)}
+            onDelete={() => {
+              void confirm(`Infuus ${open.name || ''} met de volledige snelheidshistorie verwijderen?`).then((ok) => {
+                if (!ok) return;
+                update((x) => ({ ...x, infusions: x.infusions.filter((y) => y.id !== open.id) }));
+                setOpenId(null);
+              });
+            }}
+          />
+        </div>
+      )}
+      {rows.length === 0 ? (
+        !adding && <p className="muted">Nog geen infusen.</p>
+      ) : (
+        <DataTable
+          table={table}
+          caption="Infusen: één rij per infuus"
+          rowClassName={(r) => (openId === rows[r].id ? 'editing' : '')}
+          renderKeyCell={(r, v) => (
+            <button
+              type="button"
+              className="row-edit"
+              aria-label={`Infuus ${rows[r].name || ''} van ${formatInstant(rows[r].startAt, tz) || 'onbekend tijdstip'} openen`}
+              onClick={() => {
+                setOpenId(rows[r].id);
+                setAdding(false);
+              }}
+            >
+              <TimeStamp value={v} />
+              <span className="edit-icon" aria-hidden="true">
+                ✎
+              </span>
+            </button>
+          )}
+        />
       )}
     </Section>
   );

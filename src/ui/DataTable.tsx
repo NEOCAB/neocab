@@ -44,21 +44,23 @@ export function DataTable({
   const cls = (i: number, extra = '') => [`col-${i}`, groupStart[i] ? 'gstart' : '', numeric[i] ? 'num' : '', extra].filter(Boolean).join(' ');
   return (
     <div className="table-scroll" role="region" aria-label={caption} tabIndex={0}>
-      <table className="data-table">
+      <table className={`data-table ${table.simple ? 'simple' : ''}`}>
         <caption className="sr-only">{caption}</caption>
         <thead>
-          <tr className="group-row">
-            {spans.map((s, i) => (
-              <th key={i} colSpan={s.span} scope="colgroup" className={i === 0 ? 'sticky-group' : 'gstart'}>
-                {s.group}
-              </th>
-            ))}
-          </tr>
+          {!table.simple && (
+            <tr className="group-row">
+              {spans.map((s, i) => (
+                <th key={i} colSpan={s.span} scope="colgroup" className={i === 0 ? 'sticky-group' : 'gstart'}>
+                  {s.group}
+                </th>
+              ))}
+            </tr>
+          )}
           <tr className="head-row">
             {cols.map((c, i) => (
               <th key={i} scope="col" className={cls(i, c.keyColumn ? 'key' : '')} title={c.fullLabel}>
                 {/* Alleen de tekst wordt gedraaid (niet de cel), zodat randen links/rechts goed blijven. */}
-                <span className={c.keyColumn ? 'th-text' : 'th-text th-rot'}>
+                <span className={c.keyColumn || table.simple ? 'th-text' : 'th-text th-rot'}>
                   <span className="th-label">{c.header}</span>
                   {c.unit && <span className="th-unit"> ({c.unit})</span>}
                 </span>
