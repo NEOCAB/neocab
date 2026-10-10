@@ -57,8 +57,11 @@ export function DataTable({
           <tr className="head-row">
             {cols.map((c, i) => (
               <th key={i} scope="col" className={cls(i, c.keyColumn ? 'key' : '')} title={c.fullLabel}>
-                <span className="th-label">{c.header}</span>
-                {c.unit && <span className="th-unit"> ({c.unit})</span>}
+                {/* Alleen de tekst wordt gedraaid (niet de cel), zodat randen links/rechts goed blijven. */}
+                <span className={c.keyColumn ? 'th-text' : 'th-text th-rot'}>
+                  <span className="th-label">{c.header}</span>
+                  {c.unit && <span className="th-unit"> ({c.unit})</span>}
+                </span>
               </th>
             ))}
           </tr>

@@ -46,7 +46,9 @@ describe('verslag', () => {
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
     expect(text).toContain('Ambulance aangevraagd: 09-10-2026 22:20');
     expect(text).toContain('Vertrek transportteam: 09-10-2026 22:35');
-    for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Aankomst bij kind: 09-10-2026 23:05', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
+    const s5 = text.slice(text.indexOf('5 DISPATCH'), text.indexOf('6 ONDERZOEK'));
+    expect(s5).toContain('Aankomst bij kind: 09-10-2026 23:05');
+    for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');
     expect(text).toContain('Medicatie en concentratie: Glucose 10%');
     expect(text).toContain('Pompsnelheid bij start: 09-10-2026 23:15: 3,2 mL/uur');

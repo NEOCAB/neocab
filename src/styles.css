@@ -828,9 +828,9 @@ fieldset.group > legend {
 .data-table td.num {
   min-width: 2.6rem;
 }
-/* Duidelijke scheiding tussen kolomgroepen. */
+/* Duidelijke scheiding tussen kolomgroepen (links van de eerste kolom van elke groep). */
 .data-table .gstart {
-  border-left: 2px solid var(--primary-20);
+  border-left: 3px solid var(--primary-20);
 }
 .data-table .group-row th {
   background: var(--primary-10);
@@ -838,13 +838,15 @@ fieldset.group > legend {
   font-size: 0.85rem;
   font-weight: 700;
   padding: 0.45rem 0.75rem;
-  border-bottom: 1px solid var(--primary-20);
+  /* Donkerblauwe lijn onder de eerste kopregel (groepen). */
+  border-bottom: 2px solid var(--primary);
 }
 .data-table .head-row th {
   background: var(--primary-10);
   color: var(--text);
   vertical-align: bottom;
-  border-bottom: 2px solid var(--primary);
+  /* Dikke lichtblauwe lijn onder de hele tweede kopregel. */
+  border-bottom: 3px solid var(--primary-20);
   line-height: 1.15;
 }
 .th-label {
@@ -858,14 +860,15 @@ fieldset.group > legend {
 }
 /* Kolomkoppen in de tweede rij verticaal (van onder naar boven); de tijdkolom horizontaal. */
 .data-table .head-row th:not(.key) {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  text-align: left;
+  text-align: center;
   vertical-align: bottom;
   padding: 0.55rem 0.3rem;
-  white-space: nowrap;
 }
-.data-table .head-row th.num:not(.key) {
+.th-rot {
+  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
   text-align: left;
 }
 .data-table tbody tr:nth-child(even) td,
@@ -890,7 +893,12 @@ fieldset.group > legend {
   position: sticky;
   left: 0;
   z-index: 1;
-  border-right: 2px solid var(--primary-20);
+  /* Dikke lichtblauwe lijn rechts van de tijdkolom. */
+  border-right: 3px solid var(--primary-20);
+}
+/* Kolom direct na de tijdkolom: geen dubbele lijn. */
+.data-table .col-1.gstart {
+  border-left: none;
 }
 .data-table thead .col-0,
 .data-table .sticky-group {

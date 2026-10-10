@@ -168,6 +168,12 @@ export function DispatchSection({ t, update }: SectionProps) {
     <Section id="sdispatch" title="5 Dispatch">
       <TimepointField label="Ambulance aangevraagd" description="Aanvraag van vervoer voor het transportteam" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
       <TimepointField label="Vertrek transportteam" description="Vertrek vanaf de eigen locatie" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
+      <TimepointField
+        label="Aankomst bij kind"
+        description="Aankomst aan de cotside in het verwijzende ziekenhuis"
+        value={t.teamAssessment.arrivedAt}
+        onChange={(v) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, arrivedAt: v } }))}
+      />
     </Section>
   );
 }
@@ -177,7 +183,6 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['teamAssessment']>(k: K, v: Transport['teamAssessment'][K]) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, [k]: v } }));
   return (
     <Section id="s5" title="6 Onderzoek door transportteam" intro="Eigen onderzoek van het transportteam; de informatie bij verwijzing (sectie 4) blijft ongewijzigd bewaard.">
-      <TimepointField label="Aankomst bij kind" description="Aankomst aan de cotside in het verwijzende ziekenhuis" value={a.arrivedAt} onChange={(v) => set('arrivedAt', v)} />
       <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} />
       <TextArea label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
       <TextArea label="Stabilisatieplan" value={a.stabilisationPlan} onChange={(v) => set('stabilisationPlan', v)} />

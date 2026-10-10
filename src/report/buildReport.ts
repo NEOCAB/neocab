@@ -173,15 +173,14 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   // 5 Dispatch
   {
     const b = new RowBuilder();
-    b.kv('Ambulance aangevraagd', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek transportteam', fi(t.dispatch.departedWithAmbulanceAt));
+    b.kv('Ambulance aangevraagd', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek transportteam', fi(t.dispatch.departedWithAmbulanceAt)).kv('Aankomst bij kind', fi(t.teamAssessment.arrivedAt));
     sections.push({ title: '5 Dispatch', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 5 Onderzoek door transportteam
+  // 6 Onderzoek door transportteam (aankomst bij kind staat bij 5 Dispatch)
   {
     const a = t.teamAssessment;
     const b = new RowBuilder();
-    b.kv('Aankomst bij kind', fi(a.arrivedAt));
     b.rows.push(...abcdRows(a.notes));
     b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan).kv('Laatste voeding', fi(a.lastFeedAt));
     sections.push({ title: '6 Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
