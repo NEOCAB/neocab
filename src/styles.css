@@ -1150,6 +1150,12 @@ fieldset.group > legend {
   padding: 0.5rem 1rem 1rem;
   margin-bottom: 1rem;
 }
+.import-panel {
+  margin: 1rem 0;
+}
+.import-panel h2 {
+  margin-top: 0;
+}
 .report {
   background: var(--surface);
   border: none;

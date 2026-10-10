@@ -68,6 +68,7 @@ export function App() {
         onOpen={(id) => navigate(`#/t/${id}`)}
         onNew={() => open(newTransport(settings.timeZone))}
         onSample={() => open(sampleTransport(settings.timeZone))}
+        onImport={(t) => open(t)}
         onDelete={(id) => {
           repo.remove(id);
           setListVersion((v) => v + 1);

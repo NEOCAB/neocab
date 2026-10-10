@@ -2,7 +2,7 @@
 // Gebruik: npm run build && npx vite preview --port 4173 &  dan: npm run ui-check
 // Optioneel: BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/pad/naar/chromium
 import { chromium } from 'playwright-core';
-import { mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, statSync } from 'node:fs';
 
 const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:4173/';
 const OUT = 'test-output';
@@ -318,6 +318,34 @@ async function basisLayout(page) {
   await download.saveAs(pdfPath);
   check('Pdf gedownload', statSync(pdfPath).size > 10000, `${download.suggestedFilename()} ${statSync(pdfPath).size} bytes`);
   await page.screenshot({ path: `${OUT}/390-verslag.png`, fullPage: false });
+
+  // Overdracht aan een collega: bestand downloaden en op een ander apparaat (nieuwe browsercontext) importeren
+  const [hoDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Overdrachtsbestand downloaden' }).click()]);
+  const hoPath = `${OUT}/${hoDownload.suggestedFilename()}`;
+  await hoDownload.saveAs(hoPath);
+  const hoText = readFileSync(hoPath, 'utf8');
+  check('Overdrachtsbestand met code en waarschuwing', hoDownload.suggestedFilename() === 'neocab-overdracht-Testbaby-UI-0007788.txt' && hoText.includes('BEGIN NEO.CAB OVERDRACHT') && hoText.includes('patiëntgegevens'), hoDownload.suggestedFilename());
+  const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+  const other = await ctx2.newPage();
+  await other.goto(BASE);
+  await other.getByRole('button', { name: 'Transport importeren' }).click();
+  await other.getByLabel('Plak de overdrachtsmail of de overdrachtscode', { exact: true }).fill('alleen wat tekst');
+  await other.getByRole('button', { name: 'Importeren', exact: true }).click();
+  check('Import: melding bij tekst zonder code', (await other.getByRole('alert').textContent())?.includes('Geen overdrachtscode gevonden'));
+  await other.getByLabel('Of open een overdrachtsbestand', { exact: true }).setInputFiles(hoPath);
+  await other.waitForSelector('#s1');
+  const imported = [await other.getByLabel('Naam kind', { exact: true }).inputValue(), await other.getByLabel('Patiëntnummer', { exact: true }).inputValue(), await other.locator('#s9 .card').count()];
+  check('Import van bestand opent het transport met alle gegevens', imported[0] === 'Testbaby UI' && imported[1] === '0007788' && imported[2] > 0, JSON.stringify(imported));
+  await other.getByRole('button', { name: 'Terug naar overzicht van concepten' }).first().click();
+  await other.getByRole('button', { name: 'Transport importeren' }).click();
+  await other.getByLabel('Plak de overdrachtsmail of de overdrachtscode', { exact: true }).fill(`Hoi, kun jij dit afmaken?\n\n> ${hoText.split('\n').join('\n> ')}`);
+  await other.getByRole('button', { name: 'Importeren', exact: true }).click();
+  check('Import van bestaand transport vraagt om bevestiging', await other.getByRole('alertdialog').isVisible());
+  await other.getByRole('alertdialog').getByRole('button', { name: 'Vervangen' }).click();
+  await other.waitForSelector('#s1');
+  await other.getByRole('button', { name: 'Terug naar overzicht van concepten' }).first().click();
+  check('Geplakte, doorgestuurde e-mail geïmporteerd zonder dubbel concept', (await other.locator('.concept').count()) === 1);
+  await ctx2.close();
   check('Geen JavaScript-fouten', errors.length === 0, errors.join('; '));
   await ctx.close();
 }

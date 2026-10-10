@@ -6,6 +6,8 @@ import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
 import { useTimeZone } from './context';
 import { useConfirm } from './confirm';
 import { Logo } from './icons';
+import type { Transport } from '../domain/types';
+import { decodeHandover, HandoverError } from '../storage/handover';
 
 const TIME_ZONES = ['Europe/Amsterdam', 'Europe/Brussels', 'Europe/London', 'UTC'];
 
@@ -61,9 +63,80 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
   );
 }
 
-export function TransportList({ items, onOpen, onNew, onSample, onDelete, settings, onSettings }: { items: TransportSummary[]; onOpen: (id: string) => void; onNew: () => void; onSample: () => void; onDelete: (id: string) => void; settings: AppSettings; onSettings: (s: AppSettings) => void }) {
+/** Overdracht van een collega inlezen: geplakte e-mail of code, of een overdrachtsbestand. */
+function ImportPanel({ items, onImport, onClose }: { items: TransportSummary[]; onImport: (t: Transport) => void; onClose: () => void }) {
   const tz = useTimeZone();
   const confirm = useConfirm();
+  const [text, setText] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const run = async (input: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const { transport } = await decodeHandover(input);
+      const existing = items.find((i) => i.id === transport.id);
+      if (existing) {
+        const ok = await confirm(
+          `Dit transport (${existing.childName || 'zonder naam'}) staat al op dit apparaat, laatst opgeslagen ${new Date(existing.updatedAt).toLocaleString('nl-NL', { timeZone: tz })}. Vervangen door de ontvangen versie?`,
+          'Vervangen',
+        );
+        if (!ok) return;
+      }
+      onImport(transport);
+    } catch (e) {
+      setError(e instanceof HandoverError ? e.message : 'Importeren is mislukt.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="card import-panel" aria-label="Transport importeren">
+      <h2>Transport importeren</h2>
+      <div className="field">
+        <label className="field-label" htmlFor="import-text">
+          Plak de overdrachtsmail of de overdrachtscode
+        </label>
+        <textarea id="import-text" rows={6} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />
+      </div>
+      <div className="field">
+        <label className="field-label" htmlFor="import-file">
+          Of open een overdrachtsbestand
+        </label>
+        <input
+          id="import-file"
+          type="file"
+          accept=".txt,text/plain"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (file) void file.text().then(run);
+          }}
+        />
+      </div>
+      {error && (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="button-row">
+        <button type="button" className="primary" disabled={busy || text.trim() === ''} onClick={() => void run(text)}>
+          Importeren
+        </button>
+        <button type="button" className="secondary" onClick={onClose}>
+          Annuleren
+        </button>
+      </div>
+    </section>
+  );
+}
+
+export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImport, settings, onSettings }: { items: TransportSummary[]; onOpen: (id: string) => void; onNew: () => void; onSample: () => void; onDelete: (id: string) => void; onImport: (t: Transport) => void; settings: AppSettings; onSettings: (s: AppSettings) => void }) {
+  const tz = useTimeZone();
+  const confirm = useConfirm();
+  const [importing, setImporting] = useState(false);
   return (
     <div className="home">
       <header className="home-header">
@@ -78,7 +151,13 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, settin
           <button type="button" className="secondary" onClick={onSample}>
             Fictief voorbeeldtransport laden
           </button>
+          {!importing && (
+            <button type="button" className="secondary" onClick={() => setImporting(true)}>
+              Transport importeren
+            </button>
+          )}
         </div>
+        {importing && <ImportPanel items={items} onImport={onImport} onClose={() => setImporting(false)} />}
         <h2>Opgeslagen concepten</h2>
         {items.length === 0 ? (
           <p className="muted">Er zijn nog geen concepten op dit apparaat.</p>

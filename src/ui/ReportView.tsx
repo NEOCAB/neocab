@@ -6,6 +6,7 @@ import { useTimeZone } from './context';
 import { DataTable } from './DataTable';
 import { Logo, SectionIcon } from './icons';
 import { canPrint, offerFile } from './viewer';
+import { encodeHandover, handoverEmail, handoverFileName } from '../storage/handover';
 
 /** Mailto-links worden door sommige mailprogramma's afgekapt; boven deze lengte gaat de tekst alleen via het klembord. */
 const MAILTO_BODY_LIMIT = 1800;
@@ -119,6 +120,36 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
+  /** Overdracht aan een collega: volledige registratie als code in een e-mail of als bestand. */
+  const [handoverStatus, setHandoverStatus] = useState<string | null>(null);
+  const handoverMail = async () => {
+    const { subject, body } = handoverEmail(transport, await encodeHandover(transport));
+    const fits = encodeURIComponent(body).length <= MAILTO_BODY_LIMIT;
+    const copied = await copyText(body);
+    const mailBody = fits
+      ? body
+      : copied
+        ? 'De overdracht staat op het klembord. Plak die hier (Ctrl/Cmd+V) en verstuur het bericht zelf.'
+        : 'Kopiëren lukte niet. Download in Neo.Cab het overdrachtsbestand en voeg dat als bijlage toe.';
+    setHandoverStatus(
+      copied
+        ? 'De overdracht (uitleg en code) staat op het klembord. Plak die in de e-mail als het mailprogramma niet vanzelf opent of de tekst ontbreekt. Er wordt niets automatisch verzonden.'
+        : 'Kopiëren lukte niet. Download het overdrachtsbestand en voeg dat als bijlage toe. Er wordt niets automatisch verzonden.',
+    );
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mailBody)}`;
+  };
+  const handoverFile = async () => {
+    const { body } = handoverEmail(transport, await encodeHandover(transport));
+    const result = await offerFile(handoverFileName(transport), new Blob([body], { type: 'text/plain;charset=utf-8' }));
+    setHandoverStatus(
+      result === 'saved'
+        ? 'Overdrachtsbestand gemaakt. Voeg het als bijlage toe aan een e-mail; de ontvanger opent het via “Transport importeren”.'
+        : result === 'declined'
+          ? 'Opslaan van het overdrachtsbestand is geannuleerd.'
+          : 'Bestand opslaan is in deze weergave niet beschikbaar. Gebruik “Overdracht per e-mail”.',
+    );
+  };
+
   return (
     <div className="report-layout">
       <header className="topbar no-print">
@@ -157,6 +188,25 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
           {status && (
             <p className="notice" role="status">
               {status}
+            </p>
+          )}
+        </section>
+
+        <section className="export-actions handover no-print" aria-label="Overdragen aan een collega">
+          <h2>Overdragen aan een collega</h2>
+          <p>Stuur de volledige registratie door, zodat een collega die op een ander apparaat verder kan invullen via “Transport importeren” op de startpagina.</p>
+          <div className="button-row">
+            <button type="button" className="primary" onClick={handoverMail}>
+              Overdracht per e-mail
+            </button>
+            <button type="button" className="secondary" onClick={handoverFile}>
+              Overdrachtsbestand downloaden
+            </button>
+          </div>
+          <p className="muted small-print">Het bericht bevat alle ingevulde gegevens, inclusief patiëntgegevens. Er wordt niets automatisch verzonden.</p>
+          {handoverStatus && (
+            <p className="notice" role="status">
+              {handoverStatus}
             </p>
           )}
         </section>
