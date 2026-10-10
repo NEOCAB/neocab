@@ -1,6 +1,6 @@
 import idCard from '@material-symbols/svg-700/outlined/id_card.svg?raw';
 import route from '@material-symbols/svg-700/outlined/route.svg?raw';
-import sick from '@material-symbols/svg-700/outlined/sick.svg?raw';
+import stethoscope from '@material-symbols/svg-700/outlined/stethoscope.svg?raw';
 import ambulance from '@material-symbols/svg-700/outlined/ambulance.svg?raw';
 import clinicalNotes from '@material-symbols/svg-700/outlined/clinical_notes.svg?raw';
 import timeline from '@material-symbols/svg-700/outlined/timeline.svg?raw';
@@ -23,9 +23,9 @@ const prep = (svg: string) => svg.replace('<svg ', '<svg fill="currentColor" wid
 const BY_ID: Record<string, string> = {
   s1: prep(idCard),
   s2: prep(route),
-  s3: prep(sick),
+  s3: prep(clinicalNotes),
   sdispatch: prep(ambulance),
-  s5: prep(clinicalNotes),
+  s5: prep(stethoscope),
   s6: prep(timeline),
   s7: prep(labResearch),
   s8: prep(medication),
