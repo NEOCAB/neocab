@@ -119,7 +119,7 @@ scripts/        ui-check.mjs (Playwright)
 
 ## Oxygenatie-index (OI)
 
-- OI = (MAP × FiO₂ × 100) / PaO₂, per meetmoment automatisch berekend en direct rechts van datum/tijd in de tijdlijntabel getoond (formulier, verslag, pdf, e-mailtekst), plus live in het bewerkformulier van een meetmoment.
+- OI = (MAP × FiO₂ × 100) / PaO₂, per meetmoment automatisch berekend en direct rechts van datum/tijd, als eerste kolom onder *Ademhalingsondersteuning*, in de tijdlijntabel getoond (formulier, verslag, pdf, e-mailtekst), plus live in het bewerkformulier van een meetmoment.
 - MAP = luchtweg-MAP in cmH₂O: bij PTV/SIMV de gemeten MAP, bij HFOV de ingestelde MAP. Alleen bij invasieve beademing.
 - FiO₂ wordt in % ingevoerd; in de formule als fractie (dus FiO₂ % / 100 × 100).
 - PaO₂: alleen een **arterieel** bloedgas telt. pO₂ wordt in kPa ingevoerd en voor de OI omgerekend naar mmHg (× 7,50062), zodat de waarde op de gebruikelijke OI-schaal ligt.

@@ -99,10 +99,10 @@ function stamp(i: string | null, timeZone: string): string {
 export function allTimelineColumns(timeZone: string): TimelineColumn[] {
   const cols: TimelineColumn[] = [
     { key: 'at', group: 'meetmoment', label: 'Tijd', fullLabel: 'Datum en tijd', unit: '', cell: (m) => stamp(m.at, timeZone) || '—', key_column: true },
-    // OI direct rechts van datum/tijd.
+    // OI direct rechts van datum/tijd, als eerste kolom van Ademhalingsondersteuning.
     {
       key: 'oi',
-      group: 'meetmoment',
+      group: 'ademhaling',
       label: 'OI',
       fullLabel: 'Oxygenatie-index (OI, berekend)',
       unit: '',

@@ -86,8 +86,8 @@ describe('verslag', () => {
     const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('7 '))!;
     const table = section.blocks.find((b) => b.table)!.table!;
     const oi = table.columns.findIndex((c) => c.header === 'OI');
-    expect(table.columns[oi].group).toBe('Meetmoment');
-    expect(oi).toBe(1); // direct rechts van Tijd
+    expect(table.columns[oi].group).toBe('Ademhalingsondersteuning');
+    expect(oi).toBe(1); // direct rechts van Tijd, eerste kolom van de groep
     // Meetmoment 2: PTV zonder gemeten MAP -> geen OI; meetmoment 4: HFOV MAP 14, FiO₂ 60 %, PaO₂ 3,8 kPa -> 29,5.
     expect(table.rows.map((r) => r[oi])).toEqual(['', '', '', '29,5']);
     expect(table.alerts!.map((r) => r[oi])).toEqual([false, false, false, true]);
