@@ -28,7 +28,7 @@ export function normalizeTransport(raw: unknown): Transport | null {
   const defaults = newTransport();
   // Standaard-"nu" van een lege registratie mag een opgeslagen waarde nooit vervangen.
   const t = mergeDefaults({ ...defaults, id: raw.id }, raw);
-  return migrateParentPhones({ ...t, measurements: t.measurements.map(migrateCpapToPeep) }, raw);
+  return migrateParentPhones({ ...t, measurements: t.measurements.map((m) => ({ ...migrateCpapToPeep(m), policyChanges: typeof m.policyChanges === 'string' ? m.policyChanges : '' })) }, raw);
 }
 
 /** Oudere concepten hadden een lijst `parentPhones`; nu: eerste nummer = moeder, overige = partner. */

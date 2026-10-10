@@ -113,6 +113,7 @@ export function newMeasurement(existing: Measurement[], timeZone = DEFAULT_TIME_
     resp: { mode, settingsByMode: mode && settings ? { [mode]: settings } : {} },
     monitor: emptyRecord(MONITOR_KEYS),
     gas: { type: '', values: emptyRecord(GAS_KEYS) },
+    policyChanges: '',
   };
 }
 

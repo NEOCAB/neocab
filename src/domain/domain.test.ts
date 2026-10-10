@@ -194,8 +194,10 @@ describe('tijdlijn', () => {
       resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 20, peep: 6 }, cpap: { peep: 7 } } },
       monitor: { heartRate: 160, respRate: 50, spo2Pre: 92, spo2Post: 90, meanBp: 40, temperature: 36.5, capRefill: 2, tcCo2: 6, etCo2: 5 },
       gas: { type: 'arterieel', values: { ph: 7.3, pco2: 6, po2: 8, hco3: 22, be: -2, lactate: 2, glucose: 4, hb: 10 } },
+      policyChanges: 'Surfactant gegeven',
     });
     const next = newMeasurement([prev], TZ);
+    expect(next.policyChanges).toBe('');
     expect(next.resp.mode).toBe('ptv');
     expect(next.resp.settingsByMode).toEqual({ ptv: { pip: 20, peep: 6 } });
     expect(Object.values(next.monitor).every((v) => v === null)).toBe(true);

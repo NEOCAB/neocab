@@ -26,6 +26,7 @@ function bigTransport(): Transport {
     m.monitor.heartRate = 100 + i;
     m.gas.values.be = -i / 10;
     m.gas.type = 'veneus';
+    if (i % 7 === 0) m.policyChanges = `Beleidsaanpassing ${i}: ${'lange toelichting '.repeat(12)}`;
     t.measurements.push(m);
   }
   return t;
@@ -111,6 +112,19 @@ describe('verslag', () => {
     const text = reportToText(buildReport(t, TZ));
     expect(text).toContain('Oxygenatie-index (OI, berekend): 29,5 (LET OP: > 25)');
     expect(text).toContain('Oranje gemarkeerd: OI > 25.');
+  });
+
+  it('toont beleidsaanpassingen als aparte rij bij hetzelfde tijdsmoment', () => {
+    const t = sampleTransport(TZ);
+    const table = buildReport(t, TZ).sections.find((s) => s.title === 'Tijdlijn')!.blocks.find((b) => b.table)!.table!;
+    expect(table.rows).toHaveLength(4);
+    expect(table.noteLabel).toBe('Beleidsaanpassingen');
+    expect(table.notes).toEqual(['Besluit tot intubatie en surfactant (fictief).', '', '', 'Overgestapt op HFOV; FiO₂ verhoogd (fictief).']);
+    const text = reportToText(buildReport(t, TZ));
+    const m1 = text.slice(text.indexOf('Meetmoment 1'), text.indexOf('Meetmoment 2'));
+    expect(m1).toContain('    Beleidsaanpassingen: Besluit tot intubatie en surfactant (fictief).');
+    const m2 = text.slice(text.indexOf('Meetmoment 2'), text.indexOf('Meetmoment 3'));
+    expect(m2).not.toContain('Beleidsaanpassingen');
   });
 
   it('exporteert alleen instellingen van de actuele modaliteit', () => {

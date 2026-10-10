@@ -66,6 +66,19 @@ describe('lokale conceptopslag', () => {
     expect(loaded.measurements[0].resp.settingsByMode.cpap).toEqual({ peep: 7, fio2: 45 });
   });
 
+  it('vult ontbrekende beleidsaanpassingen en nieuwe checklistpunten aan bij oude concepten', () => {
+    const storage = memoryStorage();
+    const t = sampleTransport();
+    const old = JSON.parse(JSON.stringify(t));
+    for (const m of old.measurements) delete m.policyChanges;
+    delete old.checklist.medischeBrief;
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
+    storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
+    const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
+    expect(loaded.measurements.every((m) => m.policyChanges === '')).toBe(true);
+    expect(loaded.checklist.medischeBrief).toBe('nog_niet');
+  });
+
   it('zet een oude lijst met telefoonnummers ouders om naar moeder en partner', () => {
     const storage = memoryStorage();
     const t = sampleTransport();

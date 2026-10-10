@@ -78,6 +78,11 @@ export const CHECKLIST_LABELS: Record<ChecklistKey, string> = {
   beeldvorming: 'Beeldvorming beschikbaar voor ontvangend ziekenhuis',
   ouders: 'Ouders geïnformeerd en contactgegevens beschikbaar',
   voeding: 'Voeding/moedermelk meegenomen indien van toepassing',
+  medischeBrief: 'Medische overplaatsingsbrief',
+  verpleegkundigeBrief: 'Verpleegkundige overplaatsingsbrief',
+  routeOuders: 'Directions and contact details of the receiving hospital for parent(s)',
+  neuroDevelopment: 'Neurodevelopment (positioning, lighting and noise reduction)',
+  monitoring: 'Continuous monitoring (minimaal SpO₂-monitoring)',
 };
 
 export const LINE_TYPE_LABELS: Record<LineType, string> = {

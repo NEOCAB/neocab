@@ -13,6 +13,8 @@ function tableToText(table: ReportTable): string[] {
       else data.push(`${c.fullLabel}: ${v}${c.unit ? ` ${c.unit}` : ''}${table.alerts?.[r]?.[i] ? ' (LET OP: > 25)' : ''}`);
     });
     out.push(`Meetmoment ${r + 1} · ${key.join(' · ')}`, `    ${data.join('; ') || 'geen waarden'}`);
+    const note = table.notes?.[r];
+    if (note) out.push(`    ${table.noteLabel ?? 'Toelichting'}: ${note.replace(/\n/g, '\n      ')}`);
   });
   return out;
 }

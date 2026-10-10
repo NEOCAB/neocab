@@ -10,6 +10,7 @@
   --lightblue: #cee8ef; /* extra kleur lichtblauw */
   --sand: #f0e2d2; /* extra kleur zand */
   --sand-line: #d9c5ae;
+  --sand-soft: #f8f0e7;
   --green: #b9debc; /* extra kleur groen */
   --green-line: #7fb985;
   --danger: #ed1846; /* rood: highlight, spaarzaam */
@@ -877,9 +878,33 @@ fieldset.group > legend {
   white-space: nowrap;
   text-align: left;
 }
-.data-table tbody tr:nth-child(even) td,
-.data-table tbody tr:nth-child(even) th {
+.data-table tbody tr.alt td,
+.data-table tbody tr.alt th {
   background: var(--tint);
+}
+/* Beleidsaanpassingen: aparte rij direct onder het meetmoment, bij hetzelfde tijdsmoment. */
+.data-table tbody tr.has-note td {
+  border-bottom: 1px dashed var(--line);
+}
+.data-table td.note-cell {
+  background: var(--sand-soft);
+  white-space: normal;
+  padding-top: 0.35rem;
+  padding-bottom: 0.45rem;
+}
+.data-table tbody tr.alt td.note-cell {
+  background: var(--sand-soft);
+}
+.note-text {
+  display: block;
+  position: sticky;
+  left: 6.5rem;
+  max-width: min(70ch, calc(100vw - 9rem));
+  white-space: pre-line;
+  line-height: 1.35;
+}
+.note-text strong {
+  color: var(--primary);
 }
 .data-table tbody tr:hover td,
 .data-table tbody tr:hover th {
@@ -948,7 +973,7 @@ fieldset.group > legend {
 
 /* Oranje alert (bijv. OI > 25) */
 .data-table td.alert,
-.data-table tbody tr:nth-child(even) td.alert {
+.data-table tbody tr.alt td.alert {
   background: var(--alert-bg);
   color: var(--alert-text);
   font-weight: 700;
@@ -1305,4 +1330,51 @@ button.danger-button {
 }
 .sidenav .section-icon {
   font-size: 1.3rem;
+}
+
+/* In- en uitklapbare kopjes in het meetmoment */
+.fold-title {
+  margin-bottom: 0;
+}
+.fold-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.25rem 0;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.fold-toggle:hover span:first-child {
+  text-decoration: underline;
+}
+.expand-icon {
+  display: inline-flex;
+  font-size: 1.5rem;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+.fold.open .expand-icon {
+  transform: rotate(-90deg);
+}
+.fold-summary {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+}
+.fold-summary-label {
+  font-weight: 700;
+  color: var(--text);
+}
+.fold-body {
+  padding-bottom: 0.25rem;
+}
+.policy-field {
+  margin-top: 1rem;
 }

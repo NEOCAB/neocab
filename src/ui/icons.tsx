@@ -13,6 +13,7 @@ import surgical from '@material-symbols/svg-700/outlined/surgical.svg?raw';
 import familyHome from '@material-symbols/svg-700/outlined/family_home.svg?raw';
 import checklist from '@material-symbols/svg-700/outlined/checklist.svg?raw';
 import flag from '@material-symbols/svg-700/outlined/flag.svg?raw';
+import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
 const prep = (svg: string) => svg.replace('<svg ', '<svg fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false" ');
@@ -61,4 +62,11 @@ export function SectionIcon({ id, title, className }: { id?: string; title?: str
   const svg = key ? BY_ID[key] : undefined;
   if (!svg) return null;
   return <span className={`section-icon ${className ?? ''}`} aria-hidden="true" dangerouslySetInnerHTML={{ __html: svg }} />;
+}
+
+const EXPAND = prep(chevron);
+
+/** Pijltje bij een in- en uitklapbaar blok (draait mee via CSS). */
+export function ExpandIcon() {
+  return <span className="expand-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: EXPAND }} />;
 }

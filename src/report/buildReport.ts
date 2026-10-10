@@ -41,6 +41,10 @@ export interface ReportTable {
   rows: string[][];
   /** Cellen met een alert (oranje), zelfde vorm als `rows`. */
   alerts?: boolean[][];
+  /** Toelichtingsrij per rij (bijv. beleidsaanpassingen), getoond als aparte rij onder dezelfde tijd. */
+  notes?: string[];
+  /** Label van de toelichtingsrij. */
+  noteLabel?: string;
 }
 
 export interface ReportBlock {
@@ -312,6 +316,8 @@ export function timelineReportTable(measurements: Measurement[], timeZone: strin
       columns: columns.map((c) => ({ header: c.label, fullLabel: c.fullLabel, unit: c.unit, keyColumn: !!c.key_column, group: TIMELINE_GROUP_LABELS[c.group] })),
       rows: rows.map((m, i) => columns.map((c) => c.cell(m, i))),
       alerts: rows.map((m) => columns.map((c) => c.alert?.(m) ?? false)),
+      notes: rows.map((m) => (m.policyChanges ?? '').trim()),
+      noteLabel: 'Beleidsaanpassingen',
     },
   };
 }

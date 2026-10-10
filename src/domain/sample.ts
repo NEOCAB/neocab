@@ -80,6 +80,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         resp: { mode: 'cpap', settingsByMode: { cpap: { peep: 7, fio2: 45, flow: null } } },
         monitor: { heartRate: 168, respRate: 72, spo2Pre: 89, spo2Post: 88, meanBp: 38, temperature: 36.6, capRefill: 2, tcCo2: null, etCo2: null },
         gas: { type: 'capillair', values: { ph: 7.19, pco2: 8.4, po2: 5.1, hco3: 21, be: -5.2, lactate: 2.8, glucose: 3.9, hb: null } },
+        policyChanges: 'Besluit tot intubatie en surfactant (fictief).',
       },
       {
         id: newId(),
@@ -88,6 +89,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 20, peep: 6, rate: 50, ti: 0.35, fio2: 35, vg: 4.5, map: null, ino: null } } },
         monitor: { heartRate: 155, respRate: null, spo2Pre: 94, spo2Post: 93, meanBp: 40, temperature: 36.8, capRefill: null, tcCo2: 6.1, etCo2: null },
         gas: { type: 'arterieel', values: { ph: 7.27, pco2: 6.3, po2: 7.9, hco3: 22, be: -3.1, lactate: 2.1, glucose: 4.6, hb: 10.2 } },
+        policyChanges: '',
       },
       {
         id: newId(),
@@ -96,6 +98,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         resp: { mode: 'ptv', settingsByMode: { ptv: { pip: 18, peep: 6, rate: 50, ti: 0.35, fio2: 30, vg: 4.5, map: 9, ino: null } } },
         monitor: { heartRate: 150, respRate: null, spo2Pre: 95, spo2Post: null, meanBp: 41, temperature: 36.9, capRefill: null, tcCo2: 5.8, etCo2: null },
         gas: { type: '', values: { ph: null, pco2: null, po2: null, hco3: null, be: null, lactate: null, glucose: null, hb: null } },
+        policyChanges: '',
       },
       {
         id: newId(),
@@ -104,6 +107,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         resp: { mode: 'hfov', settingsByMode: { hfov: { map: 14, amplitude: 28, frequencyHz: 10, fio2: 60, inspFraction: null, ino: null } } },
         monitor: { heartRate: 162, respRate: null, spo2Pre: 86, spo2Post: 84, meanBp: 36, temperature: 36.7, capRefill: null, tcCo2: null, etCo2: null },
         gas: { type: 'arterieel', values: { ph: 7.22, pco2: 7.4, po2: 3.8, hco3: 21, be: -5.5, lactate: 3.0, glucose: 4.8, hb: null } },
+        policyChanges: 'Overgestapt op HFOV; FiO₂ verhoogd (fictief).',
       },
     ],
     otherLabs: 'CRP 4 mg/L (fictief).',
@@ -140,7 +144,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
     ],
     proceduresAndEvents: 'Intubatie bij tweede poging. Surfactant toegediend zonder complicaties.',
     parentsAndFamily: 'Ouders aanwezig, geïnformeerd over overplaatsing. Vader reist mee met eigen vervoer.',
-    checklist: { fixatie: 'gedaan', gas: 'gedaan', tempGlucose: 'gedaan', beeldvorming: 'nog_niet', ouders: 'gedaan', voeding: 'nvt' },
+    checklist: { fixatie: 'gedaan', gas: 'gedaan', tempGlucose: 'gedaan', beeldvorming: 'nog_niet', ouders: 'gedaan', voeding: 'nvt', medischeBrief: 'gedaan', verpleegkundigeBrief: 'gedaan', routeOuders: 'gedaan', neuroDevelopment: 'gedaan', monitoring: 'gedaan' },
     motherPhone: '06 0000 0001',
     partnerPhone: '06 0000 0002',
     closure: {

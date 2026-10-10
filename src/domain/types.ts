@@ -136,6 +136,8 @@ export interface Measurement {
   resp: RespiratorySupport;
   monitor: Record<MonitorKey, Num>;
   gas: BloodGas;
+  /** Vrije tekst: beleidsaanpassingen op dit tijdsmoment. */
+  policyChanges: string;
 }
 
 export interface MedicationAdministration {
@@ -210,7 +212,7 @@ export interface EndotrachealTube {
 }
 
 export type ChecklistStatus = 'nog_niet' | 'gedaan' | 'nvt';
-export const CHECKLIST_KEYS = ['fixatie', 'gas', 'tempGlucose', 'beeldvorming', 'ouders', 'voeding'] as const;
+export const CHECKLIST_KEYS = ['fixatie', 'gas', 'tempGlucose', 'beeldvorming', 'ouders', 'voeding', 'medischeBrief', 'verpleegkundigeBrief', 'routeOuders', 'neuroDevelopment', 'monitoring'] as const;
 export type ChecklistKey = (typeof CHECKLIST_KEYS)[number];
 
 export interface Closure {

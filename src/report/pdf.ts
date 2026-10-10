@@ -18,6 +18,7 @@ const C = {
   blue: [0, 60, 125] as [number, number, number], // donkerblauw, kernkleur
   blue20: [204, 216, 229] as [number, number, number], // donkerblauw 20%
   blue10: [242, 245, 249] as [number, number, number],
+  sand: [240, 226, 210] as [number, number, number], // zand, voor beleidsaanpassingen
   line: [200, 204, 209] as [number, number, number],
   text: [26, 26, 26] as [number, number, number],
   muted: [92, 102, 112] as [number, number, number],
@@ -325,7 +326,14 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
       table.rows.forEach((row, ri) => {
         const cellLines = idx.map((i, k) => split(row[i] ?? '', widths[k] - CELL_PAD * 2, TS.cell));
         const h = Math.max(1, ...cellLines.map((l) => l.length)) * lhCell + 1.4;
-        if (y + h > bottom) {
+        // Toelichtingsrij (beleidsaanpassingen) onder dezelfde tijd, over de volle breedte naast de tijdkolom.
+        const note = table.notes?.[ri] ?? '';
+        const noteX = xs[keyIdx.length];
+        const noteW = xs[xs.length - 1] - noteX;
+        const noteLabel = `${table.noteLabel ?? 'Toelichting'}: `;
+        const noteLines = note ? split(noteLabel + note, noteW - CELL_PAD * 2, TS.cell) : [];
+        const noteH = noteLines.length ? noteLines.length * lhCell + 1.4 : 0;
+        if (y + h + noteH > bottom) {
           continuation = label;
           newPage();
           continuation = null;
@@ -356,8 +364,38 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
           cellLines[k].forEach((l, li) => doc.text(l, xs[k] + CELL_PAD, y + 0.7 + lhCell * (li + 0.75)));
         });
         doc.line(xs[xs.length - 1], y, xs[xs.length - 1], y + h);
-        doc.line(M.left, y + h, xs[xs.length - 1], y + h);
+        // Met beleidsaanpassingen loopt de tijdcel door over beide rijen.
+        doc.line(noteLines.length ? noteX : M.left, y + h, xs[xs.length - 1], y + h);
         y += h;
+        if (noteLines.length) {
+          doc.setFillColor(...C.sand);
+          doc.rect(noteX, y, noteW, noteH, 'F');
+          if (ri % 2 === 1) {
+            doc.setFillColor(...C.blue10);
+            doc.rect(M.left, y, noteX - M.left, noteH, 'F');
+          }
+          doc.setDrawColor(...C.line);
+          doc.setLineWidth(0.1);
+          for (let k = 0; k <= keyIdx.length; k++) doc.line(xs[k], y, xs[k], y + noteH);
+          doc.line(xs[xs.length - 1], y, xs[xs.length - 1], y + noteH);
+          doc.line(M.left, y + noteH, xs[xs.length - 1], y + noteH);
+          doc.setFontSize(TS.cell);
+          doc.setTextColor(...C.text);
+          noteLines.forEach((l, li) => {
+            const ty = y + 0.7 + lhCell * (li + 0.75);
+            if (li === 0) {
+              doc.setFont(FONT, 'bold');
+              doc.text(noteLabel.trim(), noteX + CELL_PAD, ty);
+              const lw = doc.getTextWidth(noteLabel);
+              doc.setFont(FONT, 'normal');
+              doc.text(l.slice(noteLabel.length), noteX + CELL_PAD + lw, ty);
+            } else {
+              doc.setFont(FONT, 'normal');
+              doc.text(l, noteX + CELL_PAD, ty);
+            }
+          });
+          y += noteH;
+        }
       });
       y += 4;
     });
