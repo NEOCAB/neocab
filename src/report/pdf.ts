@@ -244,6 +244,16 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
       return Math.max(head, Math.min(cells, MAX_COL_W), 3.5 * scale) + CELL_PAD * 2;
     });
 
+    // Een groep is minstens zo breed als zijn kop (bijv. "Berekend" boven alleen de OI-kolom).
+    table.columns.forEach((c, ci) => {
+      if (c.keyColumn || table.columns[ci + 1]?.group === c.group) return;
+      let first = ci;
+      while (first > 0 && table.columns[first - 1].group === c.group) first--;
+      const groupW = natural.slice(first, ci + 1).reduce((a, b) => a + b, 0);
+      const need = lineWidth(c.group, TS.group, true) + CELL_PAD * 2 + 0.5;
+      if (groupW < need) natural[ci] += need - groupW;
+    });
+
     // Eén tabel: past hij niet, verklein dan alles naar rato (tot MIN_TABLE_SCALE).
     const naturalTotal = natural.reduce((a, b) => a + b, 0);
     if (scale === 1 && naturalTotal > contentW) {

@@ -46,7 +46,7 @@ const ID_BY_TITLE: Record<string, string> = {
   'Zwangerschap en geboorte': 's3',
   'Toestand bij verwijzing': 's4',
   Dispatch: 'sdispatch',
-  'Onderzoek door transportteam': 's5',
+  Stabilisatie: 's5',
   Tijdlijn: 's6',
   'Overige diagnostiek': 's7',
   Medicatietoedieningen: 's8',

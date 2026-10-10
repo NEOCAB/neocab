@@ -140,7 +140,7 @@ async function basisLayout(page) {
 
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
-  check('Dispatch tussen Toestand bij verwijzing en Onderzoek door transportteam', order[3] === 'Toestand bij verwijzing' && order[4] === 'Dispatch' && order[5] === 'Onderzoek door transportteam' && order.length === 15, order.join(' | '));
+  check('Dispatch tussen Toestand bij verwijzing en Stabilisatie', order[3] === 'Toestand bij verwijzing' && order[4] === 'Dispatch' && order[5] === 'Stabilisatie' && order.length === 15, order.join(' | '));
   check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[6] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
   const called = page.getByLabel('Ambulance aangevraagd', { exact: true });
@@ -340,7 +340,8 @@ async function basisLayout(page) {
   await other.getByRole('button', { name: 'Transport importeren' }).click();
   await other.getByLabel('Plak de overdrachtsmail of de overdrachtscode', { exact: true }).fill(`Hoi, kun jij dit afmaken?\n\n> ${hoText.split('\n').join('\n> ')}`);
   await other.getByRole('button', { name: 'Importeren', exact: true }).click();
-  check('Import van bestaand transport vraagt om bevestiging', await other.getByRole('alertdialog').isVisible());
+  const askedReplace = await other.getByRole('alertdialog').waitFor({ timeout: 5000 }).then(() => true, () => false);
+  check('Import van bestaand transport vraagt om bevestiging', askedReplace);
   await other.getByRole('alertdialog').getByRole('button', { name: 'Vervangen' }).click();
   await other.waitForSelector('#s1');
   await other.getByRole('button', { name: 'Terug naar overzicht van concepten' }).first().click();
@@ -388,8 +389,8 @@ for (const [w, h] of [
     return [getComputedStyle(g[0]).borderRightWidth, getComputedStyle(g[1]).borderLeftWidth];
   });
   check(`${w}px: geen dubbele lijn tussen Meetmoment en Ademhalingsondersteuning`, doubleLine[0] === '3px' && doubleLine[1] === '0px', doubleLine.join(' / '));
-  check(`${w}px: OI onder Ademhalingsondersteuning`, groups[0] === 'Meetmoment' && groups[1] === 'Ademhalingsondersteuning', groups.join(' | '));
-  check(`${w}px: OI-kolom direct rechts van Tijd`, headers[0]?.trim() === 'Tijd' && headers[1]?.trim() === 'OI', headers.slice(0, 3).join(' | '));
+  check(`${w}px: OI als laatste groep, achter Bloedgas`, JSON.stringify(groups) === JSON.stringify(['Meetmoment', 'Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas', 'Berekend']), groups.join(' | '));
+  check(`${w}px: OI-kolom is de laatste kolom`, headers[headers.length - 1]?.trim() === 'OI' && headers[1]?.trim() === 'Modaliteit', headers.slice(-2).join(' | '));
   const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();
   check(`${w}px: OI 29,5 oranje gemarkeerd in tabel`, alertCells.length === 1 && alertCells[0].includes('29,5'), JSON.stringify(alertCells));
   await page.locator('#s6 .row-edit').nth(3).click();

@@ -107,7 +107,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 48 tests):
+Unit-tests (`npm test`, 49 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -150,11 +150,11 @@ scripts/        ui-check.mjs (Playwright)
 
 ## Oxygenatie-index (OI)
 
-- OI = (MAP × FiO₂ × 100) / PaO₂, per meetmoment automatisch berekend en direct rechts van datum/tijd, als eerste kolom onder *Ademhalingsondersteuning*, in de tijdlijntabel getoond (formulier, verslag, pdf, e-mailtekst), plus live in het bewerkformulier van een meetmoment.
+- OI = (MAP × FiO₂ × 100) / PaO₂, per meetmoment automatisch berekend en als laatste kolom (groep *Berekend*, achter *Bloedgas*) in de tijdlijntabel getoond (formulier, verslag, pdf, e-mailtekst), plus live in het bewerkformulier van een meetmoment.
 - MAP = luchtweg-MAP in cmH₂O: bij PTV/SIMV de gemeten MAP, bij HFOV de ingestelde MAP. Alleen bij invasieve beademing.
 - FiO₂ wordt in % ingevoerd; in de formule als fractie (dus FiO₂ % / 100 × 100).
 - PaO₂: alleen een **arterieel** bloedgas telt. pO₂ wordt in kPa ingevoerd en voor de OI omgerekend naar mmHg (× 7,50062), zodat de waarde op de gebruikelijke OI-schaal ligt.
-- Ontbreekt een van deze gegevens, dan blijft de OI-cel leeg.
+- Ontbreekt een van deze gegevens, dan blijft de OI-cel leeg; is de OI bij geen enkel meetmoment berekenbaar, dan vervalt de kolom.
 - OI > 25 krijgt een oranje alert (cel oranje met ▲, in de pdf oranje cel, in de e-mailtekst “LET OP: > 25”). Precies 25 geeft geen alert.
 
 ## Formulieraanpassingen na eerste review
@@ -170,5 +170,5 @@ scripts/        ui-check.mjs (Playwright)
 - Checklist voor vertrek (11 punten), aangevuld met: Medische overplaatsingsbrief; Verpleegkundige overplaatsingsbrief; Directions and contact details of the receiving hospital for parent(s); Neurodevelopment (positioning, lighting and noise reduction); Continuous monitoring (minimaal SpO₂-monitoring). Oudere concepten krijgen deze punten als *nog niet gedaan*.
 - Checklist voor vertrek: per punt één vakje vóór de tekst; tikken op vakje of tekst wisselt leeg (nog niet gedaan) → groen met ✓ (gedaan) → rood met ✕ (niet van toepassing) → leeg.
 - De checklist voor vertrek (sectie 14) staat alleen in het formulier en wordt niet opgenomen in het verslag, de pdf of de e-mailtekst; het verslag springt daar van sectie 13 naar 15, zodat de nummers gelijk blijven aan het formulier.
-- Nieuwe sectie 5 *Dispatch* (tussen Toestand bij verwijzing en Onderzoek door transportteam): *Ambulance aangevraagd* en *Vertrek transportteam*, standaard leeg met knop *Nu invullen*. De secties daarna zijn één nummer opgeschoven (nu 15 secties).
+- Nieuwe sectie 5 *Dispatch* (tussen Toestand bij verwijzing en Stabilisatie): *Ambulance aangevraagd* en *Vertrek transportteam*, standaard leeg met knop *Nu invullen*. De secties daarna zijn één nummer opgeschoven (nu 15 secties).
 - Geen toelichtingsteksten bij verwijzing, tijdlijn, monitorgegevens en lopende infusen.

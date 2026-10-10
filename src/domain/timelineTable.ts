@@ -5,13 +5,14 @@ import { formatInstant, localDateOf } from './time';
 import { sortedMeasurements } from './timeline';
 import { formatOi, isOiAlert, oxygenationIndex } from './oi';
 
-export type TimelineGroup = 'meetmoment' | 'ademhaling' | 'monitor' | 'bloedgas';
+export type TimelineGroup = 'meetmoment' | 'ademhaling' | 'monitor' | 'bloedgas' | 'berekend';
 
 export const TIMELINE_GROUP_LABELS: Record<TimelineGroup, string> = {
   meetmoment: 'Meetmoment',
   ademhaling: 'Ademhalingsondersteuning',
   monitor: 'Monitorgegevens',
   bloedgas: 'Bloedgas',
+  berekend: 'Berekend',
 };
 
 /** Eén kolom van de tijdlijntabel. Elke rij is één meetmoment. */
@@ -102,19 +103,6 @@ function stamp(i: string | null, timeZone: string): string {
 export function allTimelineColumns(timeZone: string, withDate = true): TimelineColumn[] {
   const cols: TimelineColumn[] = [
     { key: 'at', group: 'meetmoment', label: 'Tijd', fullLabel: 'Datum en tijd', unit: '', cell: (m) => (withDate ? stamp(m.at, timeZone) : formatInstant(m.at, timeZone).slice(11)) || '—', key_column: true },
-    // OI direct rechts van datum/tijd, als eerste kolom van Ademhalingsondersteuning.
-    {
-      key: 'oi',
-      group: 'ademhaling',
-      label: 'OI',
-      fullLabel: 'Oxygenatie-index (OI, berekend)',
-      unit: '',
-      cell: (m) => {
-        const oi = oxygenationIndex(m);
-        return oi === null ? '' : formatOi(oi);
-      },
-      alert: (m) => isOiAlert(oxygenationIndex(m)),
-    },
     {
       key: 'mode',
       group: 'ademhaling',
@@ -127,6 +115,19 @@ export function allTimelineColumns(timeZone: string, withDate = true): TimelineC
     ...MONITOR_COLUMNS.map((c) => ({ ...c, key: `mon.${c.key}`, group: 'monitor' as const, cell: (m: Measurement) => num(m.monitor[c.key]) })),
     { key: 'gas.type', group: 'bloedgas', label: 'Type', fullLabel: 'Afnametype (A = arterieel, V = veneus, C = capillair)', unit: '', cell: (m) => GAS_TYPE_SHORT[m.gas.type] },
     ...GAS_COLUMNS.map((c) => ({ ...c, key: `gas.${c.key}`, group: 'bloedgas' as const, cell: (m: Measurement) => num(m.gas.values[c.key]) })),
+    // OI als laatste kolom, achter Bloedgas; valt weg als hij bij geen enkel meetmoment berekenbaar is.
+    {
+      key: 'oi',
+      group: 'berekend',
+      label: 'OI',
+      fullLabel: 'Oxygenatie-index (OI, berekend)',
+      unit: '',
+      cell: (m) => {
+        const oi = oxygenationIndex(m);
+        return oi === null ? '' : formatOi(oi);
+      },
+      alert: (m) => isOiAlert(oxygenationIndex(m)),
+    },
   ];
   return cols;
 }

@@ -29,7 +29,7 @@ export const SECTIONS = [
   { id: 's3', label: 'Zwangerschap en geboorte' },
   { id: 's4', label: 'Toestand bij verwijzing' },
   { id: 'sdispatch', label: 'Dispatch' },
-  { id: 's5', label: 'Onderzoek transportteam' },
+  { id: 's5', label: 'Stabilisatie' },
   { id: 's6', label: 'Tijdlijn' },
   { id: 's7', label: 'Overige diagnostiek' },
   { id: 's8', label: 'Medicatie' },

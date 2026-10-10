@@ -183,13 +183,13 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Dispatch', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // 6 Onderzoek door transportteam (aankomst bij kind staat bij 5 Dispatch)
+  // 6 Stabilisatie (aankomst bij kind staat bij 5 Dispatch)
   {
     const a = t.teamAssessment;
     const b = new RowBuilder();
     b.rows.push(...abcdRows(a.notes));
     b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan).kv('Laatste voeding', fi(a.lastFeedAt));
-    sections.push({ title: 'Onderzoek door transportteam', blocks: [{ rows: b.orEmpty() }] });
+    sections.push({ title: 'Stabilisatie', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // 6 Tijdlijn: één tabel, elke rij is één meetmoment

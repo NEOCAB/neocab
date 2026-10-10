@@ -35,7 +35,7 @@ function bigTransport(): Transport {
 describe('verslag', () => {
   it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'ONDERZOEK DOOR TRANSPORTTEAM', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', 'OUDERS EN GEZIN', 'AFSLUITING TRANSPORT']) expect(text).toContain(h);
+    for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'STABILISATIE\n', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', 'OUDERS EN GEZIN', 'AFSLUITING TRANSPORT']) expect(text).toContain(h);
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     for (const gone of ['CHECKLIST', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
     expect(text).not.toContain('Allergie');
@@ -50,7 +50,7 @@ describe('verslag', () => {
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
     expect(text).toContain('Ambulance aangevraagd: 09-10-2026 22:20');
     expect(text).toContain('Vertrek transportteam: 09-10-2026 22:35');
-    const s5 = text.slice(text.indexOf('DISPATCH'), text.indexOf('ONDERZOEK DOOR TRANSPORTTEAM'));
+    const s5 = text.slice(text.indexOf('DISPATCH'), text.indexOf('STABILISATIE\n'));
     expect(s5).toContain('Aankomst bij kind: 09-10-2026 23:05');
     for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');
@@ -70,7 +70,7 @@ describe('verslag', () => {
     expect(tables).toHaveLength(1);
     const table = tables[0].table!;
     expect(table.rows).toHaveLength(t.measurements.length);
-    expect([...new Set(table.columns.map((c) => c.group))]).toEqual(['Meetmoment', 'Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas']);
+    expect([...new Set(table.columns.map((c) => c.group))]).toEqual(['Meetmoment', 'Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas', 'Berekend']);
     const headers = table.columns.map((c) => c.header);
     for (const h of ['#', 'Fase', 'Tube']) expect(headers).not.toContain(h);
     expect(headers[0]).toBe('Tijd');
@@ -104,8 +104,8 @@ describe('verslag', () => {
     const section = buildReport(t, TZ).sections.find((s) => s.title === 'Tijdlijn')!;
     const table = section.blocks.find((b) => b.table)!.table!;
     const oi = table.columns.findIndex((c) => c.header === 'OI');
-    expect(table.columns[oi].group).toBe('Ademhalingsondersteuning');
-    expect(oi).toBe(1); // direct rechts van Tijd, eerste kolom van de groep
+    expect(table.columns[oi].group).toBe('Berekend');
+    expect(oi).toBe(table.columns.length - 1); // laatste kolom, achter Bloedgas
     // Meetmoment 2: PTV zonder gemeten MAP -> geen OI; meetmoment 4: HFOV MAP 14, FiO₂ 60 %, PaO₂ 3,8 kPa -> 29,5.
     expect(table.rows.map((r) => r[oi])).toEqual(['', '', '', '29,5']);
     expect(table.alerts!.map((r) => r[oi])).toEqual([false, false, false, true]);
@@ -125,6 +125,14 @@ describe('verslag', () => {
     expect(m1).toContain('    Beleidsaanpassingen: Besluit tot intubatie en surfactant (fictief).');
     const m2 = text.slice(text.indexOf('Meetmoment 2'), text.indexOf('Meetmoment 3'));
     expect(m2).not.toContain('Beleidsaanpassingen');
+  });
+
+  it('laat de OI-kolom weg als de OI bij geen enkel meetmoment berekenbaar is', () => {
+    const t = sampleTransport(TZ);
+    t.measurements = t.measurements.slice(0, 3);
+    const table = buildReport(t, TZ).sections.find((s) => s.title === 'Tijdlijn')!.blocks.find((b) => b.table)!.table!;
+    expect(table.columns.some((c) => c.header === 'OI')).toBe(false);
+    expect(table.columns.some((c) => c.group === 'Berekend')).toBe(false);
   });
 
   it('exporteert alleen instellingen van de actuele modaliteit', () => {
