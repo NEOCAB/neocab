@@ -933,10 +933,58 @@ fieldset.group > legend {
   font-size: 0.95rem;
   color: var(--primary);
 }
-.chart-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
-  gap: 0.6rem;
+/* Eén kolom: alle grafieken onder elkaar met dezelfde y-as-positie en tijd-as. */
+.timeline-charts .chart-card {
+  margin-bottom: 0.6rem;
+}
+.chart-axis {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  margin: 0.3rem 0 0.2rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+.legend-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.legend-label {
+  color: var(--text);
+}
+.chart-marker {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+.chart-lane-sep {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.chart-lane-label {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text);
+}
+.chart-lane-unit {
+  font-weight: 400;
+  fill: var(--muted);
+}
+.chart-lane-value {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 .chart-card {
   margin: 0;

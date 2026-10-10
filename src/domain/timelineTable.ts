@@ -49,7 +49,7 @@ const RESP_COLUMNS: { key: string; label: string; fullLabel: string; unit: strin
   { key: 'pip', label: 'PIP', fullLabel: 'PIP', unit: 'cmH₂O' },
   { key: 'peep', label: 'PEEP', fullLabel: 'PEEP', unit: 'cmH₂O' },
   { key: 'rate', label: 'Freq.', fullLabel: 'Frequentie (ingesteld/back-up)', unit: '/min' },
-  { key: 'ti', label: 'Ti', fullLabel: 'Inspiratietijd', unit: 's' },
+  { key: 'ti', label: 'iT', fullLabel: 'Inspiratietijd (iT)', unit: 's' },
   { key: 'vg', label: 'VG', fullLabel: 'VG (ingesteld doelteugvolume)', unit: 'mL/kg' },
   { key: 'map', label: 'MAP luchtweg', fullLabel: 'MAP (luchtweg)', unit: 'cmH₂O' },
   { key: 'ps', label: 'PS', fullLabel: 'Pressure support', unit: 'cmH₂O' },

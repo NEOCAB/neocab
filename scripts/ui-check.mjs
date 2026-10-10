@@ -435,9 +435,18 @@ for (const [w, h] of [
   await page.locator('#s6').getByRole('radio', { name: 'Grafiek' }).check();
   const charts = page.locator('#s6 .chart-card:not(.chart-band)');
   const nCharts = await charts.count();
-  check(`${w}px: grafiekweergave met één grafiek per waarde en modaliteitsband`, nCharts === headers.length - 3 && (await page.locator('#s6 .chart-band').count()) === 1 && (await page.locator('#s6 .data-table').count()) === 0, `${nCharts} grafieken`);
+  const titles = await page.locator('#s6 .chart-combined .chart-title').allTextContents();
+  check(`${w}px: gecombineerde grafieken Beademing, Vitale functies en Bloedgas; geen iT; tabel weg`, JSON.stringify(titles) === JSON.stringify(['Beademing', 'Vitale functies', 'Bloedgas']) && (await page.locator('#s6 .chart-title', { hasText: /^iT|^Ti/ }).count()) === 0 && (await page.locator('#s6 .data-table').count()) === 0, titles.join(' | '));
+  const legend = await page.locator('#s6 .chart-combined').first().locator('.legend-label').allTextContents();
+  check(`${w}px: Beademing toont drukken en FiO₂ samen, VG als strook`, ['PIP', 'PEEP', 'MAP luchtweg', 'FiO₂'].every((l) => legend.some((x) => x.startsWith(l))) && (await page.locator('#s6 .chart-combined').first().locator('.chart-lane-label', { hasText: 'VG' }).count()) === 1, legend.join(' | '));
+  const layout = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('#s6 .chart-card')].map((c) => c.getBoundingClientRect());
+    const axes = [...document.querySelectorAll('#s6 .chart-axis')].map((l) => Math.round(l.getBoundingClientRect().left));
+    return { oneColumn: new Set(cards.map((r) => Math.round(r.left))).size === 1 && new Set(cards.map((r) => Math.round(r.width))).size === 1, sameAxis: new Set(axes).size === 1 };
+  });
+  check(`${w}px: grafieken in één kolom met dezelfde y-as-positie`, layout.oneColumn && layout.sameAxis, JSON.stringify(layout));
   check(`${w}px: grafieken geen horizontaal scrollen`, await noHorizontalScroll(page));
-  const firstSvg = await charts.first().locator('svg').boundingBox();
+  const firstSvg = await charts.first().locator('svg.chart-svg').boundingBox();
   await page.mouse.move(firstSvg.x + firstSvg.width - 12, firstSvg.y + firstSvg.height / 2);
   check(`${w}px: aanwijzen toont in alle grafieken hetzelfde meetmoment`, (await page.locator('#s6 .chart-crosshair').count()) === nCharts);
   check(`${w}px: OI > 25 oranje in de grafiek`, (await page.locator('#s6 .chart-dot.alert').count()) === 1);
