@@ -17,6 +17,7 @@ import { compareInstants, DEFAULT_TIME_ZONE, formatInstant, formatLocalDate } fr
 import { correctedAge, formatGestation, transportDate } from '../domain/calc';
 import { sortedRates, sortedVersions } from '../domain/timeline';
 import { GAS_TYPE_LEGEND, TIMELINE_GROUP_LABELS, hasGas, timelineTable } from '../domain/timelineTable';
+import { OI_ALERT_THRESHOLD, OI_FORMULA, oxygenationIndex } from '../domain/oi';
 
 export type ReportRow =
   | { type: 'kv'; label: string; value: string }
@@ -40,6 +41,8 @@ export interface ReportTableColumn {
 export interface ReportTable {
   columns: ReportTableColumn[];
   rows: string[][];
+  /** Cellen met een alert (oranje), zelfde vorm als `rows`. */
+  alerts?: boolean[][];
 }
 
 export interface ReportBlock {
@@ -185,7 +188,15 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({
       title: '6 Tijdlijn: ademhalingsondersteuning, monitorgegevens en bloedgassen',
       blocks: rows.length
-        ? [{ rows: [], table }, ...(rows.some(hasGas) ? [{ rows: [{ type: 'note' as const, text: GAS_TYPE_LEGEND }] }] : [])]
+        ? [
+            { rows: [], table },
+            {
+              rows: [
+                ...(rows.some(hasGas) ? [{ type: 'note' as const, text: GAS_TYPE_LEGEND }] : []),
+                ...(rows.some((m) => oxygenationIndex(m) !== null) ? [{ type: 'note' as const, text: `${OI_FORMULA}. Oranje gemarkeerd: OI > ${OI_ALERT_THRESHOLD}.` }] : []),
+              ],
+            },
+          ].filter((b) => b.table || b.rows.length)
         : [{ rows: [{ type: 'note', text: 'Geen meetmomenten geregistreerd.' }] }],
     });
   }
@@ -304,6 +315,7 @@ export function timelineReportTable(measurements: Measurement[], timeZone: strin
     table: {
       columns: columns.map((c) => ({ header: c.label, fullLabel: c.fullLabel, unit: c.unit, keyColumn: !!c.key_column, group: TIMELINE_GROUP_LABELS[c.group] })),
       rows: rows.map((m, i) => columns.map((c) => c.cell(m, i))),
+      alerts: rows.map((m) => columns.map((c) => c.alert?.(m) ?? false)),
     },
   };
 }

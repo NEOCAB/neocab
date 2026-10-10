@@ -17,12 +17,27 @@ import { formatInstant } from '../../domain/time';
 import { tubeAt, upsertMeasurement } from '../../domain/timeline';
 import { timelineReportTable, tubeSummary } from '../../report/buildReport';
 import { DataTable } from '../DataTable';
+import { OI_ALERT_THRESHOLD, OI_FORMULA, formatOi, isOiAlert, oxygenationIndex } from '../../domain/oi';
 import { DateTimeField, NumberField, Section, Segmented, SelectField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
 const rulesOf = (d: NumFieldDef) => ({ min: d.min, max: d.max, integer: d.integer });
+
+/** Oxygenatie-index van het meetmoment in bewerking; oranje alert boven de drempel. */
+function OiLine({ m }: { m: Measurement }) {
+  const oi = oxygenationIndex(m);
+  if (oi === null) return null;
+  const alert = isOiAlert(oi);
+  return (
+    <p className={`oi-line ${alert ? 'alert' : ''}`} role={alert ? 'alert' : 'status'} title={OI_FORMULA}>
+      {alert && <span aria-hidden="true">▲ </span>}
+      Oxygenatie-index (OI): {formatOi(oi)}
+      {alert && ` — boven ${OI_ALERT_THRESHOLD}`}
+    </p>
+  );
+}
 
 function ModePicker({ value, onChange }: { value: RespMode | ''; onChange: (m: RespMode | '') => void }) {
   const groups: { title: string; modes: RespMode[] }[] = [
@@ -123,6 +138,7 @@ function MeasurementEditor({ draft, setDraft, tubes, isNew, proposed, onSave, on
           <NumberField key={f.key} label={f.label} unit={f.unit} value={draft.gas.values[f.key]} onChange={(v) => setDraft({ ...draft, gas: { ...draft.gas, values: { ...draft.gas.values, [f.key]: v } } })} rules={rulesOf(f)} />
         ))}
       </div>
+      <OiLine m={draft} />
 
       <div className="editor-actions">
         <button type="submit" className="primary">

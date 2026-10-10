@@ -46,6 +46,7 @@ async function unlabeledControls(page) {
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
   await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
   const referred = await page.getByLabel('Datum en tijd verwijzing', { exact: true }).inputValue();
+  check('Ontvangende afdeling en ziekenhuis standaard leeg', (await page.getByLabel('Ontvangende afdeling', { exact: true }).inputValue()) === '' && (await page.getByLabel('Ontvangend ziekenhuis', { exact: true }).inputValue()) === '');
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
   check('Aankomst verwijzend ziekenhuis blijft leeg', (await page.getByLabel('Datum en tijd aankomst bij het verwijzende ziekenhuis', { exact: true }).inputValue()) === '');
 
@@ -203,17 +204,22 @@ for (const [w, h] of [
   await page.locator('#s6 .data-table').scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${OUT}/${w}-tijdlijn.png` });
   const rowCount = await page.locator('#s6 .data-table tbody tr').count();
-  check(`${w}px: tijdlijn is één tabel met één rij per meetmoment`, (await page.locator('#s6 .data-table').count()) === 1 && rowCount === 3, `${rowCount} rijen`);
+  check(`${w}px: tijdlijn is één tabel met één rij per meetmoment`, (await page.locator('#s6 .data-table').count()) === 1 && rowCount === 4, `${rowCount} rijen`);
   const headers = await page.locator('#s6 .data-table thead tr:not(.group-row) th').allTextContents();
   check(`${w}px: geen kolommen #, Fase of Tube`, !headers.some((h) => ['#', 'Fase', 'Tube'].includes(h.trim())), headers.join(' | '));
   check(`${w}px: geen aparte CPAP-kolom`, !headers.some((h) => h.startsWith('CPAP')));
   const peepIdx = headers.findIndex((h) => h.startsWith('PEEP'));
   const peeps = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), peepIdx);
-  check(`${w}px: PEEP-kolom ook gevuld bij CPAP`, JSON.stringify(peeps) === JSON.stringify(['7', '6', '6']), JSON.stringify(peeps));
+  check(`${w}px: PEEP-kolom ook gevuld bij CPAP`, JSON.stringify(peeps) === JSON.stringify(['7', '6', '6', '']), JSON.stringify(peeps));
   const types = await page.locator('#s6 .data-table tbody tr').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), headers.findIndex((h) => h.startsWith('Type')));
-  check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '']), JSON.stringify(types));
+  check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '', 'A']), JSON.stringify(types));
   await page.locator('#s6 .row-edit').nth(1).click();
   check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 8 cm'));
+  await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
+  const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();
+  check(`${w}px: OI 29,5 oranje gemarkeerd in tabel`, alertCells.length === 1 && alertCells[0].includes('29,5'), JSON.stringify(alertCells));
+  await page.locator('#s6 .row-edit').nth(3).click();
+  check(`${w}px: bewerkformulier toont OI-alert`, (await page.locator('#s6 .oi-line.alert').textContent())?.includes('29,5'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.locator('#s6 .row-edit').nth(2).click();
   check(`${w}px: bewerken toont tube na aanpassing (7,5 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 7,5 cm'));

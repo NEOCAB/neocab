@@ -59,8 +59,8 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
       referringDepartment: '',
       referrerName: '',
       referrerPhone: '',
-      receivingHospital: 'LUMC',
-      receivingDepartment: 'NICU',
+      receivingHospital: '',
+      receivingDepartment: '',
       reason: '',
     },
     birth: {

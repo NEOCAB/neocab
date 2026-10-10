@@ -57,8 +57,16 @@ export function DataTable({
                     {renderKeyCell ? renderKeyCell(r, v) : v}
                   </th>
                 ) : (
-                  <td key={i} className={`${table.columns[i].keyColumn ? 'key' : ''} col-${i} ${v === 'onbekend' ? 'unknown' : ''}`}>
-                    {v}
+                  <td key={i} className={`${table.columns[i].keyColumn ? 'key' : ''} col-${i} ${v === 'onbekend' ? 'unknown' : ''} ${table.alerts?.[r]?.[i] ? 'alert' : ''}`}>
+                    {table.alerts?.[r]?.[i] ? (
+                      <>
+                        <span aria-hidden="true">▲ </span>
+                        {v}
+                        <span className="sr-only"> (alert: boven drempel)</span>
+                      </>
+                    ) : (
+                      v
+                    )}
                   </td>
                 ),
               )}

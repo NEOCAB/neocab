@@ -323,10 +323,21 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
         doc.setDrawColor(200, 208, 216);
         doc.setLineWidth(0.1);
         cols.forEach((c, k) => {
+          const alert = table.alerts?.[ri]?.[idx[k]] ?? false;
+          if (alert) {
+            // Oranje alert (bijv. OI > 25).
+            doc.setFillColor(255, 224, 184);
+            doc.setDrawColor(224, 123, 0);
+            doc.setLineWidth(0.5);
+            doc.rect(xs[k] + 0.25, y + 0.25, widths[k] - 0.5, h - 0.5, 'FD');
+            doc.setDrawColor(200, 208, 216);
+            doc.setLineWidth(0.1);
+          }
           doc.line(xs[k], y, xs[k], y + h);
-          doc.setFont(FONT, c.keyColumn ? 'bold' : 'normal');
+          doc.setFont(FONT, c.keyColumn || alert ? 'bold' : 'normal');
           doc.setFontSize(TS.cell);
-          doc.setTextColor(15, 15, 15);
+          if (alert) doc.setTextColor(122, 60, 0);
+          else doc.setTextColor(15, 15, 15);
           cellLines[k].forEach((l, li) => doc.text(l, xs[k] + CELL_PAD, y + 0.7 + lhCell * (li + 0.75)));
         });
         doc.line(xs[xs.length - 1], y, xs[xs.length - 1], y + h);

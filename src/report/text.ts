@@ -10,7 +10,7 @@ function tableToText(table: ReportTable): string[] {
       const v = (row[i] ?? '').replace(/\n/g, ' ');
       if (!v) return;
       if (c.keyColumn) key.push(v);
-      else data.push(`${c.fullLabel}: ${v}${c.unit ? ` ${c.unit}` : ''}`);
+      else data.push(`${c.fullLabel}: ${v}${c.unit ? ` ${c.unit}` : ''}${table.alerts?.[r]?.[i] ? ' (LET OP: > 25)' : ''}`);
     });
     out.push(`Meetmoment ${r + 1} · ${key.join(' · ')}`, `    ${data.join('; ') || 'geen waarden'}`);
   });

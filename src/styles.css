@@ -1,4 +1,7 @@
 :root {
+  --alert-bg: #ffe0b8;
+  --alert-border: #e07b00;
+  --alert-text: #7a3c00;
   --bg: #f3f6f9;
   --surface: #ffffff;
   --text: #17212b;
@@ -678,6 +681,7 @@ fieldset.group > legend {
 
 /* Tijdlijntabel: één rij per meetmoment */
 .table-scroll {
+  position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
@@ -774,6 +778,27 @@ fieldset.group > legend {
 }
 .table-hint {
   margin-bottom: 0;
+}
+
+/* Oranje alert (bijv. OI > 25) */
+.data-table td.alert,
+.data-table tbody tr:nth-child(even) td.alert {
+  background: var(--alert-bg);
+  color: var(--alert-text);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--alert-border);
+}
+.oi-line {
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  background: #f2f5f8;
+  font-size: 0.95rem;
+}
+.oi-line.alert {
+  background: var(--alert-bg);
+  color: var(--alert-text);
+  border: 2px solid var(--alert-border);
+  font-weight: 700;
 }
 
 /* Infusen en tube */
@@ -986,6 +1011,10 @@ fieldset.group > legend {
   .data-table .col-0,
   .data-table .sticky-group {
     position: static;
+  }
+  .data-table td.alert {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

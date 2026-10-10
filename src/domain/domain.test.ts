@@ -3,6 +3,7 @@ import { correctedAge, parseGestation, transportDate } from './calc';
 import { newMeasurement, newTransport, newTube, newTubeVersion } from './factory';
 import { INVASIVE_MODES, NON_INVASIVE_MODES, respFieldsFor } from './labels';
 import { parseNum } from './num';
+import { isOiAlert, oxygenationIndex } from './oi';
 import { instantToWall, localDateOf, nowInstant, wallToInstant, formatInstant } from './time';
 import { sortedMeasurements, tubeAt, upsertMeasurement } from './timeline';
 import type { Measurement, RespMode } from './types';
@@ -48,6 +49,33 @@ describe('amenorroeduur als weken+dagen', () => {
     expect(parseGestation('33+7').ok).toBe(false);
     expect(parseGestation('33+').ok).toBe(false);
     expect(parseGestation('abc').ok).toBe(false);
+  });
+});
+
+describe('oxygenatie-index', () => {
+  const base = (over: Partial<Measurement> = {}): Measurement => ({
+    ...newMeasurement([], TZ),
+    resp: { mode: 'hfov', settingsByMode: { hfov: { map: 14, fio2: 60 } } },
+    gas: { type: 'arterieel', values: { ph: null, pco2: null, po2: 3.8, hco3: null, be: null, lactate: null, glucose: null, hb: null } },
+    ...over,
+  });
+  it('rekent (MAP × FiO₂ × 100) / PaO₂ met PaO₂ in mmHg', () => {
+    // 14 × 0,60 × 100 / (3,8 × 7,50062) = 29,47
+    expect(oxygenationIndex(base())).toBeCloseTo(29.47, 2);
+    expect(isOiAlert(oxygenationIndex(base()))).toBe(true);
+    const ptv = base({ resp: { mode: 'ptv', settingsByMode: { ptv: { map: 10, fio2: 40 } } }, gas: { ...base().gas, values: { ...base().gas.values, po2: 8 } } });
+    expect(oxygenationIndex(ptv)).toBeCloseTo((10 * 40) / (8 * 7.50062), 5);
+    expect(isOiAlert(oxygenationIndex(ptv))).toBe(false);
+  });
+  it('alleen bij arterieel bloedgas, invasieve beademing en bekende MAP/FiO₂/PaO₂', () => {
+    expect(oxygenationIndex(base({ gas: { ...base().gas, type: 'capillair' } }))).toBeNull();
+    expect(oxygenationIndex(base({ resp: { mode: 'cpap', settingsByMode: { cpap: { peep: 7, fio2: 60 } } } }))).toBeNull();
+    expect(oxygenationIndex(base({ resp: { mode: 'ptv', settingsByMode: { ptv: { fio2: 40 } } } }))).toBeNull();
+    expect(oxygenationIndex(base({ gas: { ...base().gas, values: { ...base().gas.values, po2: null } } }))).toBeNull();
+  });
+  it('drempel: precies 25 geeft geen alert, daarboven wel', () => {
+    expect(isOiAlert(25)).toBe(false);
+    expect(isOiAlert(25.1)).toBe(true);
   });
 });
 

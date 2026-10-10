@@ -67,16 +67,31 @@ describe('verslag', () => {
     expect(headers[0]).toBe('Tijd');
     const col = (h: string, unit = '') => table.columns.findIndex((c) => c.header === h && c.unit === unit);
     // Rijen chronologisch; bloeddruk (mmHg) en luchtwegdruk (cmH₂O) zijn aparte kolommen.
-    expect(table.rows.map((r) => r[col('Tijd')])).toEqual(['09-10-2026\n23:10', '09-10-2026\n23:45', '10-10-2026\n00:50']);
+    expect(table.rows.map((r) => r[col('Tijd')])).toEqual(['09-10-2026\n23:10', '09-10-2026\n23:45', '10-10-2026\n00:50', '10-10-2026\n01:20']);
     expect(table.rows[1][col('Bloeddruk MAP', 'mmHg')]).toBe('40');
     expect(table.rows[2][col('MAP luchtweg', 'cmH₂O')]).toBe('9');
     // Bij CPAP wordt PEEP ingevoerd; geen aparte CPAP-kolom.
     expect(col('CPAP', 'cmH₂O')).toBe(-1);
-    expect(table.rows.map((r) => r[col('PEEP', 'cmH₂O')])).toEqual(['7', '6', '6']);
-    expect(table.rows.map((r) => r[col('Type')])).toEqual(['C', 'A', '']);
+    expect(table.rows.map((r) => r[col('PEEP', 'cmH₂O')])).toEqual(['7', '6', '6', '']);
+    expect(table.rows.map((r) => r[col('Type')])).toEqual(['C', 'A', '', 'A']);
     expect(section.blocks.some((b) => b.rows.some((r) => r.type === 'note' && r.text.includes('A = arterieel, V = veneus, C = capillair')))).toBe(true);
     // Lege kolommen (geen enkele waarde) worden weggelaten.
     expect(col('etCO₂', 'kPa')).toBe(-1);
+  });
+
+  it('berekent de OI in de tabel en markeert OI > 25 als alert', () => {
+    const t = sampleTransport(TZ);
+    const section = buildReport(t, TZ).sections.find((s) => s.title.startsWith('6 '))!;
+    const table = section.blocks.find((b) => b.table)!.table!;
+    const oi = table.columns.findIndex((c) => c.header === 'OI');
+    expect(table.columns[oi].group).toBe('Bloedgas');
+    expect(oi).toBe(table.columns.length - 1);
+    // Meetmoment 2: PTV zonder gemeten MAP -> geen OI; meetmoment 4: HFOV MAP 14, FiO₂ 60 %, PaO₂ 3,8 kPa -> 29,5.
+    expect(table.rows.map((r) => r[oi])).toEqual(['', '', '', '29,5']);
+    expect(table.alerts!.map((r) => r[oi])).toEqual([false, false, false, true]);
+    const text = reportToText(buildReport(t, TZ));
+    expect(text).toContain('Oxygenatie-index (OI, berekend): 29,5 (LET OP: > 25)');
+    expect(text).toContain('Oranje gemarkeerd: OI > 25.');
   });
 
   it('exporteert alleen instellingen van de actuele modaliteit', () => {

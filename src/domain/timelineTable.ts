@@ -3,6 +3,7 @@ import { RESP_MODE_LABELS, respFieldsFor } from './labels';
 import { formatNum } from './num';
 import { formatInstant } from './time';
 import { sortedMeasurements } from './timeline';
+import { formatOi, isOiAlert, oxygenationIndex } from './oi';
 
 export type TimelineGroup = 'meetmoment' | 'ademhaling' | 'monitor' | 'bloedgas';
 
@@ -26,6 +27,8 @@ export interface TimelineColumn {
   cell: (m: Measurement, index: number) => string;
   /** Kolom die altijd getoond wordt (identificatie van de rij). */
   key_column?: boolean;
+  /** Cel vraagt aandacht (oranje alert), bijv. OI > 25. */
+  alert?: (m: Measurement) => boolean;
 }
 
 const num = (v: Num | undefined) => formatNum(v ?? null) ?? '';
@@ -108,6 +111,18 @@ export function allTimelineColumns(timeZone: string): TimelineColumn[] {
     ...MONITOR_COLUMNS.map((c) => ({ ...c, key: `mon.${c.key}`, group: 'monitor' as const, cell: (m: Measurement) => num(m.monitor[c.key]) })),
     { key: 'gas.type', group: 'bloedgas', label: 'Type', fullLabel: 'Afnametype (A = arterieel, V = veneus, C = capillair)', unit: '', cell: (m) => GAS_TYPE_SHORT[m.gas.type] },
     ...GAS_COLUMNS.map((c) => ({ ...c, key: `gas.${c.key}`, group: 'bloedgas' as const, cell: (m: Measurement) => num(m.gas.values[c.key]) })),
+    {
+      key: 'oi',
+      group: 'bloedgas',
+      label: 'OI',
+      fullLabel: 'Oxygenatie-index (OI, berekend)',
+      unit: '',
+      cell: (m) => {
+        const oi = oxygenationIndex(m);
+        return oi === null ? '' : formatOi(oi);
+      },
+      alert: (m) => isOiAlert(oxygenationIndex(m)),
+    },
   ];
   return cols;
 }
