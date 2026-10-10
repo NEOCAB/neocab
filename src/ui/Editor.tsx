@@ -4,6 +4,7 @@ import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
 import { Logo, SaveIcon, SectionIcon } from './icons';
+import { saveLevel } from './saveStatus';
 import {
   ChecklistSection,
   ChildSection,
@@ -48,11 +49,18 @@ function goToSection(id: string) {
 
 const AUTOSAVE_MS = 700;
 
+function savedTimeLabel(savedAt: string | null, tz: string): string | null {
+  return savedAt ? new Date(savedAt).toLocaleTimeString('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
+}
+
 export function Editor({ initial, repo, onExit, onReport }: { initial: Transport; repo: TransportRepository; onExit: () => void; onReport: () => void }) {
   const tz = useTimeZone();
   const [t, setT] = useState(initial);
   const anonymous = useAnonymous();
   const [dirty, setDirty] = useState(false);
+  // Sinds wanneer wijzigingen wachten op opslag (voor de kleur van de opslagstatus).
+  const [pendingSince, setPendingSince] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [savedAt, setSavedAt] = useState<string | null>(initial.updatedAt);
   const [saveError, setSaveError] = useState<string | null>(null);
   const latest = useRef(t);
@@ -63,6 +71,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
   const update: Update = useCallback((fn) => {
     setT((prev) => fn(prev));
     setDirty(true);
+    setPendingSince((p) => p ?? Date.now());
   }, []);
 
   const saveNow = useCallback(() => {
@@ -70,6 +79,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
       const saved = repo.save(latest.current);
       setSavedAt(saved.updatedAt);
       setDirty(false);
+      setPendingSince(null);
       setSaveError(null);
       return true;
     } catch (e) {
@@ -77,6 +87,20 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
       return false;
     }
   }, [repo]);
+
+  // Klok voor de opslagstatus, alleen zolang er iets wacht op opslag.
+  useEffect(() => {
+    if (pendingSince === null) return;
+    setNow(Date.now());
+    const h = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(h);
+  }, [pendingSince]);
+  const level = saveLevel(pendingSince, now, !!saveError);
+  const savedLabel = savedTimeLabel(savedAt, tz);
+  // Alleen een icoon in beeld; de tekst staat in de tooltip en is voor schermlezers.
+  const saveText =
+    saveError ??
+    (level === 'error' ? 'Wijzigingen zijn al langer dan een minuut niet opgeslagen' : level === 'waiting' ? 'Wijzigingen wachten op opslag' : dirty ? 'Opslaan…' : savedLabel ? `Concept lokaal opgeslagen om ${savedLabel}` : 'Nog niet opgeslagen');
 
   // Automatische conceptopslag kort na elke wijziging.
   useEffect(() => {
@@ -100,7 +124,6 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
   }, [saveNow]);
 
   const props = { t, update };
-  const savedLabel = savedAt ? new Date(savedAt).toLocaleTimeString('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
 
   return (
     <div className="editor-layout">
@@ -146,16 +169,9 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
             </select>
           </div>
           {/* Opslagstatus links van Verslag & export; op een smal scherm alleen icoon en tijd. */}
-          <span className={`save-status ${saveError ? 'error' : dirty ? 'pending' : 'ok'}`} role="status" title={savedLabel ? `Concept lokaal opgeslagen om ${savedLabel}` : undefined}>
-            <SaveIcon />
-            {saveError ?? (dirty ? 'Opslaan…' : savedLabel ? (
-              <>
-                <span className="wide-only">Concept lokaal opgeslagen </span>
-                {savedLabel}
-              </>
-            ) : (
-              'Nog niet opgeslagen'
-            ))}
+          <span className={`save-status ${level}`} role="status" title={saveText}>
+            <SaveIcon clock={level !== 'ok'} />
+            <span className="sr-only">{saveText}</span>
           </span>
           <button type="button" className="primary small" onClick={() => { saveNow(); onReport(); }}>
             Verslag<span className="wide-only"> &amp; export</span>

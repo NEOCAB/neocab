@@ -17,6 +17,7 @@ import logoUrl from '../assets/neocab-logo.svg';
 import tableChart from '@material-symbols/svg-700/outlined/table_chart.svg?raw';
 import showChart from '@material-symbols/svg-700/outlined/show_chart.svg?raw';
 import save from '@material-symbols/svg-700/outlined/save.svg?raw';
+import saveClock from '@material-symbols/svg-700/outlined/save_clock.svg?raw';
 import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
@@ -95,8 +96,9 @@ export function ViewIcon({ view }: { view: keyof typeof VIEW_ICONS }) {
 }
 
 const SAVE = prep(save);
+const SAVE_CLOCK = prep(saveClock);
 
-/** Diskette: concept opgeslagen. */
-export function SaveIcon() {
-  return <span className="save-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: SAVE }} />;
+/** Diskette: opgeslagen; met klokje als wijzigingen (te) lang wachten op opslag. */
+export function SaveIcon({ clock = false }: { clock?: boolean }) {
+  return <span className="save-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: clock ? SAVE_CLOCK : SAVE }} />;
 }

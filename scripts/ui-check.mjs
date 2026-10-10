@@ -415,6 +415,21 @@ async function basisLayout(page) {
   check('Persoonlijk apparaat: geïmporteerd transport wordt anoniem', (await own.getByLabel('Naam kind', { exact: true }).inputValue()) === '' && !(await own.locator('.topbar').textContent()).includes('Testbaby'));
   const stored = await own.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('neonataal-transport:v1:') && !k.endsWith('index') && !k.endsWith('instellingen')).map((k) => localStorage.getItem(k)).join(''));
   check('Persoonlijk apparaat: geen naam of patiëntnummer in de lokale opslag', !stored.includes('Testbaby') && !stored.includes('0007788') && !stored.includes('Baby Voorbeeld') && !stored.includes('0012345'));
+  // Opslagstatus: groen met diskette na opslaan; rood met klokje als opslaan mislukt
+  await own.getByLabel('Geboortegewicht', { exact: true }).fill('2000');
+  await own.locator('.save-status.ok').waitFor();
+  const greenIcon = await own.locator('.save-status.ok .save-icon').evaluate((e) => [getComputedStyle(e).color, e.innerHTML.length]);
+  await own.evaluate(() => {
+    Storage.prototype.setItem = function () {
+      const err = new Error('vol');
+      err.name = 'QuotaExceededError';
+      throw err;
+    };
+  });
+  await own.getByLabel('Geboortegewicht', { exact: true }).fill('2010');
+  await own.locator('.save-status.error').waitFor();
+  const redIcon = await own.locator('.save-status.error .save-icon').evaluate((e) => [getComputedStyle(e).color, e.innerHTML.length]);
+  check('Opslagstatus: groen met diskette na opslaan, rood met klokje bij mislukte opslag', greenIcon[0] === 'rgb(30, 123, 52)' && redIcon[0] === 'rgb(237, 24, 70)' && greenIcon[1] !== redIcon[1], JSON.stringify([greenIcon, redIcon]));
   await ctx3.close();
   check('Geen JavaScript-fouten', errors.length === 0, errors.join('; '));
   await ctx.close();

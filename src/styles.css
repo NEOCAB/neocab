@@ -705,14 +705,17 @@ fieldset.group > legend {
 }
 .save-icon {
   display: inline-flex;
-  font-size: 1.1rem;
-  color: var(--primary);
+  font-size: 1.5rem;
+}
+/* Groen: opgeslagen; oranje: wacht 10 s – 1 min; rood: wacht langer of mislukt. */
+.save-status.ok .save-icon {
+  color: #1e7b34;
+}
+.save-status.waiting .save-icon {
+  color: var(--alert-border);
 }
 .save-status.error .save-icon {
   color: var(--danger);
-}
-.save-status.pending {
-  color: var(--muted);
 }
 .save-status.error {
   color: var(--danger);
