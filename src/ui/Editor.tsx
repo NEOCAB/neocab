@@ -3,7 +3,7 @@ import type { Transport } from '../domain/types';
 import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
-import { SectionIcon } from './icons';
+import { Logo, SectionIcon } from './icons';
 import {
   ChecklistSection,
   ChildSection,
@@ -105,8 +105,12 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
   return (
     <div className="editor-layout">
       <header className="topbar" role="banner">
+        <div className="topbar-brand">
+          <Logo className="topbar-logo" />
+          <span className="topbar-name">Neo.Cab</span>
+        </div>
         <button type="button" className="ghost back" onClick={() => { saveNow(); onExit(); }} aria-label="Terug naar overzicht van concepten">
-          ← Overzicht
+          ←<span className="wide-only"> Overzicht</span>
         </button>
         <div className="active-transport">
           <span className="active-label">Actieve registratie</span>

@@ -628,6 +628,39 @@ fieldset.group > legend {
 .topbar .back {
   flex: none;
 }
+/* Naam en logo van de app links in de bovenbalk. */
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: none;
+  padding-right: 0.25rem;
+}
+.topbar-logo {
+  width: 2rem;
+}
+.topbar-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+/* Smal scherm: alles op één regel houden (terugknop als pijl, geen label "Actieve registratie"). */
+@media (max-width: 559px) {
+  .topbar .back {
+    padding-inline: 0.5rem;
+    font-size: 1.2rem;
+  }
+  .topbar .active-label {
+    display: none;
+  }
+  .topbar-logo {
+    width: 1.75rem;
+  }
+  .topbar-name {
+    font-size: 1.05rem;
+  }
+}
 .active-transport {
   display: flex;
   flex-direction: column;
