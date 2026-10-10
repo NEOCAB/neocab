@@ -34,20 +34,22 @@ export function ChildSection({ t, update }: SectionProps) {
         <TimeField label="Geboortetijd" value={c.birthTime} onChange={(v) => set('birthTime', v)} />
       </div>
       <div className="grid gestation-row">
-        <div className="computed" aria-live="polite">
-          <div>
-            Gecorrigeerde leeftijd: <strong>{ca ? `${ca.weeks}+${ca.days} wk` : '—'}</strong>
-          </div>
-          <div>
-            Postnatale leeftijd: <strong>{ca ? `dag ${ca.postnatalDay}` : '—'}</strong>
-          </div>
-        </div>
         <GestationField
           label="Amenorroeduur"
           weeks={c.gestationalAgeWeeks}
           days={c.gestationalAgeDays}
           onChange={(w, d) => update((x) => ({ ...x, child: { ...x.child, gestationalAgeWeeks: w, gestationalAgeDays: d } }))}
         />
+        <div className="computed" aria-live="polite">
+          <div className="computed-item">
+            <span className="computed-label">Gecorrigeerde leeftijd</span>
+            <span className="computed-value">{ca ? `${ca.weeks}+${ca.days} wk` : '—'}</span>
+          </div>
+          <div className="computed-item">
+            <span className="computed-label">Postnatale leeftijd</span>
+            <span className="computed-value">{ca ? `dag ${ca.postnatalDay}` : '—'}</span>
+          </div>
+        </div>
       </div>
       <div className="grid">
         <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0 }} />

@@ -447,9 +447,24 @@ fieldset.group > legend {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.85rem;
-  line-height: 1.25;
+  gap: 0.2rem;
+  padding: 0.35rem 0.65rem;
+  line-height: 1.2;
+}
+.computed-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.5rem;
+}
+.computed-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+/* Zelfde grootte als ingevulde waarden in invoervelden (16px). */
+.computed-value {
+  font-size: 16px;
+  color: var(--text);
 }
 .readonly-value {
   display: flex;

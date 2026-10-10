@@ -69,9 +69,11 @@ async function unlabeledControls(page) {
   const ca = await page.locator('.computed').textContent();
   const cb = await page.locator('#s1 .computed').boundingBox();
   const gb = await ga.boundingBox();
-  check('Blauw vak links van amenorroeduur, gelijke onderkant', !!cb && !!gb && cb.x < gb.x && Math.abs(cb.y + cb.height - (gb.y + gb.height)) < 3, JSON.stringify([cb, gb]));
-  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd: 33+5 wk'), ca);
-  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('Postnatale leeftijd: dag 1'), ca);
+  const sizes = await page.evaluate(() => [getComputedStyle(document.querySelector('#s1 .computed-value')).fontSize, getComputedStyle(document.querySelector('#s1 .gestation-field input')).fontSize]);
+  check('Waarden in blauw vak even groot als invoer', sizes[0] === sizes[1], sizes.join(' / '));
+  check('Blauw vak rechts van amenorroeduur, gelijke onderkant', !!cb && !!gb && cb.x > gb.x && Math.abs(cb.y + cb.height - (gb.y + gb.height)) < 3, JSON.stringify([cb, gb]));
+  check('Gecorrigeerde leeftijd berekend', ca?.includes('Gecorrigeerde leeftijd33+5 wk'), ca);
+  check('Postnatale leeftijd op geboortedag is dag 1', ca?.includes('Postnatale leeftijddag 1'), ca);
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
