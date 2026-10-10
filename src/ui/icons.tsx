@@ -13,6 +13,7 @@ import surgical from '@material-symbols/svg-700/outlined/surgical.svg?raw';
 import familyHome from '@material-symbols/svg-700/outlined/family_home.svg?raw';
 import checklist from '@material-symbols/svg-700/outlined/checklist.svg?raw';
 import flag from '@material-symbols/svg-700/outlined/flag.svg?raw';
+import safetyCheck from '@material-symbols/svg-700/outlined/safety_check.svg?raw';
 import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
@@ -69,4 +70,11 @@ const EXPAND = prep(chevron);
 /** Pijltje bij een in- en uitklapbaar blok (draait mee via CSS). */
 export function ExpandIcon() {
   return <span className="expand-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: EXPAND }} />;
+}
+
+const TIMEPOINT = prep(safetyCheck);
+
+/** Icoon bij de vaste tijdstippen van het transport (safety_check). */
+export function TimepointIcon() {
+  return <span className="tp-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: TIMEPOINT }} />;
 }

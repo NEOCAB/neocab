@@ -4,7 +4,7 @@ import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
 import { instantToWall, isValidLocalDate, nowInstant, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
-import { SectionIcon } from './icons';
+import { SectionIcon, TimepointIcon } from './icons';
 
 function FieldShell({ id, label, hint, error, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
   return (
@@ -301,11 +301,14 @@ export function TimepointField({ label, description, value, onChange }: { label:
   return (
     <div className={`field timepoint ${error ? 'has-error' : ''}`}>
       <div className="tp-head">
-        <label htmlFor={id} className="field-label">
-          {label}
-        </label>
-        <div className="tp-desc" id={`${id}-hint`}>
-          {description}
+        <TimepointIcon />
+        <div className="tp-text">
+          <label htmlFor={id} className="field-label">
+            {label}
+          </label>
+          <div className="tp-desc" id={`${id}-hint`}>
+            {description}
+          </div>
         </div>
       </div>
       <DateTimeInputs id={id} name={label} value={value} onChange={onChange} clearable describedBy={describedBy(id, description, error)} error={error} setError={setError} />

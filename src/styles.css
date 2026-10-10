@@ -307,7 +307,19 @@ input[type='time'] {
   border-radius: var(--radius);
 }
 .timepoint .tp-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   min-width: 0;
+}
+.tp-text {
+  min-width: 0;
+}
+.tp-icon {
+  display: inline-flex;
+  flex: none;
+  font-size: 1.6rem;
+  color: var(--primary);
 }
 .timepoint .field-label {
   display: block;
