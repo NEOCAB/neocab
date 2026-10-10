@@ -6,7 +6,7 @@ export interface AppSettings {
   timeZone: string;
   /** Configureerbare opties voor de toedieningsroute van medicatie. */
   medicationRoutes: string[];
-  /** Bij de acht klinische kopjes (Airway … Infection) alleen de beginletter tonen, links van het invulveld. */
+  /** Bij de negen klinische kopjes (Airway … Infection) alleen de beginletter tonen, links van het invulveld. */
   abcdLettersOnly: boolean;
 }
 

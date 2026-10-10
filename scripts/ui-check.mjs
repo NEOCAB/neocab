@@ -154,7 +154,7 @@ async function basisLayout(page) {
     const box = f?.querySelector('textarea')?.getBoundingClientRect();
     return { n: document.querySelectorAll('#s3 .abcd-compact').length, labelW: Math.round(f?.querySelector('.field-label')?.getBoundingClientRect().width ?? 0), word: f?.querySelector('.field-label .sr-only')?.textContent, left: !!letter && !!box && letter.right <= box.left && Math.abs(letter.top - box.top) < 12 };
   });
-  check('Instelling alleen letters: letter links van het veld, woord niet zichtbaar, naam blijft Airway', compact.n === 8 && compact.labelW < 50 && compact.word === 'Airway' && compact.left && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, JSON.stringify(compact));
+  check('Instelling alleen letters: letter links van het veld, woord niet zichtbaar, naam blijft Airway', compact.n === 9 && compact.labelW < 50 && compact.word === 'Airway' && compact.left && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, JSON.stringify(compact));
   await page.screenshot({ path: `${OUT}/390-abcd-letters.png`, fullPage: false, clip: await page.locator('#s3 .abcd').boundingBox().then((b) => ({ x: 0, y: b.y, width: 390, height: 400 })) }).catch(() => {});
   await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
   await page.locator('details.settings summary').click();
@@ -163,7 +163,7 @@ async function basisLayout(page) {
   await page.waitForSelector('#s3');
   const sub3 = await page.locator('#s3 h3.subsection-title').allTextContents();
   const letters = await page.locator('#s3 .abcd-letter').allTextContents();
-  check('ABCD-kopjes met beginletter in een rondje (Verwijzing en Stabilisatie)', letters.join('') === 'ABCDFGHI' && (await page.locator('#s5 .abcd-letter').count()) === 8 && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, letters.join(''));
+  check('ABCD-kopjes met beginletter in een rondje (Verwijzing en Stabilisatie)', letters.join('') === 'ABCDEFGHI' && (await page.locator('#s5 .abcd-letter').count()) === 9 && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, letters.join(''));
   check('Verwijzing bevat Zwangerschap en geboorte, Toestand bij verwijzing en Advies (zonder "(optioneel)")', JSON.stringify(sub3) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3').getByLabel('Advies bij verwijzing', { exact: true }).count()) === 1 && (await page.locator('#s4').count()) === 0, sub3.join(' | '));
   check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[5] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
@@ -369,6 +369,7 @@ async function basisLayout(page) {
   await other.getByRole('alertdialog').getByRole('button', { name: 'Vervangen' }).click();
   await other.waitForSelector('#s1');
   await other.getByRole('button', { name: 'Terug naar overzicht van concepten' }).first().click();
+  await other.locator('.concept').first().waitFor();
   check('Geplakte, doorgestuurde e-mail geïmporteerd zonder dubbel concept', (await other.locator('.concept').count()) === 1);
   await ctx2.close();
   check('Geen JavaScript-fouten', errors.length === 0, errors.join('; '));

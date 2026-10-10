@@ -72,11 +72,13 @@ describe('lokale conceptopslag', () => {
     const old = JSON.parse(JSON.stringify(t));
     for (const m of old.measurements) delete m.policyChanges;
     delete old.checklist.medischeBrief;
+    delete old.referralCondition.notes.exposure;
     storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
     storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
     const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
     expect(loaded.measurements.every((m) => m.policyChanges === '')).toBe(true);
     expect(loaded.checklist.medischeBrief).toBe('nog_niet');
+    expect(loaded.referralCondition.notes.exposure).toBe('');
   });
 
   it('zet een oude lijst met telefoonnummers ouders om naar moeder en partner', () => {

@@ -36,7 +36,7 @@ describe('verslag', () => {
   it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
     for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'STABILISATIE\n', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', 'OUDERS EN GEZIN', '\nTRANSPORT\n']) expect(text).toContain(h);
-    for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
+    for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Exposure', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
     for (const gone of ['CHECKLIST', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
     expect(text).not.toContain('Allergie');
     // Herkomst en bestemming; Verwijzing = zwangerschap en geboorte + toestand bij verwijzing.

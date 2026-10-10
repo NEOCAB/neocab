@@ -16,12 +16,13 @@ import type {
 
 export type Options<T extends string> = { value: Exclude<T, ''>; label: string }[];
 
-/** De acht klinische kopjes blijven bewust in het Engels. */
+/** De negen klinische kopjes blijven bewust in het Engels. */
 export const ABCD_LABELS: Record<AbcdKey, string> = {
   airway: 'Airway',
   breathing: 'Breathing',
   circulation: 'Circulation',
   disability: 'Disability',
+  exposure: 'Exposure',
   fluids: 'Fluids',
   gastrointestinal: 'Gastro-intestinal',
   haematological: 'Haematological',

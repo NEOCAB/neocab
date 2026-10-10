@@ -24,6 +24,7 @@ export const ABCD_KEYS = [
   'breathing',
   'circulation',
   'disability',
+  'exposure',
   'fluids',
   'gastrointestinal',
   'haematological',
