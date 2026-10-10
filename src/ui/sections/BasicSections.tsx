@@ -83,7 +83,7 @@ export function ReferralSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['referral']>(k: K, v: Transport['referral'][K]) => update((x) => ({ ...x, referral: { ...x.referral, [k]: v } }));
   return (
     <Section id="s2" title="Verwijzing en bestemming">
-      <TimepointField label="Verwijzing" description="Start van het verwijsgesprek" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
+      <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
       <div className="grid">
         <TextField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} list={HOSPITAL_SUGGESTIONS} />
         <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
@@ -163,11 +163,10 @@ export function DispatchSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['dispatch']>(k: K, v: Transport['dispatch'][K]) => update((x) => ({ ...x, dispatch: { ...x.dispatch, [k]: v } }));
   return (
     <Section id="sdispatch" title="Dispatch">
-      <TimepointField label="Ambulance aangevraagd" description="Aanvraag van vervoer voor het transportteam" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
-      <TimepointField label="Vertrek transportteam" description="Vertrek vanaf de eigen locatie" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
+      <TimepointField label="Ambulance aangevraagd" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
+      <TimepointField label="Vertrek transportteam" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
       <TimepointField
         label="Aankomst bij kind"
-        description="Aankomst aan de cotside in het verwijzende ziekenhuis"
         value={t.teamAssessment.arrivedAt}
         onChange={(v) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, arrivedAt: v } }))}
       />
@@ -252,9 +251,9 @@ export function ClosureSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['closure']>(k: K, v: Transport['closure'][K]) => update((x) => ({ ...x, closure: { ...x.closure, [k]: v } }));
   return (
     <Section id="s14" title="Afsluiting transport">
-      <TimepointField label="Vertrek met kind" description="Vertrek van cotside na stabilisatie" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
+      <TimepointField label="Vertrek met kind" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
       <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
-      <TimepointField label="Aankomst ontvangend centrum" description="Aankomst aan de cotside van de ontvangende afdeling" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
+      <TimepointField label="Aankomst ontvangend centrum" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
     </Section>
   );
 }

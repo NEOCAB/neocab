@@ -293,25 +293,20 @@ function ClearIcon() {
 
 /**
  * Vast tijdstip van het transport (verwijzing, ambulance aangevraagd, vertrek transportteam, aankomst bij kind,
- * vertrek met kind, aankomst ontvangend centrum). Alle zes in dezelfde vormgeving: naam, omschrijving, datum/tijd met Nu en Wissen.
+ * vertrek met kind, aankomst ontvangend centrum). Alle zes in dezelfde vormgeving: icoon, naam, datum/tijd met Nu en Wissen.
  */
-export function TimepointField({ label, description, value, onChange }: { label: string; description: string; value: Instant; onChange: (v: Instant) => void }) {
+export function TimepointField({ label, value, onChange }: { label: string; value: Instant; onChange: (v: Instant) => void }) {
   const id = useId();
   const [error, setError] = useState<string | null>(null);
   return (
     <div className={`field timepoint ${error ? 'has-error' : ''}`}>
       <div className="tp-head">
         <TimepointIcon />
-        <div className="tp-text">
-          <label htmlFor={id} className="field-label">
-            {label}
-          </label>
-          <div className="tp-desc" id={`${id}-hint`}>
-            {description}
-          </div>
-        </div>
+        <label htmlFor={id} className="field-label">
+          {label}
+        </label>
       </div>
-      <DateTimeInputs id={id} name={label} value={value} onChange={onChange} clearable describedBy={describedBy(id, description, error)} error={error} setError={setError} />
+      <DateTimeInputs id={id} name={label} value={value} onChange={onChange} clearable describedBy={describedBy(id, undefined, error)} error={error} setError={setError} />
       {error && (
         <div className="field-error" id={`${id}-error`} role="alert">
           {error}

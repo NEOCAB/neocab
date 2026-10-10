@@ -123,10 +123,10 @@ async function basisLayout(page) {
   check('Geen verwijzing naar LUMC in de app', !(await page.content()).includes('LUMC'));
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
-  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc').textContent, getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
+  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
   const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance aangevraagd'], ['sdispatch', 'Vertrek transportteam'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst ontvangend centrum']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
-  check('Tijdstippen gelijk vormgegeven (omschrijving, streep, Nu + Wissen)', tps.every((x) => x[2].length > 10 && x[3] === 'rgb(0, 60, 125)' && x[4] === 2));
+  check('Tijdstippen gelijk vormgegeven (zonder omschrijving, streep, Nu + Wissen)', tps.every((x) => x[2] === null && x[3] === 'rgb(0, 60, 125)' && x[4] === 2));
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
 
   // Material Symbols bij alle 15 sectiekoppen

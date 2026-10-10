@@ -290,7 +290,7 @@ input[type='time'] {
 }
 /*
  * Vaste tijdstippen van het transport: alle zes dezelfde vormgeving.
- * Naam vet met omschrijving eronder; rechts datum/tijd met Nu en Wissen. Donkerblauwe streep links.
+ * Icoon en naam vet; rechts datum/tijd met Nu en Wissen. Donkerblauwe streep links.
  */
 .timepoint {
   display: grid;
@@ -312,9 +312,6 @@ input[type='time'] {
   gap: 0.6rem;
   min-width: 0;
 }
-.tp-text {
-  min-width: 0;
-}
 .tp-icon {
   display: inline-flex;
   flex: none;
@@ -324,11 +321,6 @@ input[type='time'] {
 .timepoint .field-label {
   display: block;
   font-size: 1rem;
-}
-.tp-desc {
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.3;
 }
 .timepoint .field-error {
   grid-column: 1 / -1;

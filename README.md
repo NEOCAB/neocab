@@ -53,15 +53,15 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
 - Lichtblauwe pagina-achtergrond (zeer lichte tint van kobaltblauw, `#e8f3fa`) met de secties als witte vlakken; strakke hoeken (2 px), geen schaduwen; zijnavigatie in de stijl van een inhoudsopgave.
 - Tijdlijntabel: compacte waarden, verticale kolomkoppen in de tweede rij (eenheid tussen haakjes), getallen rechts uitgelijnd, groepen gescheiden door een lijn, tijd vet in de vaste eerste kolom. De datum staat alleen onder de tijd als de meetmomenten over meer dan één kalenderdag gaan.
-- Zes vaste tijdstippen in dezelfde vormgeving (naam, omschrijving, datum/tijd met *Nu* en *Wissen*, donkerblauwe streep links), op hun plek in het formulier en met dezelfde namen in verslag en pdf:
-  | Tijdstip | Omschrijving | Sectie |
-  |---|---|---|
-  | Verwijzing | Start van het verwijsgesprek | 2 |
-  | Ambulance aangevraagd | Aanvraag van vervoer voor het transportteam | 5 |
-  | Vertrek transportteam | Vertrek vanaf de eigen locatie | 5 |
-  | Aankomst bij kind | Aankomst aan de cotside in het verwijzende ziekenhuis | 6 |
-  | Vertrek met kind | Vertrek van cotside na stabilisatie | 15 |
-  | Aankomst ontvangend centrum | Aankomst aan de cotside van de ontvangende afdeling | 15 |
+- Zes vaste tijdstippen in dezelfde vormgeving (icoon safety_check, naam zonder extra toelichting, datum/tijd met *Nu* en *Wissen*, donkerblauwe streep links), op hun plek in het formulier en met dezelfde namen in verslag en pdf:
+  | Tijdstip | Sectie |
+  |---|---|
+  | Verwijzing | Verwijzing en bestemming |
+  | Ambulance aangevraagd | Dispatch |
+  | Vertrek transportteam | Dispatch |
+  | Aankomst bij kind | Dispatch |
+  | Vertrek met kind | Afsluiting transport |
+  | Aankomst ontvangend centrum | Afsluiting transport |
 - Gecorrigeerde leeftijd: opgemaakt als een invoerveld (label erboven, zelfde hoogte, rand en lettergrootte), met lichtblauwe achtergrond en niet invulbaar.
 - Alle datum/tijdvelden hebben icoonknoppen: klok = *Nu* (vult de huidige tijd in, ook over een bestaande tijd heen) en kruis = *Wissen* (met tooltip en volledige naam voor schermlezers); bij verplichte tijden (meetmoment, start infuus, tube) alleen *Nu*.
 - Basisgegevens kind: acht velden in een raster van 2 kolommen × 4 rijen (telefoon) of 4 kolommen × 2 rijen (vanaf 720 px breed).
