@@ -158,7 +158,8 @@ export function ReferralInfoSection(props: SectionProps) {
       <BirthFields {...props} />
       <h3 className="subsection-title">Toestand bij verwijzing</h3>
       <AbcdFields notes={rc.notes} onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))} />
-      <TextArea label="Advies bij verwijzing (optioneel)" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
+      <h3 className="subsection-title">Advies</h3>
+      <TextArea label="Advies bij verwijzing" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
     </Section>
   );
 }

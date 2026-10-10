@@ -142,7 +142,7 @@ async function basisLayout(page) {
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
   const sub3 = await page.locator('#s3 h3.subsection-title').allTextContents();
-  check('Verwijzing bevat Zwangerschap en geboorte en Toestand bij verwijzing', JSON.stringify(sub3) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing']) && (await page.locator('#s4').count()) === 0, sub3.join(' | '));
+  check('Verwijzing bevat Zwangerschap en geboorte, Toestand bij verwijzing en Advies (zonder "(optioneel)")', JSON.stringify(sub3) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3').getByLabel('Advies bij verwijzing', { exact: true }).count()) === 1 && (await page.locator('#s4').count()) === 0, sub3.join(' | '));
   check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[5] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
   const called = page.getByLabel('Ambulance aangevraagd', { exact: true });

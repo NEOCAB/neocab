@@ -164,14 +164,16 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     cordGas(b, 'Arterieel navelstrengbloedgas', g.cordArterial);
     cordGas(b, 'Veneus navelstrengbloedgas', g.cordVenous);
     b.kv('Vitamine K', g.vitaminK === 'anders' ? `Anders${g.vitaminKOther.trim() ? `: ${g.vitaminKOther.trim()}` : ''}` : optionLabel(VITAMIN_K_OPTIONS, g.vitaminK));
+    const condition = abcdRows(t.referralCondition.notes);
+    // Advies is optioneel: het blok verschijnt alleen als er advies is ingevuld.
     const advice = new RowBuilder();
     advice.para('Advies bij verwijzing', t.referralCondition.advice);
-    const condition = [...abcdRows(t.referralCondition.notes), ...advice.rows];
     sections.push({
       title: 'Verwijzing',
       blocks: [
         { title: 'Zwangerschap en geboorte', rows: b.orEmpty() },
         { title: 'Toestand bij verwijzing', rows: condition.length ? condition : [NOT_FILLED] },
+        ...(advice.rows.length ? [{ title: 'Advies', rows: advice.rows }] : []),
       ],
     });
   }
