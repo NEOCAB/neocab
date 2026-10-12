@@ -72,6 +72,18 @@ async function basisLayout(page) {
   await refHosp.fill('Eigen ziekenhuis buiten de lijst');
   await page.keyboard.press('Escape');
   check('Ziekenhuis: vrije tekst blijft mogelijk', (await refHosp.inputValue()) === 'Eigen ziekenhuis buiten de lijst');
+  // Zonder routeplanner (offline): schatting op basis van de coördinaten
+  await page.route('https://router.project-osrm.org/**', (r) => r.abort());
+  await refHosp.fill('Amphia, Breda');
+  await page.keyboard.press('Escape');
+  const recvH = page.locator('#s2').getByRole('combobox', { name: 'Ontvangend ziekenhuis' });
+  await recvH.fill('Máxima MC, Veldhoven');
+  await page.keyboard.press('Escape');
+  await page.locator('#s2 .route-box', { hasText: 'niet bereikbaar' }).waitFor({ timeout: 5000 }).catch(() => {});
+  const est = (await page.locator('#s2 .route-box').textContent()) ?? '';
+  check('Route offline: schatting met reistijd en afstand', /\d+ min/.test(est) && /\d+ km/.test(est) && est.includes('Schatting') && est.includes('niet bereikbaar'), est);
+  await recvH.fill('');
+  await page.unroute('https://router.project-osrm.org/**');
   await refHosp.fill('');
   check('Ontvangende afdeling en ziekenhuis standaard leeg', (await page.getByLabel('Ontvangende afdeling', { exact: true }).inputValue()) === '' && (await page.getByLabel('Ontvangend ziekenhuis', { exact: true }).inputValue()) === '');
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
@@ -503,6 +515,23 @@ for (const [w, h] of [
   await page.getByRole('button', { name: 'Fictief voorbeeldtransport laden' }).click();
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
+  // Route en reistijd: verschijnt pas als beide ziekenhuizen zijn ingevuld; routeplanner nagebootst (geen internet nodig)
+  check(`${w}px: geen routevak zolang het ontvangend ziekenhuis leeg is`, (await page.locator('#s2 .route-box').count()) === 0);
+  let osrmCalls = 0;
+  await page.route('https://router.project-osrm.org/**', (r) => {
+    osrmCalls++;
+    return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ code: 'Ok', routes: [{ distance: 36200, duration: 1860, legs: [{ steps: [{ ref: 'A4', distance: 25000 }, { ref: 'A13', distance: 9000 }] }] }] }) });
+  });
+  const recv = page.locator('#s2').getByRole('combobox', { name: 'Ontvangend ziekenhuis' });
+  await recv.fill('sophia');
+  await recv.press('ArrowDown');
+  await recv.press('Enter');
+  await page.locator('#s2 .route-box .route-roads').waitFor({ timeout: 5000 }).catch(() => {});
+  const routeText = (await page.locator('#s2 .route-box').textContent()) ?? '';
+  check(`${w}px: routevak met reistijd, afstand en wegen via de routeplanner`, routeText.includes('30 min') && routeText.includes('36 km') && routeText.includes('via A4 – A13') && routeText.includes('Alrijne') && routeText.includes('Sophia') && osrmCalls === 1, routeText);
+  const gmaps = await page.locator('#s2 .route-box a', { hasText: 'Google Maps' }).getAttribute('href');
+  check(`${w}px: link naar routeplanner met beide ziekenhuizen`, gmaps.startsWith('https://www.google.com/maps/dir/?api=1&origin=52.16') && gmaps.includes('destination=51.91'), gmaps);
+  await page.unroute('https://router.project-osrm.org/**');
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });

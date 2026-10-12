@@ -21,7 +21,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
     },
     referral: {
       referredAt: at('2026-10-09T22:10'),
-      referringHospital: 'Alrijne Ziekenhuis',
+      referringHospital: 'Alrijne Ziekenhuis, Leiderdorp',
       referringDepartment: 'Kinderafdeling / neonatologie',
       referrerName: 'Dr. A. Fictief',
       referrerPhone: '071 000 0000',

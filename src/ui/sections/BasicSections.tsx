@@ -11,6 +11,7 @@ import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/cal
 import { useEffect, useState } from 'react';
 import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
+import { RouteBox } from '../RouteBox';
 import { useAnonymous, useSettings, useTimeZone } from '../context';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
@@ -108,6 +109,8 @@ export function ReferralSection({ t, update }: SectionProps) {
         <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
         <ComboField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} options={hospitals} matches={matchHospital} />
       </div>
+      {/* Zodra verwijzend én ontvangend ziekenhuis zijn ingevuld: route en geschatte reistijd. */}
+      <RouteBox from={r.referringHospital} to={r.receivingHospital} />
       <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
     </Section>
   );

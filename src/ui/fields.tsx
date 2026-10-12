@@ -522,7 +522,8 @@ export function ComboField({
           onChange={(e) => {
             onChange(e.target.value);
             setQuery(e.target.value);
-            setOpen(true);
+            // Typen opent de lijst met treffers; een leeggemaakt veld sluit hem.
+            setOpen(e.target.value.trim() !== '');
             setActive(-1);
           }}
           onKeyDown={onKey}

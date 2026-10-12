@@ -958,6 +958,64 @@ fieldset.group > legend {
     padding-inline: 0.6rem;
   }
 }
+.route-box {
+  margin: 0.25rem 0 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--tint);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+}
+.route-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+.route-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin: 0 0 0.35rem;
+}
+.route-arrow {
+  color: var(--primary);
+  font-weight: 700;
+}
+.route-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--primary);
+}
+.route-roads {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.route-sep {
+  color: var(--muted);
+}
+.route-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+a.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--primary);
+  background: var(--surface);
+  color: var(--primary);
+  text-decoration: none;
+}
+a.button:hover {
+  background: var(--primary-10);
+}
 .combo {
   position: relative;
   display: flex;
