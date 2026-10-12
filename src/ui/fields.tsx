@@ -4,7 +4,7 @@ import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
 import { instantToWall, isValidLocalDate, nowInstant, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
-import { AddIcon, SectionIcon, TimepointIcon } from './icons';
+import { AddIcon, ExpandIcon, SectionIcon, TimepointIcon } from './icons';
 
 function FieldShell({ id, label, hint, error, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
   return (
@@ -436,5 +436,133 @@ export function AddMenu<T extends string>({ label, options, onPick }: { label: s
         </ul>
       )}
     </div>
+  );
+}
+
+/**
+ * Tekstveld met een doorzoekbare keuzelijst (combobox). Tik op het pijltje voor de hele lijst, of typ om te filteren;
+ * vrije tekst blijft mogelijk. Opties met `badge` tonen dat label rechts (bijv. NICU).
+ */
+export function ComboField({
+  label,
+  value,
+  onChange,
+  options,
+  matches,
+  emptyText = 'Geen treffers; de ingevulde tekst wordt gebruikt.',
+}: {
+  label: ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  options: { label: string; badge?: string }[];
+  matches: (o: { label: string; badge?: string }, query: string) => boolean;
+  emptyText?: string;
+}) {
+  const id = useId();
+  const listId = `${id}-list`;
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [active, setActive] = useState(-1);
+  const wrap = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const shown = query.trim() ? options.filter((o) => matches(o, query)) : options;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  useEffect(() => {
+    if (open && active >= 0) document.getElementById(`${id}-opt-${active}`)?.scrollIntoView({ block: 'nearest' });
+  }, [open, active, id]);
+
+  const choose = (v: string) => {
+    onChange(v);
+    setOpen(false);
+    setQuery('');
+    setActive(-1);
+    input.current?.focus();
+  };
+  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        setActive(0);
+        return;
+      }
+      const n = shown.length;
+      if (n) setActive((a) => (e.key === 'ArrowDown' ? (a + 1) % n : a <= 0 ? n - 1 : a - 1));
+    } else if (e.key === 'Enter' && open && active >= 0 && shown[active]) {
+      e.preventDefault();
+      choose(shown[active].label);
+    } else if (e.key === 'Escape' && open) {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
+
+  return (
+    <FieldShell id={id} label={label}>
+      <div className="combo" ref={wrap}>
+        <input
+          ref={input}
+          id={id}
+          type="text"
+          role="combobox"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-activedescendant={open && active >= 0 ? `${id}-opt-${active}` : undefined}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setQuery(e.target.value);
+            setOpen(true);
+            setActive(-1);
+          }}
+          onKeyDown={onKey}
+        />
+        <button
+          type="button"
+          className="secondary icon-button combo-toggle"
+          aria-label={`Lijst ${typeof label === 'string' ? label.toLowerCase() : ''} ${open ? 'sluiten' : 'openen'}`.replace(/\s+/g, ' ')}
+          aria-expanded={open}
+          aria-controls={listId}
+          tabIndex={-1}
+          onClick={() => {
+            setQuery('');
+            setActive(Math.max(0, options.findIndex((o) => o.label === value)));
+            setOpen(!open);
+            input.current?.focus();
+          }}
+        >
+          <ExpandIcon />
+        </button>
+        {open && (
+          <ul className="combo-list" role="listbox" id={listId} aria-label={typeof label === 'string' ? label : undefined}>
+            {shown.length === 0 && <li className="combo-empty">{emptyText}</li>}
+            {shown.map((o, i) => (
+              <li
+                key={o.label}
+                id={`${id}-opt-${i}`}
+                role="option"
+                aria-selected={o.label === value}
+                className={`${i === active ? 'active' : ''} ${o.label === value ? 'selected' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => choose(o.label)}
+              >
+                <span>{o.label}</span>
+                {o.badge && <span className="combo-badge">{o.badge}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </FieldShell>
   );
 }

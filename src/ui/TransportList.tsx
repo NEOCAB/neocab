@@ -3,6 +3,7 @@ import { formatInstant, formatLocalDate } from '../domain/time';
 import type { TransportSummary } from '../storage/repository';
 import { isValidTimeZone, type AppSettings, type DeviceKind } from '../storage/settings';
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
+import { DEFAULT_HOSPITAL_LINES } from '../domain/hospitals';
 import { childLabel, useTimeZone } from './context';
 import { useConfirm } from './confirm';
 import { Logo } from './icons';
@@ -10,6 +11,55 @@ import type { Transport } from '../domain/types';
 import { decodeHandover, HandoverError } from '../storage/handover';
 
 const TIME_ZONES = ['Europe/Amsterdam', 'Europe/Brussels', 'Europe/London', 'UTC'];
+
+/** Keuzelijst ziekenhuislocaties aanpassen (één per regel, "Naam, Plaats", optioneel " | NICU"). */
+function HospitalListEditor({ settings, onChange }: { settings: AppSettings; onChange: (s: AppSettings) => void }) {
+  const [text, setText] = useState(settings.hospitals.join('\n'));
+  const [saved, setSaved] = useState(false);
+  return (
+    <>
+      <div className="field">
+        <label className="field-label" htmlFor="hospitals">
+          Keuzelijst ziekenhuizen (één per regel: Naam, Plaats; zet “| NICU” achter een NICU-centrum)
+        </label>
+        <textarea
+          id="hospitals"
+          rows={8}
+          value={text}
+          spellCheck={false}
+          onChange={(e) => {
+            setText(e.target.value);
+            setSaved(false);
+          }}
+        />
+        <div className="field-hint">Ziekenhuislocaties met een klinische kinderafdeling of neonatologie. Controleer en vul aan voor jullie regio; in het formulier kan ook altijd vrije tekst.</div>
+      </div>
+      <div className="button-row">
+        <button
+          type="button"
+          className="primary"
+          onClick={() => {
+            onChange({ ...settings, hospitals: text.split('\n').map((r) => r.trim()).filter(Boolean) });
+            setSaved(true);
+          }}
+        >
+          Ziekenhuizen opslaan
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => {
+            setText(DEFAULT_HOSPITAL_LINES.join('\n'));
+            setSaved(false);
+          }}
+        >
+          Standaardlijst herstellen
+        </button>
+        {saved && <span role="status">Opgeslagen.</span>}
+      </div>
+    </>
+  );
+}
 
 function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange: (s: AppSettings) => void }) {
   const [routesText, setRoutesText] = useState(settings.medicationRoutes.join('\n'));
@@ -65,6 +115,7 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
         </button>
         {saved && <span role="status">Opgeslagen.</span>}
       </div>
+      <HospitalListEditor settings={settings} onChange={onChange} />
     </details>
   );
 }

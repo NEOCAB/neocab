@@ -4,13 +4,13 @@ import {
   ABCD_LABELS,
   CHECKLIST_LABELS,
   CORTICO_OPTIONS,
-  HOSPITAL_SUGGESTIONS,
   VITAMIN_K_OPTIONS,
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
 import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
 import { useEffect, useState } from 'react';
-import { DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
+import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
+import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
 import { useAnonymous, useSettings, useTimeZone } from '../context';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
@@ -90,20 +90,23 @@ function useNow(): number {
 }
 
 export function ReferralSection({ t, update }: SectionProps) {
+  // Keuzelijst ziekenhuislocaties met kinderafdeling/neonatologie (aan te passen via Instellingen); vrije tekst blijft mogelijk.
+  const hospitals = hospitalOptions(useSettings().hospitals).map((h) => ({ label: h.label, badge: h.nicu ? 'NICU' : undefined }));
+  const matchHospital = (o: { label: string; badge?: string }, q: string) => matchesHospital({ label: o.label, nicu: !!o.badge }, q);
   const r = t.referral;
   const set = <K extends keyof Transport['referral']>(k: K, v: Transport['referral'][K]) => update((x) => ({ ...x, referral: { ...x.referral, [k]: v } }));
   return (
     <Section id="s2" title="Herkomst en bestemming">
       <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
       <div className="grid">
-        <TextField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} list={HOSPITAL_SUGGESTIONS} />
+        <ComboField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} options={hospitals} matches={matchHospital} />
         <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
         <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
         <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
       </div>
       <div className="grid">
         <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
-        <TextField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} list={HOSPITAL_SUGGESTIONS} />
+        <ComboField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} options={hospitals} matches={matchHospital} />
       </div>
       <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
     </Section>

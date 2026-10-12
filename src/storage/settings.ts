@@ -1,4 +1,5 @@
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
+import { DEFAULT_HOSPITAL_LINES } from '../domain/hospitals';
 import { DEFAULT_TIME_ZONE } from '../domain/time';
 import type { KeyValueStorage } from './localRepository';
 
@@ -6,6 +7,8 @@ export interface AppSettings {
   timeZone: string;
   /** Configureerbare opties voor de toedieningsroute van medicatie. */
   medicationRoutes: string[];
+  /** Keuzelijst ziekenhuislocaties ("Naam, Plaats" met optioneel " | NICU"), aan te passen via Instellingen. */
+  hospitals: string[];
   /** Bij de negen klinische kopjes (Airway … Infection) alleen de beginletter tonen, links van het invulveld. */
   abcdLettersOnly: boolean;
   /**
@@ -19,7 +22,7 @@ export type DeviceKind = 'werk' | 'persoonlijk';
 
 const KEY = 'neonataal-transport:v1:instellingen';
 
-export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, abcdLettersOnly: false, device: 'werk' };
+export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, hospitals: DEFAULT_HOSPITAL_LINES, abcdLettersOnly: false, device: 'werk' };
 
 export function loadSettings(storage: KeyValueStorage): AppSettings {
   try {
@@ -28,6 +31,7 @@ export function loadSettings(storage: KeyValueStorage): AppSettings {
     return {
       timeZone: typeof v.timeZone === 'string' && isValidTimeZone(v.timeZone) ? v.timeZone : DEFAULT_TIME_ZONE,
       medicationRoutes: Array.isArray(v.medicationRoutes) ? v.medicationRoutes.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_MEDICATION_ROUTES,
+      hospitals: Array.isArray(v.hospitals) ? v.hospitals.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_HOSPITAL_LINES,
       abcdLettersOnly: v.abcdLettersOnly === true,
       device: v.device === 'persoonlijk' ? 'persoonlijk' : 'werk',
     };

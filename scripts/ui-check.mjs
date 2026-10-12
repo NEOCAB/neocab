@@ -57,6 +57,22 @@ async function basisLayout(page) {
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
   await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
   const referred = await page.locator('#s2').getByLabel('Verwijzing', { exact: true }).inputValue();
+  // Keuzelijst ziekenhuizen (combobox): hele lijst via het pijltje, filteren door te typen, kiezen met muis of toetsenbord
+  const refHosp = page.locator('#s2').getByRole('combobox', { name: 'Verwijzend ziekenhuis' });
+  await page.locator('#s2').getByRole('button', { name: /Lijst verwijzend ziekenhuis openen/ }).click();
+  const allOptions = await page.locator('#s2').getByRole('option').count();
+  check('Ziekenhuis: pijltje toont de hele keuzelijst', allOptions > 60, String(allOptions));
+  await page.keyboard.press('Escape');
+  await refHosp.fill('sophia');
+  const filtered = await page.locator('#s2').getByRole('option').allTextContents();
+  check('Ziekenhuis: typen filtert de lijst (met NICU-label)', filtered.length === 1 && filtered[0].includes('Sophia') && filtered[0].includes('NICU'), JSON.stringify(filtered));
+  await refHosp.press('ArrowDown');
+  await refHosp.press('Enter');
+  check('Ziekenhuis: kiezen met toetsenbord vult de naam en plaats in', (await refHosp.inputValue()) === 'Erasmus MC – Sophia Kinderziekenhuis, Rotterdam' && (await page.locator('#s2').getByRole('listbox').count()) === 0);
+  await refHosp.fill('Eigen ziekenhuis buiten de lijst');
+  await page.keyboard.press('Escape');
+  check('Ziekenhuis: vrije tekst blijft mogelijk', (await refHosp.inputValue()) === 'Eigen ziekenhuis buiten de lijst');
+  await refHosp.fill('');
   check('Ontvangende afdeling en ziekenhuis standaard leeg', (await page.getByLabel('Ontvangende afdeling', { exact: true }).inputValue()) === '' && (await page.getByLabel('Ontvangend ziekenhuis', { exact: true }).inputValue()) === '');
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
   check('Aankomst verwijzend ziekenhuis blijft leeg', (await page.getByLabel('Aankomst bij kind', { exact: true }).inputValue()) === '');
