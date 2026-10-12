@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { coordsOf, estimateRoute, fetchRoute, formatDuration, formatKm, mapLinks, type RouteInfo } from '../domain/route';
+import { coordsOf, fetchRoute, formatDuration, formatKm, mapLinks, type RouteInfo } from '../domain/route';
 
 /** Eerder opgehaalde routes (per paar ziekenhuizen), zodat niet bij elke weergave opnieuw wordt gevraagd. */
 const cache = new Map<string, RouteInfo | null>();
 
 /**
- * Route en geschatte reistijd van verwijzend naar ontvangend ziekenhuis. Verschijnt zodra beide zijn ingevuld.
+ * Route en reistijd van verwijzend naar ontvangend ziekenhuis. Verschijnt zodra beide zijn ingevuld.
  * Alleen ter informatie: rijtijd zonder actueel verkeer, voor een gewone auto.
  */
 export function RouteBox({ from, to }: { from: string; to: string }) {
@@ -39,8 +39,6 @@ export function RouteBox({ from, to }: { from: string; to: string }) {
 
   if (!from.trim() || !to.trim()) return null;
   const links = mapLinks(from, to);
-  const estimate = a && b ? estimateRoute(a, b) : null;
-  const shown = route ?? estimate;
 
   return (
     <section className="route-box" aria-label="Route en reistijd">
@@ -53,26 +51,30 @@ export function RouteBox({ from, to }: { from: string; to: string }) {
         <span className="sr-only"> naar </span>
         <span>{to}</span>
       </p>
-      {shown ? (
+      {!a || !b ? (
+        <p className="muted small-print">Geen reistijd: een van de ziekenhuizen staat niet in de keuzelijst. Gebruik een routeplanner.</p>
+      ) : route === undefined ? (
+        <p className="muted small-print" role="status">
+          Route wordt opgehaald…
+        </p>
+      ) : route === null ? (
+        <p className="muted small-print" role="status">
+          Reistijd niet beschikbaar: de routeplanner is niet bereikbaar. Gebruik een routeplanner hieronder.
+        </p>
+      ) : (
         <>
           <p className="route-figures">
-            <strong>{formatDuration(shown.minutes)}</strong>
+            <strong>{formatDuration(route.minutes)}</strong>
             <span className="route-sep" aria-hidden="true">
               ·
             </span>
-            <strong>{formatKm(shown.km)}</strong>
-            {shown.roads.length > 0 && <span className="route-roads">via {shown.roads.join(' – ')}</span>}
+            <strong>{formatKm(route.km)}</strong>
+            {route.roads.length > 0 && <span className="route-roads">via {route.roads.join(' – ')}</span>}
           </p>
           <p className="muted small-print" role="status">
-            {shown.source === 'routeplanner'
-              ? 'Rijtijd met de auto zonder actueel verkeer (OpenStreetMap-routeplanner).'
-              : route === undefined
-                ? 'Schatting (hemelsbreed × 1,25, gemiddeld 80 km/u); route wordt opgehaald…'
-                : 'Schatting (hemelsbreed × 1,25, gemiddeld 80 km/u); de routeplanner is niet bereikbaar.'}
+            Rijtijd met de auto zonder actueel verkeer (OpenStreetMap-routeplanner).
           </p>
         </>
-      ) : (
-        <p className="muted small-print">Geen schatting mogelijk: een van de ziekenhuizen staat niet in de keuzelijst. Gebruik een routeplanner.</p>
       )}
       <div className="route-links">
         <a className="button secondary" href={links.google} target="_blank" rel="noopener noreferrer">

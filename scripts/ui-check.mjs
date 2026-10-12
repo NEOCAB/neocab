@@ -81,7 +81,7 @@ async function basisLayout(page) {
   await page.keyboard.press('Escape');
   await page.locator('#s2 .route-box', { hasText: 'niet bereikbaar' }).waitFor({ timeout: 5000 }).catch(() => {});
   const est = (await page.locator('#s2 .route-box').textContent()) ?? '';
-  check('Route offline: schatting met reistijd en afstand', /\d+ min/.test(est) && /\d+ km/.test(est) && est.includes('Schatting') && est.includes('niet bereikbaar'), est);
+  check('Route zonder routeplanner: geen schatting, wel melding en links', !/\d+ min/.test(est) && !/\d+ km/.test(est) && est.includes('Reistijd niet beschikbaar') && est.includes('Google Maps'), est);
   await recvH.fill('');
   await page.unroute('https://router.project-osrm.org/**');
   await refHosp.fill('');

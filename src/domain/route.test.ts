@@ -1,17 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { coordsOf, estimateRoute, formatDuration, formatKm, haversineKm, mainRoads, mapLinks } from './route';
+import { coordsOf, formatDuration, formatKm, mainRoads, mapLinks } from './route';
 
 describe('route en reistijd', () => {
-  it('schat rijafstand en -tijd uit de hemelsbrede afstand', () => {
-    const leiderdorp = coordsOf('Alrijne Ziekenhuis, Leiderdorp')!;
-    const sophia = coordsOf('Erasmus MC – Sophia Kinderziekenhuis, Rotterdam')!;
-    const crow = haversineKm(leiderdorp, sophia);
-    expect(crow).toBeGreaterThan(25);
-    expect(crow).toBeLessThan(32);
-    const est = estimateRoute(leiderdorp, sophia);
-    expect(est.km).toBeCloseTo(crow * 1.25, 5);
-    expect(est.minutes).toBeCloseTo((est.km / 80) * 60, 5);
-    expect(est.source).toBe('schatting');
+  it('kent de coördinaten van ziekenhuizen in de keuzelijst', () => {
+    expect(coordsOf('Alrijne Ziekenhuis, Leiderdorp')).toEqual([52.16, 4.526]);
     expect(coordsOf('Onbekend ziekenhuis')).toBe(null);
   });
   it('formatteert afstand en tijd', () => {

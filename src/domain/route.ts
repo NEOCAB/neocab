@@ -1,38 +1,22 @@
 import { HOSPITAL_COORDS } from './hospitals';
 
 /**
- * Route en reistijd tussen verwijzend en ontvangend ziekenhuis (alleen ter informatie, geen planning).
- * - Schatting (altijd, ook offline): hemelsbrede afstand × 1,25 als rijafstand, gemiddeld 80 km/u.
- * - Route (als er internet is): de openbare OpenStreetMap-routeplanner (OSRM) voor rijafstand, rijtijd zonder
- *   actueel verkeer en de belangrijkste wegen. Er gaan alleen de coördinaten van de twee ziekenhuizen mee.
+ * Route en reistijd tussen verwijzend en ontvangend ziekenhuis (alleen ter informatie, geen planning), via de openbare
+ * OpenStreetMap-routeplanner (OSRM): rijafstand, rijtijd zonder actueel verkeer en de belangrijkste wegen. Er gaan alleen
+ * de coördinaten van de twee ziekenhuizen mee. Is de routeplanner niet bereikbaar, dan wordt géén schatting getoond.
  */
 
 export type LatLon = [number, number];
 
-export const ROAD_FACTOR = 1.25;
-export const AVERAGE_KMH = 80;
-
 export interface RouteInfo {
   km: number;
   minutes: number;
-  /** Belangrijkste wegen in volgorde (bijv. ["A4", "A13"]); leeg bij een schatting. */
+  /** Belangrijkste wegen in volgorde (bijv. ["A4", "A13"]). */
   roads: string[];
-  source: 'schatting' | 'routeplanner';
 }
 
 export function coordsOf(hospital: string): LatLon | null {
   return HOSPITAL_COORDS[hospital.trim()] ?? null;
-}
-
-export function haversineKm([lat1, lon1]: LatLon, [lat2, lon2]: LatLon): number {
-  const rad = (d: number) => (d * Math.PI) / 180;
-  const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1) / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.sqrt(a));
-}
-
-export function estimateRoute(from: LatLon, to: LatLon): RouteInfo {
-  const km = haversineKm(from, to) * ROAD_FACTOR;
-  return { km, minutes: (km / AVERAGE_KMH) * 60, roads: [], source: 'schatting' };
 }
 
 /** Rijtijd als "45 min" of "1 u 20 min" (afgerond op 5 minuten, minimaal 5). */
@@ -69,7 +53,7 @@ export async function fetchRoute(from: LatLon, to: LatLon, signal?: AbortSignal)
     const data = (await res.json()) as { code?: string; routes?: { distance: number; duration: number; legs?: { steps?: { ref?: string; distance?: number }[] }[] }[] };
     const r = data.code === 'Ok' ? data.routes?.[0] : undefined;
     if (!r) return null;
-    return { km: r.distance / 1000, minutes: r.duration / 60, roads: mainRoads(r.legs?.flatMap((l) => l.steps ?? []) ?? []), source: 'routeplanner' };
+    return { km: r.distance / 1000, minutes: r.duration / 60, roads: mainRoads(r.legs?.flatMap((l) => l.steps ?? []) ?? []) };
   } catch {
     return null;
   }
