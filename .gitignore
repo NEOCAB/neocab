@@ -2,3 +2,7 @@ node_modules
 dist
 *.tsbuildinfo
 test-output
+
+# Lokale configuratie met sleutels (niet in git)
+.env.local
+.env.*.local

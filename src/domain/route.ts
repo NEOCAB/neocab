@@ -1,9 +1,11 @@
 import { HOSPITAL_COORDS } from './hospitals';
 
 /**
- * Route en reistijd tussen verwijzend en ontvangend ziekenhuis (alleen ter informatie, geen planning), via de openbare
- * OpenStreetMap-routeplanner (OSRM): rijafstand, rijtijd zonder actueel verkeer en de belangrijkste wegen. Er gaan alleen
- * de coördinaten van de twee ziekenhuizen mee. Is de routeplanner niet bereikbaar, dan wordt géén schatting getoond.
+ * Route en reistijd tussen verwijzend en ontvangend ziekenhuis (alleen ter informatie, geen planning).
+ * 1. TomTom Routing API (met actueel verkeer), als er een sleutel is (VITE_TOMTOM_KEY bij het bouwen);
+ * 2. anders, of als TomTom niet bereikbaar is: de openbare OpenStreetMap-routeplanner (OSRM, zonder actueel verkeer);
+ * 3. lukt geen van beide, dan wordt géén schatting getoond.
+ * Er gaan alleen de coördinaten van de twee ziekenhuizen mee, geen patiëntgegevens.
  */
 
 export type LatLon = [number, number];
@@ -13,6 +15,10 @@ export interface RouteInfo {
   minutes: number;
   /** Belangrijkste wegen in volgorde (bijv. ["A4", "A13"]). */
   roads: string[];
+  /** Bron: TomTom (met actueel verkeer) of OSRM (zonder verkeer). */
+  source: 'tomtom' | 'osrm';
+  /** Extra reistijd door actueel verkeer (alleen TomTom). */
+  trafficDelayMinutes?: number;
 }
 
 export function coordsOf(hospital: string): LatLon | null {
@@ -44,8 +50,54 @@ export function mainRoads(steps: { ref?: string; distance?: number }[]): string[
 
 export const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
 
+/** Sleutel voor de TomTom Routing API; wordt bij het bouwen ingevuld vanuit .env.local (niet in git). */
+export const TOMTOM_KEY: string = (import.meta.env?.VITE_TOMTOM_KEY as string | undefined) ?? '';
+export const TOMTOM_URL = 'https://api.tomtom.com/routing/1/calculateRoute';
+
+/** Wegnummers uit TomTom-instructies (coded): A- en N-wegen in volgorde, zonder herhaling. */
+export function tomtomRoads(instructions: { roadNumbers?: string[] }[]): string[] {
+  const out: string[] = [];
+  for (const ins of instructions) {
+    for (const raw of ins.roadNumbers ?? []) {
+      const ref = raw.replace(/\s+/g, '').toUpperCase();
+      if (/^[AN]\d+$/.test(ref) && !out.includes(ref)) out.push(ref);
+    }
+  }
+  return out.slice(0, 6);
+}
+
+/** Route via TomTom, met actueel verkeer; `null` als die niet bereikbaar is of geen route geeft. */
+export async function fetchTomTomRoute(from: LatLon, to: LatLon, key: string, signal?: AbortSignal): Promise<RouteInfo | null> {
+  try {
+    const params = new URLSearchParams({ key, traffic: 'true', travelMode: 'car', routeType: 'fastest', instructionsType: 'coded' });
+    const res = await fetch(`${TOMTOM_URL}/${from[0]},${from[1]}:${to[0]},${to[1]}/json?${params}`, { signal });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { routes?: { summary: { lengthInMeters: number; travelTimeInSeconds: number; trafficDelayInSeconds?: number }; guidance?: { instructions?: { roadNumbers?: string[] }[] } }[] };
+    const r = data.routes?.[0];
+    if (!r) return null;
+    return {
+      km: r.summary.lengthInMeters / 1000,
+      minutes: r.summary.travelTimeInSeconds / 60,
+      roads: tomtomRoads(r.guidance?.instructions ?? []),
+      source: 'tomtom',
+      trafficDelayMinutes: (r.summary.trafficDelayInSeconds ?? 0) / 60,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Route: eerst TomTom (als er een sleutel is), dan OSRM; `null` als geen van beide lukt. */
+export async function fetchRoute(from: LatLon, to: LatLon, signal?: AbortSignal, key = TOMTOM_KEY): Promise<RouteInfo | null> {
+  if (key) {
+    const tt = await fetchTomTomRoute(from, to, key, signal);
+    if (tt || signal?.aborted) return tt;
+  }
+  return fetchOsrmRoute(from, to, signal);
+}
+
 /** Route via de openbare OSRM-routeplanner; `null` als die niet bereikbaar is of geen route geeft. */
-export async function fetchRoute(from: LatLon, to: LatLon, signal?: AbortSignal): Promise<RouteInfo | null> {
+export async function fetchOsrmRoute(from: LatLon, to: LatLon, signal?: AbortSignal): Promise<RouteInfo | null> {
   try {
     const url = `${OSRM_URL}/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false&steps=true`;
     const res = await fetch(url, { signal });
@@ -53,7 +105,7 @@ export async function fetchRoute(from: LatLon, to: LatLon, signal?: AbortSignal)
     const data = (await res.json()) as { code?: string; routes?: { distance: number; duration: number; legs?: { steps?: { ref?: string; distance?: number }[] }[] }[] };
     const r = data.code === 'Ok' ? data.routes?.[0] : undefined;
     if (!r) return null;
-    return { km: r.distance / 1000, minutes: r.duration / 60, roads: mainRoads(r.legs?.flatMap((l) => l.steps ?? []) ?? []) };
+    return { km: r.distance / 1000, minutes: r.duration / 60, roads: mainRoads(r.legs?.flatMap((l) => l.steps ?? []) ?? []), source: 'osrm' };
   } catch {
     return null;
   }

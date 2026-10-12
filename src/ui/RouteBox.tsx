@@ -1,23 +1,29 @@
 import { useEffect, useState } from 'react';
 import { coordsOf, fetchRoute, formatDuration, formatKm, mapLinks, type RouteInfo } from '../domain/route';
 
-/** Eerder opgehaalde routes (per paar ziekenhuizen), zodat niet bij elke weergave opnieuw wordt gevraagd. */
-const cache = new Map<string, RouteInfo | null>();
+/** Eerder opgehaalde routes (per paar ziekenhuizen), 5 minuten geldig (het verkeer verandert). */
+const cache = new Map<string, { at: number; route: RouteInfo | null }>();
+const CACHE_MS = 5 * 60_000;
+const cached = (key: string) => {
+  const c = cache.get(key);
+  return c && Date.now() - c.at < CACHE_MS ? c : undefined;
+};
 
 /**
  * Route en reistijd van verwijzend naar ontvangend ziekenhuis. Verschijnt zodra beide zijn ingevuld.
- * Alleen ter informatie: rijtijd zonder actueel verkeer, voor een gewone auto.
+ * Alleen ter informatie: rijtijd voor een gewone auto (met actueel verkeer via TomTom, anders zonder).
  */
 export function RouteBox({ from, to }: { from: string; to: string }) {
   const a = coordsOf(from);
   const b = coordsOf(to);
   const key = `${from}→${to}`;
-  const [route, setRoute] = useState<RouteInfo | null | undefined>(() => cache.get(key));
+  const [route, setRoute] = useState<RouteInfo | null | undefined>(() => cached(key)?.route);
 
   useEffect(() => {
     if (!a || !b) return;
-    if (cache.has(key)) {
-      setRoute(cache.get(key));
+    const hit = cached(key);
+    if (hit) {
+      setRoute(hit.route);
       return;
     }
     setRoute(undefined);
@@ -26,7 +32,7 @@ export function RouteBox({ from, to }: { from: string; to: string }) {
     const h = window.setTimeout(() => {
       void fetchRoute(a, b, ctl.signal).then((r) => {
         if (ctl.signal.aborted) return;
-        cache.set(key, r);
+        cache.set(key, { at: Date.now(), route: r });
         setRoute(r);
       });
     }, 500);
@@ -72,7 +78,9 @@ export function RouteBox({ from, to }: { from: string; to: string }) {
             {route.roads.length > 0 && <span className="route-roads">via {route.roads.join(' – ')}</span>}
           </p>
           <p className="muted small-print" role="status">
-            Rijtijd met de auto zonder actueel verkeer (OpenStreetMap-routeplanner).
+            {route.source === 'tomtom'
+              ? `Rijtijd met de auto bij het actuele verkeer (TomTom)${(route.trafficDelayMinutes ?? 0) >= 1 ? `, waarvan ${Math.round(route.trafficDelayMinutes!)} min vertraging door verkeer` : ''}.`
+              : 'Rijtijd met de auto zonder actueel verkeer (OpenStreetMap-routeplanner).'}
           </p>
         </>
       )}

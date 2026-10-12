@@ -74,6 +74,7 @@ async function basisLayout(page) {
   check('Ziekenhuis: vrije tekst blijft mogelijk', (await refHosp.inputValue()) === 'Eigen ziekenhuis buiten de lijst');
   // Zonder routeplanner (offline): schatting op basis van de coördinaten
   await page.route('https://router.project-osrm.org/**', (r) => r.abort());
+  await page.route('https://api.tomtom.com/**', (r) => r.abort());
   await refHosp.fill('Amphia, Breda');
   await page.keyboard.press('Escape');
   const recvH = page.locator('#s2').getByRole('combobox', { name: 'Ontvangend ziekenhuis' });
@@ -84,6 +85,7 @@ async function basisLayout(page) {
   check('Route zonder routeplanner: geen schatting, wel melding en links', !/\d+ min/.test(est) && !/\d+ km/.test(est) && est.includes('Reistijd niet beschikbaar') && est.includes('Google Maps'), est);
   await recvH.fill('');
   await page.unroute('https://router.project-osrm.org/**');
+  await page.unroute('https://api.tomtom.com/**');
   await refHosp.fill('');
   check('Ontvangende afdeling en ziekenhuis standaard leeg', (await page.getByLabel('Ontvangende afdeling', { exact: true }).inputValue()) === '' && (await page.getByLabel('Ontvangend ziekenhuis', { exact: true }).inputValue()) === '');
   check('Datum/tijd verwijzing krijgt standaard nu', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(referred), referred);
@@ -519,6 +521,11 @@ for (const [w, h] of [
   // Route en reistijd: verschijnt pas als beide ziekenhuizen zijn ingevuld; routeplanner nagebootst (geen internet nodig)
   check(`${w}px: geen routevak zolang het ontvangend ziekenhuis leeg is`, (await page.locator('#s2 .route-box').count()) === 0);
   let osrmCalls = 0;
+  let tomtomUrl = '';
+  await page.route('https://api.tomtom.com/**', (r) => {
+    tomtomUrl = r.request().url();
+    return r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ routes: [{ summary: { lengthInMeters: 37400, travelTimeInSeconds: 2280, trafficDelayInSeconds: 420 }, guidance: { instructions: [{ roadNumbers: ['A4'] }, { roadNumbers: ['A13'] }] } }] }) });
+  });
   await page.route('https://router.project-osrm.org/**', (r) => {
     osrmCalls++;
     return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ code: 'Ok', routes: [{ distance: 36200, duration: 1860, legs: [{ steps: [{ ref: 'A4', distance: 25000 }, { ref: 'A13', distance: 9000 }] }] }] }) });
@@ -529,10 +536,11 @@ for (const [w, h] of [
   await recv.press('Enter');
   await page.locator('#s2 .route-box .route-roads').waitFor({ timeout: 5000 }).catch(() => {});
   const routeText = (await page.locator('#s2 .route-box').textContent()) ?? '';
-  check(`${w}px: routevak met reistijd, afstand en wegen via de routeplanner`, routeText.includes('30 min') && routeText.includes('36 km') && routeText.includes('via A4 – A13') && routeText.includes('Alrijne') && routeText.includes('Sophia') && osrmCalls === 1, routeText);
+  check(`${w}px: routevak met reistijd bij actueel verkeer (TomTom), afstand en wegen`, routeText.includes('40 min') && routeText.includes('37 km') && routeText.includes('via A4 – A13') && routeText.includes('actuele verkeer (TomTom), waarvan 7 min vertraging') && routeText.includes('Sophia') && osrmCalls === 0 && /[?&]key=[A-Za-z0-9]{20,}/.test(tomtomUrl) && tomtomUrl.includes('traffic=true'), routeText);
   const gmaps = await page.locator('#s2 .route-box a', { hasText: 'Google Maps' }).getAttribute('href');
   check(`${w}px: link naar routeplanner met beide ziekenhuizen`, gmaps.startsWith('https://www.google.com/maps/dir/?api=1&origin=52.16') && gmaps.includes('destination=51.91'), gmaps);
   await page.unroute('https://router.project-osrm.org/**');
+  await page.unroute('https://api.tomtom.com/**');
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });
