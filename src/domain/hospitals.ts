@@ -2,7 +2,7 @@
  * Ziekenhuislocaties in Nederland met een klinische afdeling kindergeneeskunde en/of neonatologie, voor de keuzelijst
  * bij verwijzend en ontvangend ziekenhuis. NICU = intensive care neonatologie (derdelijns perinatologisch centrum).
  *
- * Samengesteld oktober 2026 op basis van openbare informatie; er bestaat geen officieel landelijk register van
+ * Samengesteld en gecontroleerd oktober 2026 op basis van openbare informatie; er bestaat geen officieel landelijk register van
  * klinische kinderafdelingen en ziekenhuizen fuseren of verplaatsen zorg. De lijst is daarom aan te passen via
  * Instellingen, en in het veld kan altijd vrije tekst worden ingevuld.
  *
@@ -38,6 +38,7 @@ export const DEFAULT_HOSPITAL_LINES: string[] = [
   'Santiz – SKB, Winterswijk',
   // Utrecht
   'UMC Utrecht – Wilhelmina Kinderziekenhuis, Utrecht | NICU',
+  'Prinses Máxima Centrum (kinderoncologie), Utrecht',
   'St. Antonius Ziekenhuis, Utrecht',
   'St. Antonius Ziekenhuis, Nieuwegein',
   'Diakonessenhuis, Utrecht',
@@ -59,10 +60,12 @@ export const DEFAULT_HOSPITAL_LINES: string[] = [
   'Dijklander Ziekenhuis, Hoorn',
   'Dijklander Ziekenhuis, Purmerend',
   // Zuid-Holland
+  'LUMC – Willem-Alexander Kinderziekenhuis, Leiden | NICU',
   'Alrijne Ziekenhuis, Leiderdorp',
   'Groene Hart Ziekenhuis, Gouda',
   'HMC Westeinde, Den Haag',
   'HagaZiekenhuis – Juliana Kinderziekenhuis, Den Haag',
+  'HagaZiekenhuis, Zoetermeer',
   'Reinier de Graaf, Delft',
   'Erasmus MC – Sophia Kinderziekenhuis, Rotterdam | NICU',
   'Maasstad Ziekenhuis, Rotterdam',
@@ -78,6 +81,7 @@ export const DEFAULT_HOSPITAL_LINES: string[] = [
   'Adrz, Goes',
   'ZorgSaam Ziekenhuis, Terneuzen',
   'Bravis ziekenhuis, Roosendaal',
+  'Bravis ziekenhuis, Bergen op Zoom',
   'Amphia, Breda',
   'ETZ – Elisabeth-TweeSteden Ziekenhuis, Tilburg',
   'Jeroen Bosch Ziekenhuis, ’s-Hertogenbosch',
@@ -93,6 +97,7 @@ export const DEFAULT_HOSPITAL_LINES: string[] = [
   'Zuyderland Medisch Centrum, Sittard-Geleen',
   'Laurentius Ziekenhuis, Roermond',
   'VieCuri Medisch Centrum, Venlo',
+  'SJG Weert, Weert',
 ];
 
 /**
@@ -125,6 +130,7 @@ export const HOSPITAL_COORDS: Record<string, [number, number]> = {
   'Santiz – Slingeland, Doetinchem': [51.962, 6.288],
   'Santiz – SKB, Winterswijk': [51.972, 6.724],
   'UMC Utrecht – Wilhelmina Kinderziekenhuis, Utrecht': [52.087, 5.179],
+  'Prinses Máxima Centrum (kinderoncologie), Utrecht': [52.088, 5.177],
   'St. Antonius Ziekenhuis, Utrecht': [52.102, 5.044],
   'St. Antonius Ziekenhuis, Nieuwegein': [52.036, 5.093],
   'Diakonessenhuis, Utrecht': [52.082, 5.148],
@@ -144,10 +150,12 @@ export const HOSPITAL_COORDS: Record<string, [number, number]> = {
   'Noordwest Ziekenhuisgroep, Den Helder': [52.942, 4.762],
   'Dijklander Ziekenhuis, Hoorn': [52.646, 5.059],
   'Dijklander Ziekenhuis, Purmerend': [52.511, 4.954],
+  'LUMC – Willem-Alexander Kinderziekenhuis, Leiden': [52.166, 4.478],
   'Alrijne Ziekenhuis, Leiderdorp': [52.16, 4.526],
   'Groene Hart Ziekenhuis, Gouda': [52.023, 4.699],
   'HMC Westeinde, Den Haag': [52.073, 4.302],
   'HagaZiekenhuis – Juliana Kinderziekenhuis, Den Haag': [52.049, 4.26],
+  'HagaZiekenhuis, Zoetermeer': [52.054, 4.492],
   'Reinier de Graaf, Delft': [51.997, 4.374],
   'Erasmus MC – Sophia Kinderziekenhuis, Rotterdam': [51.91, 4.469],
   'Maasstad Ziekenhuis, Rotterdam': [51.87, 4.529],
@@ -162,6 +170,7 @@ export const HOSPITAL_COORDS: Record<string, [number, number]> = {
   'Adrz, Goes': [51.497, 3.886],
   'ZorgSaam Ziekenhuis, Terneuzen': [51.329, 3.831],
   'Bravis ziekenhuis, Roosendaal': [51.532, 4.458],
+  'Bravis ziekenhuis, Bergen op Zoom': [51.497, 4.302],
   'Amphia, Breda': [51.577, 4.796],
   'ETZ – Elisabeth-TweeSteden Ziekenhuis, Tilburg': [51.564, 5.064],
   'Jeroen Bosch Ziekenhuis, ’s-Hertogenbosch': [51.683, 5.358],
@@ -176,6 +185,7 @@ export const HOSPITAL_COORDS: Record<string, [number, number]> = {
   'Zuyderland Medisch Centrum, Sittard-Geleen': [50.999, 5.842],
   'Laurentius Ziekenhuis, Roermond': [51.189, 5.989],
   'VieCuri Medisch Centrum, Venlo': [51.374, 6.166],
+  'SJG Weert, Weert': [51.25, 5.705],
 };
 
 export interface HospitalOption {

@@ -110,6 +110,15 @@ describe('lokale conceptopslag', () => {
     expect(loadSettings(storage).abcdLettersOnly).toBe(true);
   });
 
+  it('ziekenhuislijst volgt de standaardlijst, tenzij die zelf is aangepast', () => {
+    const storage = memoryStorage();
+    // Oude opslag: lijst bewaard zonder dat die is aangepast -> standaardlijst (met latere aanvullingen).
+    storage.setItem('neonataal-transport:v1:instellingen', JSON.stringify({ hospitals: ['Oud ziekenhuis, Ergens'] }));
+    expect(loadSettings(storage).hospitals.some((h) => h.startsWith('LUMC'))).toBe(true);
+    saveSettings(storage, { ...loadSettings(storage), hospitals: ['Eigen ziekenhuis, Hier'], hospitalsCustom: true });
+    expect(loadSettings(storage).hospitals).toEqual(['Eigen ziekenhuis, Hier']);
+  });
+
   it('bewaart de keuze werk- of persoonlijk apparaat; standaard werkapparaat', () => {
     const storage = memoryStorage();
     expect(loadSettings(storage).device).toBe('werk');

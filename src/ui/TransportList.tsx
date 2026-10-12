@@ -39,7 +39,10 @@ function HospitalListEditor({ settings, onChange }: { settings: AppSettings; onC
           type="button"
           className="primary"
           onClick={() => {
-            onChange({ ...settings, hospitals: text.split('\n').map((r) => r.trim()).filter(Boolean) });
+            const hospitals = text.split('\n').map((r) => r.trim()).filter(Boolean);
+            // Gelijk aan de standaardlijst: niet als eigen lijst bewaren, zodat latere updates van de lijst doorkomen.
+            const custom = hospitals.join('\n') !== DEFAULT_HOSPITAL_LINES.join('\n');
+            onChange({ ...settings, hospitals: custom ? hospitals : DEFAULT_HOSPITAL_LINES, hospitalsCustom: custom });
             setSaved(true);
           }}
         >

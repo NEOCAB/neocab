@@ -9,6 +9,8 @@ export interface AppSettings {
   medicationRoutes: string[];
   /** Keuzelijst ziekenhuislocaties ("Naam, Plaats" met optioneel " | NICU"), aan te passen via Instellingen. */
   hospitals: string[];
+  /** Lijst zelf aangepast? Zo niet, dan volgt het apparaat altijd de actuele standaardlijst (ook na updates). */
+  hospitalsCustom?: boolean;
   /** Bij de negen klinische kopjes (Airway … Infection) alleen de beginletter tonen, links van het invulveld. */
   abcdLettersOnly: boolean;
   /**
@@ -31,7 +33,8 @@ export function loadSettings(storage: KeyValueStorage): AppSettings {
     return {
       timeZone: typeof v.timeZone === 'string' && isValidTimeZone(v.timeZone) ? v.timeZone : DEFAULT_TIME_ZONE,
       medicationRoutes: Array.isArray(v.medicationRoutes) ? v.medicationRoutes.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_MEDICATION_ROUTES,
-      hospitals: Array.isArray(v.hospitals) ? v.hospitals.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_HOSPITAL_LINES,
+      hospitals: v.hospitalsCustom === true && Array.isArray(v.hospitals) ? v.hospitals.filter((r: unknown) => typeof r === 'string' && r.trim()) : DEFAULT_HOSPITAL_LINES,
+      hospitalsCustom: v.hospitalsCustom === true && Array.isArray(v.hospitals),
       abcdLettersOnly: v.abcdLettersOnly === true,
       device: v.device === 'persoonlijk' ? 'persoonlijk' : 'werk',
     };

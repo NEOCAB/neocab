@@ -151,7 +151,8 @@ async function basisLayout(page) {
   check('Huisstijl: PT Sans geladen', style.font.includes('PT Sans') && style.loaded, JSON.stringify(style));
   check('Huisstijl: koppen en primaire knop donkerblauw #003c7d', style.h2 === 'rgb(0, 60, 125)' && style.primary === 'rgb(0, 60, 125)', `${style.h2} / ${style.primary}`);
   check('Formulier: logo en naam Neo.Cab in de bovenbalk', (await page.locator('.topbar .topbar-brand img.brand-logo').isVisible()) && (await page.locator('.topbar .topbar-name').textContent()) === 'Neo.Cab');
-  check('Geen verwijzing naar LUMC in de app', !(await page.content()).includes('LUMC'));
+  // Geen LUMC-huisstijl of -logo (LUMC staat wél als gewone keuze in de ziekenhuislijst).
+  check('Geen LUMC-logo of -naam in titel, kop en bovenbalk', !(await page.title()).includes('LUMC') && !(await page.locator('.topbar').textContent()).includes('LUMC') && (await page.locator('img[alt*="LUMC" i]').count()) === 0);
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
   const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
