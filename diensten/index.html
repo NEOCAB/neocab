@@ -224,13 +224,6 @@ details.gegevens summary { cursor: pointer; font-weight: 700; color: var(--blauw
 #grafiek-kaarten .kaart { padding: 14px 16px; }
 #grafiek-kaarten h3 { font-size: 1.05rem; }
 
-/* Cao en voorstel */
-.cao .kaart h3 { font-size: 1.1rem; }
-.cao .ref { font-size: .88rem; color: var(--stil); }
-.disclaimer { font-size: .85rem; color: var(--stil); }
-.voorstel { list-style: none; counter-reset: v; padding: 0; margin: 20px 0; display: grid; gap: 0; max-width: 48rem; }
-.voorstel li { counter-increment: v; display: grid; grid-template-columns: 3rem 1fr; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--rand); font-size: 1.12rem; }
-.voorstel li::before { content: counter(v); font-size: 2rem; font-weight: 700; color: var(--kobalt); line-height: 1; }
 footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--rand); color: var(--stil); font-size: .9rem; }
 
 @media print {
@@ -265,8 +258,6 @@ footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--ran
         <li><a href="#opties">Opties A–D</a></li>
         <li><a href="#optie-d">Optie D uitgelegd</a></li>
         <li><a href="#grafiek">Grafiek</a></li>
-        <li><a href="#cao">Cao</a></li>
-        <li><a href="#voorstel">Voorstel</a></li>
       </ul>
     </nav>
   </div>
@@ -487,33 +478,6 @@ footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--ran
     </div>
   </div>
 
-  <!-- 10. Cao -->
-  <section id="cao" class="cao">
-    <div class="wrap">
-      <h2>Kader: Cao umc 2026–2027</h2>
-      <p class="lead">Waar een verdeling in elk geval aan moet voldoen.</p>
-      <div class="kaarten">
-        <div class="kaart"><h3>Max. 55 uur per week</h3><p>Inclusief werk tijdens diensten, gemiddeld op jaarbasis. Bij structurele overschrijding: een vacature of andere maatregelen.</p><p class="ref">art. 15.6 lid 4–5</p></div>
-        <div class="kaart"><h3>Hersteltijd ≥ 8 uur</h3><p>Na ≥ 2 uur werk tussen 00.00 en 06.00. Afspraken per specialisme vóór 31-12-2026, met ≥ 2/3 instemming.</p><p class="ref">addendum</p></div>
-        <div class="kaart"><h3>TVO 0–20%</h3><p>Tijd voor ontwikkeling naar dienstbelasting.</p><p class="ref">art. 15.4.2</p></div>
-        <div class="kaart"><h3>Deeltijd naar rato</h3><p>Wie in deeltijd werkt, draait naar rato diensten.</p><p class="ref">art. 15.4.2 lid 5</p></div>
-      </div>
-      <p class="disclaimer">Samenvatting, geen juridisch advies.</p>
-    </div>
-  </section>
-
-  <!-- 11. Voorstel -->
-  <section id="voorstel">
-    <div class="wrap">
-      <h2>Voorstel</h2>
-      <ol class="voorstel">
-        <li><span>Spreek samen een <strong>weging</strong> af, vóór we over aantallen praten.</span></li>
-        <li><span>Leg met de opleider vast hoeveel <strong>voorwachtnachten fellows nodig hebben</strong> voor de opleiding.</span></li>
-        <li><span>Verdeel op <strong>gelijke punten per fte</strong>.</span></li>
-        <li><span>Maak de <strong>hersteltijdafspraken vóór 31-12-2026</strong> en evalueer na 6 maanden.</span></li>
-      </ol>
-    </div>
-  </section>
 </main>
 
 <footer>
