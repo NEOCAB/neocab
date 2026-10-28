@@ -221,11 +221,12 @@ async function basisLayout(page) {
   await th.check();
   await page.waitForSelector('#s3 .thompson');
   const sub3th = await page.locator('#s3 h3.subsection-title').allTextContents();
-  check('Na kiezen: kopjes Perinatale asfyxie en Thompson Score bij Verwijzing (voor Advies), 9 onderdelen', JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Perinatale asfyxie', 'Thompson Score', 'Advies']) && (await page.locator('#s3 .thompson fieldset').count()) === 9, sub3th.join(' | '));
+  check('Na kiezen: kopjes Perinatale asfyxie en Thompson Score bij Verwijzing (voor Advies), 9 onderdelen', JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Perinatale asfyxie', 'Thompson Score', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, sub3th.join(' | '));
   await page.locator('#s3 .asphyxia-criteria').getByRole('checkbox', { name: /Apgarscore op 5 minuten/ }).check();
   check('Perinatale asfyxie: zes criteria direct zichtbaar (geen aparte ja/nee-keuze), aan te vinken', (await page.locator('#s3 fieldset.segmented', { hasText: /perinatale asfyxie/i }).count()) === 0 && (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
-  await page.locator('#s3 .thompson fieldset', { hasText: 'Tonus' }).getByRole('radio', { name: '2 · hypotonie' }).check();
-  await page.locator('#s3 .thompson fieldset', { hasText: 'Ademhaling' }).getByRole('radio', { name: '3 · beademing (apneu)' }).check();
+  check('Thompson Score als tabel met ronde keuzerondjes; Therapeutische hypothermie als vierkant vinkje', (await page.locator('#s3 .thompson-table input[type=radio]').count()) === 31 && (await page.locator('#s2 .reason-options .seg').count()) === 0);
+  await page.locator('#s3 .thompson-table').getByRole('radio', { name: 'Tonus 2: hypotonie' }).check();
+  await page.locator('#s3 .thompson-table').getByRole('radio', { name: 'Ademhaling 3: beademing (apneu)' }).check();
   const totalText = await page.locator('#s3 .thompson-total').textContent();
   check('Thompson Score: totaal telt mee (5 / 22, 2 van 9 ingevuld)', totalText.includes('5 / 22') && totalText.includes('2 van 9'), totalText);
   await page.screenshot({ path: `${OUT}/390-thompson.png`, fullPage: false, clip: await page.locator('#s3 .thompson').boundingBox().then((b) => ({ x: 0, y: b.y - 80, width: 390, height: 700 })) }).catch(() => {});

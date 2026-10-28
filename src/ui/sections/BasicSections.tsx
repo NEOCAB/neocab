@@ -116,7 +116,7 @@ export function ReferralSection({ t, update }: SectionProps) {
       <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
       {/* Vaste reden; bij therapeutische hypothermie verschijnt bij Verwijzing de Thompsonscore. */}
       <div className="reason-options">
-        <label className={`seg ${r.therapeuticHypothermia ? 'checked' : ''}`}>
+        <label className="check-setting">
           <input type="checkbox" checked={r.therapeuticHypothermia} onChange={(e) => set('therapeuticHypothermia', e.target.checked)} />
           <span>Therapeutische hypothermie</span>
         </label>
@@ -217,27 +217,66 @@ function AsphyxiaFields({ value, birth, onChange }: { value: Asphyxia; birth: Tr
 }
 
 /** Thompsonscore (bij reden van overplaatsing "Therapeutische hypothermie"): per onderdeel een keuze, totaal automatisch. */
+/** Afbreekpunten (zacht afbreekstreepje) voor lange woorden in de smalle Thompsontabel op een telefoon. */
+const SOFT_HYPHENS: Record<string, string> = {
+  hypertonie: 'hyper\u00adtonie',
+  hypotonie: 'hypo\u00adtonie',
+  hyperalert: 'hyper\u00adalert',
+  lethargisch: 'lethar\u00adgisch',
+  comateus: 'coma\u00adteus',
+  fietsbewegingen: 'fiets\u00adbewe\u00adgingen',
+  decerebratie: 'decere\u00adbratie',
+  afgezwakt: 'afge\u00adzwakt',
+  hyperventilatie: 'hyper\u00adventilatie',
+  beademing: 'beade\u00adming',
+  gespannen: 'ge\u00adspannen',
+  normaal: 'nor\u00admaal',
+};
+const hyphenate = (text: string) => text.replace(/\p{L}+/gu, (w) => SOFT_HYPHENS[w] ?? w);
+
 function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (v: ThompsonScore) => void }) {
   const { total, filled, complete } = thompsonTotal(value.scores);
   return (
     <>
       <h3 className="subsection-title">Thompson Score</h3>
       <DateTimeField label="Tijdstip score" value={value.at} onChange={(v) => onChange({ ...value, at: v })} />
+      {/* Tabel zoals in het protocol: per verschijnsel één rij, per score een kolom met een rond keuzerondje. */}
       <div className="thompson">
-        {THOMPSON_ITEMS.map((item) => {
-          const v = value.scores[item.key];
-          return (
-            <Segmented
-              key={item.key}
-              className="thompson-item"
-              legend={item.label}
-              value={typeof v === 'number' ? String(v) : ''}
-              onChange={(s) => onChange({ ...value, scores: { ...value.scores, [item.key]: s === '' ? null : Number(s) } })}
-              options={item.options.map((label, i) => ({ value: String(i), label: `${i} · ${label}` }))}
-              allowClear={false}
-            />
-          );
-        })}
+        <table className="thompson-table">
+          <caption className="sr-only">Thompson Score: kies per verschijnsel één score</caption>
+          <thead>
+            <tr>
+              <th scope="col">Verschijnsel</th>
+              {[0, 1, 2, 3].map((i) => (
+                <th key={i} scope="col">
+                  {i}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {THOMPSON_ITEMS.map((item) => {
+              const v = value.scores[item.key];
+              return (
+                <tr key={item.key}>
+                  <th scope="row">{item.label}</th>
+                  {[0, 1, 2, 3].map((i) => {
+                    const text = item.options[i];
+                    if (text === undefined) return <td key={i} />;
+                    return (
+                      <td key={i} className={v === i ? 'checked' : undefined}>
+                        <label>
+                          <input type="radio" name={`thompson-${item.key}`} checked={v === i} aria-label={`${item.label} ${i}: ${text}`} onChange={() => onChange({ ...value, scores: { ...value.scores, [item.key]: i } })} />
+                          <span>{hyphenate(text)}</span>
+                        </label>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       <div className={`thompson-total ${complete && total >= THOMPSON_THRESHOLD ? 'high' : ''}`} role="status" aria-live="polite">
         <span>Totale score</span>

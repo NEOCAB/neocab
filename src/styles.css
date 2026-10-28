@@ -1987,13 +1987,68 @@ button.danger-button {
   gap: 0.4rem;
   margin: -0.25rem 0 0.75rem;
 }
-/* Thompsonscore */
-.thompson .thompson-item {
-  margin-bottom: 0.6rem;
+/* Thompsonscore als tabel met ronde keuzerondjes */
+.thompson {
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
 }
-.thompson .seg span {
-  font-size: 0.9rem;
-  padding: 0.35rem 0.7rem;
+.thompson-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  table-layout: fixed;
+}
+.thompson-table th,
+.thompson-table td {
+  border: 1px solid var(--border);
+  padding: 0;
+  vertical-align: top;
+  text-align: left;
+}
+.thompson-table thead th {
+  padding: 0.35rem 0.4rem;
+  background: var(--surface-muted, #f1f5f9);
+  font-weight: 600;
+}
+.thompson-table thead th:first-child,
+.thompson-table tbody th {
+  width: 24%;
+}
+.thompson-table tbody th {
+  padding: 0.45rem 0.3rem;
+  overflow-wrap: break-word;
+  font-weight: 600;
+}
+.thompson-table td label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.45rem 0.3rem;
+  min-height: var(--tap);
+  height: 100%;
+  cursor: pointer;
+  font-weight: 400;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  hyphens: manual;
+}
+.thompson-table td input {
+  width: 1.15rem;
+  height: 1.15rem;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.thompson-table td.checked {
+  background: color-mix(in srgb, var(--primary) 12%, #fff);
+}
+.thompson-table td.checked span {
+  font-weight: 600;
+}
+.thompson-table td label:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
 }
 .thompson-total {
   display: flex;
@@ -2018,7 +2073,17 @@ button.danger-button {
 .asphyxia-criteria .check-setting {
   margin: 0.45rem 0;
 }
-.asphyxia-criteria .check-setting input {
+.asphyxia-criteria .check-setting input,
+.reason-options .check-setting input {
   min-height: 0;
   margin-top: 0.2rem;
+}
+@media (max-width: 480px) {
+  .thompson-table {
+    font-size: 0.78rem;
+  }
+  .thompson-table thead th:first-child,
+  .thompson-table tbody th {
+    width: 22%;
+  }
 }
