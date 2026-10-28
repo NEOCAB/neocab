@@ -41,7 +41,12 @@ describe('verslag', () => {
     t.referral.therapeuticHypothermia = true;
     let text = reportToText(buildReport(t, TZ));
     expect(text).toContain('Reden van overplaatsing:\n  Therapeutische hypothermie\n  Toenemende zuurstofbehoefte');
-    expect(buildReport(t, TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Thompson Score', 'Advies']);
+    expect(buildReport(t, TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Perinatale asfyxie', 'Thompson Score', 'Advies']);
+    expect(text).toContain('» Perinatale asfyxie\nNiet ingevuld.');
+    t.referralCondition.asphyxia = { present: 'ja', criteria: ['lactate', 'apgar5'] };
+    expect(reportToText(buildReport(t, TZ))).toContain('Perinatale asfyxie: Ja\nCriteria:\n  Apgarscore op 5 minuten ≤ 5\n  Lactaat > 10.0 mmol/L');
+    t.referralCondition.asphyxia.present = 'nee';
+    expect(reportToText(buildReport(t, TZ))).toContain('Perinatale asfyxie: Nee\n\n» Thompson Score');
     expect(text).toContain('Tonus: 2 – hypotonie\nBewustzijn: 2 – lethargisch\nTotale score: 4 / 22 (onvolledig: 2 van 9 onderdelen ingevuld)');
     for (const k of Object.keys(t.referralCondition.thompson.scores) as (keyof typeof t.referralCondition.thompson.scores)[]) t.referralCondition.thompson.scores[k] = 1;
     t.referralCondition.thompson.at = wallToInstant('2026-10-09T23:10', TZ);

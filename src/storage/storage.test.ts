@@ -87,11 +87,13 @@ describe('lokale conceptopslag', () => {
     const old = JSON.parse(JSON.stringify(t));
     delete old.referral.therapeuticHypothermia;
     delete old.referralCondition.thompson;
+    delete old.referralCondition.asphyxia;
     storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
     storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
     const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
     expect(loaded.referral.therapeuticHypothermia).toBe(false);
     expect(loaded.referralCondition.thompson.at).toBeNull();
+    expect(loaded.referralCondition.asphyxia).toEqual({ present: '', criteria: [] });
     expect(Object.values(loaded.referralCondition.thompson.scores).every((v) => v === null)).toBe(true);
   });
 

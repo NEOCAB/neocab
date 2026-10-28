@@ -2015,3 +2015,10 @@ button.danger-button {
   border-color: var(--primary);
   box-shadow: inset 4px 0 0 var(--primary);
 }
+.asphyxia-criteria .check-setting {
+  margin: 0.45rem 0;
+}
+.asphyxia-criteria .check-setting input {
+  min-height: 0;
+  margin-top: 0.2rem;
+}

@@ -10,6 +10,7 @@
  * - Alle onderliggende records hebben een stabiele `id`.
  */
 
+import type { AsphyxiaCriterion } from './asphyxia';
 import type { ThompsonScores } from './thompson';
 
 export type Num = number | 'onbekend' | null;
@@ -86,11 +87,19 @@ export interface ThompsonScore {
   scores: ThompsonScores;
 }
 
+export interface Asphyxia {
+  present: YesNoUnknown;
+  /** Aangevinkte criteria (minimaal één bij perinatale asfyxie); blijven bewaard als `present` wordt gewijzigd. */
+  criteria: AsphyxiaCriterion[];
+}
+
 export interface ReferralCondition {
   notes: AbcdNotes;
   advice: string;
   /** Alleen getoond en in het verslag als `referral.therapeuticHypothermia`; bij uitzetten blijft de score bewaard. */
   thompson: ThompsonScore;
+  /** Alleen getoond en in het verslag als `referral.therapeuticHypothermia`. */
+  asphyxia: Asphyxia;
 }
 
 /** Dispatch: inzet van de ambulance. */

@@ -1,3 +1,4 @@
+import { asphyxiaCriteriaFromBirth } from './asphyxia';
 import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, emptyThompson, thompsonTotal, thompsonTotalText } from './thompson';
 import { describe, expect, it } from 'vitest';
 import { ageInHoursIfYoung, correctedAge, parseGestation, transportDate } from './calc';
@@ -261,5 +262,18 @@ describe('Thompsonscore', () => {
     for (const k of THOMPSON_KEYS) s[k] = THOMPSON_ITEMS.find((i) => i.key === k)!.options.length - 1;
     expect(thompsonTotal(s)).toEqual({ total: 22, filled: 9, complete: true });
     expect(thompsonTotalText(s)).toBe('22 / 22');
+  });
+});
+
+describe('Perinatale asfyxie', () => {
+  it('herkent criteria uit Apgar 5 minuten en navelstrengbloedgassen (grenswaarden volgens protocol)', () => {
+    const b = newTransport().birth;
+    expect(asphyxiaCriteriaFromBirth(b)).toEqual([]);
+    b.apgar5 = 6;
+    b.cordArterial = { ph: 7.0, be: -16, lactate: 10 };
+    expect(asphyxiaCriteriaFromBirth(b)).toEqual([]);
+    b.apgar5 = 5;
+    b.cordVenous = { ph: 6.95, be: -18.2, lactate: 12.5 };
+    expect(asphyxiaCriteriaFromBirth(b)).toEqual(['apgar5', 'ph', 'be', 'lactate']);
   });
 });

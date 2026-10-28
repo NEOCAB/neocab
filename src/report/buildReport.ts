@@ -1,4 +1,4 @@
-import type { AbcdNotes, BloodGasCord, Infusion, Instant, Measurement, MedicationAdministration, Num, ThompsonScore, Transport, TubeVersion } from '../domain/types';
+import type { AbcdNotes, BloodGasCord, Infusion, Instant, Measurement, MedicationAdministration, Num, ThompsonScore, Transport, Asphyxia, TubeVersion } from '../domain/types';
 import { ABCD_KEYS } from '../domain/types';
 import {
   ABCD_LABELS,
@@ -16,6 +16,7 @@ import { correctedAge, formatGestation, transportDate } from '../domain/calc';
 import { sortedRates, sortedVersions } from '../domain/timeline';
 import { GAS_TYPE_LEGEND, TIMELINE_GROUP_LABELS, hasGas, timelineTable } from '../domain/timelineTable';
 import { OI_ALERT_THRESHOLD, OI_FORMULA, oxygenationIndex } from '../domain/oi';
+import { ASPHYXIA_CRITERIA } from '../domain/asphyxia';
 import { THOMPSON_ITEMS, thompsonItemText, thompsonTotalText } from '../domain/thompson';
 
 export type ReportRow =
@@ -111,6 +112,14 @@ function abcdRows(notes: AbcdNotes): ReportRow[] {
   return b.rows;
 }
 
+function asphyxiaRows(a: Asphyxia): ReportRow[] {
+  const b = new RowBuilder();
+  b.kv('Perinatale asfyxie', optionLabel(YES_NO_UNKNOWN_OPTIONS, a.present));
+  // Criteria alleen bij "ja"; volgorde zoals in het protocol.
+  if (a.present === 'ja') b.kv('Criteria', ASPHYXIA_CRITERIA.filter((c) => a.criteria.includes(c.key)).map((c) => c.label).join('\n'));
+  return b.orEmpty();
+}
+
 function thompsonRows(th: ThompsonScore, fi: (i: string | null) => string): ReportRow[] {
   const b = new RowBuilder();
   b.kv('Tijdstip score', fi(th.at));
@@ -189,6 +198,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks: [
         { title: 'Zwangerschap en geboorte', rows: b.orEmpty() },
         { title: 'Toestand bij verwijzing', rows: condition.length ? condition : [NOT_FILLED] },
+        ...(t.referral.therapeuticHypothermia ? [{ title: 'Perinatale asfyxie', rows: asphyxiaRows(t.referralCondition.asphyxia) }] : []),
         ...(t.referral.therapeuticHypothermia ? [{ title: 'Thompson Score', rows: thompsonRows(t.referralCondition.thompson, fi) }] : []),
         ...(advice.rows.length ? [{ title: 'Advies', rows: advice.rows }] : []),
       ],

@@ -1,4 +1,5 @@
-import type { AbcdNotes, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
+import type { AbcdNotes, Asphyxia, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
+import { ASPHYXIA_CRITERIA, ASPHYXIA_GAS_NOTE, asphyxiaCriteriaFromBirth, type AsphyxiaCriterion } from '../../domain/asphyxia';
 import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, THOMPSON_THRESHOLD, emptyThompson, thompsonTotal } from '../../domain/thompson';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
 import {
@@ -191,6 +192,33 @@ function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdN
   );
 }
 
+/** Perinatale asfyxie (bij reden van overplaatsing "Therapeutische hypothermie"): ja/nee/onbekend en bij ja de criteria. */
+function AsphyxiaFields({ value, birth, onChange }: { value: Asphyxia; birth: Transport['birth']; onChange: (v: Asphyxia) => void }) {
+  const fromBirth = asphyxiaCriteriaFromBirth(birth);
+  const toggle = (k: AsphyxiaCriterion, on: boolean) => onChange({ ...value, criteria: on ? [...value.criteria.filter((c) => c !== k), k] : value.criteria.filter((c) => c !== k) });
+  return (
+    <>
+      <h3 className="subsection-title">Perinatale asfyxie</h3>
+      <Segmented legend="Is er sprake van perinatale asfyxie?" value={value.present} onChange={(v) => onChange({ ...value, present: v })} options={YES_NO_UNKNOWN_OPTIONS} />
+      {value.present === 'ja' && (
+        <fieldset className="group asphyxia-criteria">
+          <legend>Criteria (minimaal één)</legend>
+          {ASPHYXIA_CRITERIA.map((c) => (
+            <label key={c.key} className="check-setting">
+              <input type="checkbox" checked={value.criteria.includes(c.key)} onChange={(e) => toggle(c.key, e.target.checked)} />
+              <span>
+                {c.label}
+                {fromBirth.includes(c.key) && <span className="muted"> (volgens ingevulde geboortegegevens)</span>}
+              </span>
+            </label>
+          ))}
+          <p className="muted small-print">{ASPHYXIA_GAS_NOTE}</p>
+        </fieldset>
+      )}
+    </>
+  );
+}
+
 /** Thompsonscore (bij reden van overplaatsing "Therapeutische hypothermie"): per onderdeel een keuze, totaal automatisch. */
 function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (v: ThompsonScore) => void }) {
   const { total, filled, complete } = thompsonTotal(value.scores);
@@ -238,6 +266,7 @@ export function ReferralInfoSection(props: SectionProps) {
       <BirthFields {...props} />
       <h3 className="subsection-title">Toestand bij verwijzing</h3>
       <AbcdFields notes={rc.notes} onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))} />
+      {t.referral.therapeuticHypothermia && <AsphyxiaFields value={rc.asphyxia} birth={t.birth} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, asphyxia: v } }))} />}
       {t.referral.therapeuticHypothermia && <ThompsonFields value={rc.thompson} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, thompson: v } }))} />}
       <h3 className="subsection-title">Advies</h3>
       <TextArea label="Advies bij verwijzing" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
