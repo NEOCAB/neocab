@@ -81,6 +81,20 @@ describe('lokale conceptopslag', () => {
     expect(loaded.referralCondition.notes.exposure).toBe('');
   });
 
+  it('vult therapeutische hypothermie en de Thompsonscore aan bij oude concepten', () => {
+    const storage = memoryStorage();
+    const t = sampleTransport();
+    const old = JSON.parse(JSON.stringify(t));
+    delete old.referral.therapeuticHypothermia;
+    delete old.referralCondition.thompson;
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
+    storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
+    const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
+    expect(loaded.referral.therapeuticHypothermia).toBe(false);
+    expect(loaded.referralCondition.thompson.at).toBeNull();
+    expect(Object.values(loaded.referralCondition.thompson.scores).every((v) => v === null)).toBe(true);
+  });
+
   it('zet een oude lijst met telefoonnummers ouders om naar moeder en partner', () => {
     const storage = memoryStorage();
     const t = sampleTransport();

@@ -15,6 +15,7 @@ import type {
 } from './types';
 import { DEFAULT_TIME_ZONE, nowInstant } from './time';
 import { sortedMeasurements } from './timeline';
+import { emptyThompson } from './thompson';
 
 export function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
@@ -62,6 +63,7 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
       receivingHospital: '',
       receivingDepartment: '',
       reason: '',
+      therapeuticHypothermia: false,
     },
     birth: {
       maternalHistory: '',
@@ -76,7 +78,7 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
       vitaminK: '',
       vitaminKOther: '',
     },
-    referralCondition: { notes: emptyAbcd(), advice: '' },
+    referralCondition: { notes: emptyAbcd(), advice: '', thompson: { at: null, scores: emptyThompson() } },
     dispatch: { ambulanceCalledAt: null, departedWithAmbulanceAt: null },
     teamAssessment: { arrivedAt: null, notes: emptyAbcd(), workingDiagnosis: '', stabilisationPlan: '', lastFeedAt: null },
     measurements: [],

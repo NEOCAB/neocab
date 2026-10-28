@@ -1,4 +1,5 @@
-import type { AbcdNotes, BloodGasCord, ChecklistStatus, Transport } from '../../domain/types';
+import type { AbcdNotes, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
+import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, THOMPSON_THRESHOLD, emptyThompson, thompsonTotal } from '../../domain/thompson';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
 import {
   ABCD_LABELS,
@@ -112,6 +113,13 @@ export function ReferralSection({ t, update }: SectionProps) {
       {/* Zodra verwijzend én ontvangend ziekenhuis zijn ingevuld: route en geschatte reistijd. */}
       <RouteBox from={r.referringHospital} to={r.receivingHospital} />
       <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
+      {/* Vaste reden; bij therapeutische hypothermie verschijnt bij Verwijzing de Thompsonscore. */}
+      <div className="reason-options">
+        <label className={`seg ${r.therapeuticHypothermia ? 'checked' : ''}`}>
+          <input type="checkbox" checked={r.therapeuticHypothermia} onChange={(e) => set('therapeuticHypothermia', e.target.checked)} />
+          <span>Therapeutische hypothermie</span>
+        </label>
+      </div>
     </Section>
   );
 }
@@ -183,6 +191,44 @@ function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdN
   );
 }
 
+/** Thompsonscore (bij reden van overplaatsing "Therapeutische hypothermie"): per onderdeel een keuze, totaal automatisch. */
+function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (v: ThompsonScore) => void }) {
+  const { total, filled, complete } = thompsonTotal(value.scores);
+  return (
+    <>
+      <h3 className="subsection-title">Thompson Score</h3>
+      <DateTimeField label="Tijdstip score" value={value.at} onChange={(v) => onChange({ ...value, at: v })} />
+      <div className="thompson">
+        {THOMPSON_ITEMS.map((item) => {
+          const v = value.scores[item.key];
+          return (
+            <Segmented
+              key={item.key}
+              className="thompson-item"
+              legend={item.label}
+              value={typeof v === 'number' ? String(v) : ''}
+              onChange={(s) => onChange({ ...value, scores: { ...value.scores, [item.key]: s === '' ? null : Number(s) } })}
+              options={item.options.map((label, i) => ({ value: String(i), label: `${i} · ${label}` }))}
+              allowClear={false}
+            />
+          );
+        })}
+      </div>
+      <div className={`thompson-total ${complete && total >= THOMPSON_THRESHOLD ? 'high' : ''}`} role="status" aria-live="polite">
+        <span>Totale score</span>
+        <strong>{filled ? `${total} / ${THOMPSON_MAX}` : '—'}</strong>
+        {filled > 0 && !complete && <span className="muted">{`${filled} van ${THOMPSON_KEYS.length} onderdelen ingevuld`}</span>}
+        {filled > 0 && (
+          <button type="button" className="link-button" onClick={() => onChange({ ...value, scores: emptyThompson() })}>
+            Score wissen
+          </button>
+        )}
+      </div>
+      <p className="muted small-print">Protocol: therapeutische hypothermie bij een Thompsonscore ≥ {THOMPSON_THRESHOLD} op 1 uur na de reanimatie, of een afwijkend aEEG.</p>
+    </>
+  );
+}
+
 /** Verwijzing: zwangerschap en geboorte, en de toestand bij verwijzing, in één sectie. */
 export function ReferralInfoSection(props: SectionProps) {
   const { t, update } = props;
@@ -192,6 +238,7 @@ export function ReferralInfoSection(props: SectionProps) {
       <BirthFields {...props} />
       <h3 className="subsection-title">Toestand bij verwijzing</h3>
       <AbcdFields notes={rc.notes} onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))} />
+      {t.referral.therapeuticHypothermia && <ThompsonFields value={rc.thompson} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, thompson: v } }))} />}
       <h3 className="subsection-title">Advies</h3>
       <TextArea label="Advies bij verwijzing" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
     </Section>

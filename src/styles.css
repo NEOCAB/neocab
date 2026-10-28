@@ -1979,3 +1979,39 @@ button.danger-button {
 .policy-field {
   margin-top: 1rem;
 }
+
+/* Reden van overplaatsing: vaste keuze(s) onder het tekstveld */
+.reason-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: -0.25rem 0 0.75rem;
+}
+/* Thompsonscore */
+.thompson .thompson-item {
+  margin-bottom: 0.6rem;
+}
+.thompson .seg span {
+  font-size: 0.9rem;
+  padding: 0.35rem 0.7rem;
+}
+.thompson-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+.thompson-total strong {
+  font-size: 1.25rem;
+}
+.thompson-total .link-button {
+  margin-left: auto;
+}
+.thompson-total.high {
+  border-color: var(--primary);
+  box-shadow: inset 4px 0 0 var(--primary);
+}

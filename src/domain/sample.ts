@@ -1,3 +1,4 @@
+import { emptyThompson } from './thompson';
 import type { Transport } from './types';
 import { newId, newTransport } from './factory';
 import { DEFAULT_TIME_ZONE, wallToInstant } from './time';
@@ -28,6 +29,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
       receivingHospital: '',
       receivingDepartment: '',
       reason: 'Toenemende zuurstofbehoefte en apneus ondanks CPAP. (Fictieve voorbeeldgegevens.)',
+      therapeuticHypothermia: false,
     },
     birth: {
       maternalHistory: 'G2P1, zwangerschap ongecompliceerd tot 33 weken. Spontane weeën. (Fictief.)',
@@ -55,6 +57,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         infection: 'Moeder koorts durante partu, antibiotica gestart.',
       },
       advice: 'CPAP ophogen, bloedgas herhalen.',
+      thompson: { at: null, scores: emptyThompson() },
     },
     dispatch: { ambulanceCalledAt: at('2026-10-09T22:20'), departedWithAmbulanceAt: at('2026-10-09T22:35') },
     teamAssessment: {

@@ -33,6 +33,23 @@ function bigTransport(): Transport {
 }
 
 describe('verslag', () => {
+  it('toont de Thompsonscore alleen bij therapeutische hypothermie', () => {
+    const t = sampleTransport(TZ);
+    t.referralCondition.thompson.scores.tone = 2;
+    t.referralCondition.thompson.scores.consciousness = 2;
+    expect(reportToText(buildReport(t, TZ))).not.toContain('Thompson');
+    t.referral.therapeuticHypothermia = true;
+    let text = reportToText(buildReport(t, TZ));
+    expect(text).toContain('Reden van overplaatsing:\n  Therapeutische hypothermie\n  Toenemende zuurstofbehoefte');
+    expect(buildReport(t, TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Thompson Score', 'Advies']);
+    expect(text).toContain('Tonus: 2 – hypotonie\nBewustzijn: 2 – lethargisch\nTotale score: 4 / 22 (onvolledig: 2 van 9 onderdelen ingevuld)');
+    for (const k of Object.keys(t.referralCondition.thompson.scores) as (keyof typeof t.referralCondition.thompson.scores)[]) t.referralCondition.thompson.scores[k] = 1;
+    t.referralCondition.thompson.at = wallToInstant('2026-10-09T23:10', TZ);
+    text = reportToText(buildReport(t, TZ));
+    expect(text).toContain('Tijdstip score: 09-10-2026 23:10');
+    expect(text).toContain('Fontanel: 1 – vol, niet gespannen\nTotale score: 9 / 22\n');
+  });
+
   it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
     for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'STABILISATIE\n', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', '\nGEZIN\n', '\nTRANSPORT\n']) expect(text).toContain(h);

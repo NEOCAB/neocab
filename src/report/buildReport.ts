@@ -1,4 +1,4 @@
-import type { AbcdNotes, BloodGasCord, Infusion, Instant, Measurement, MedicationAdministration, Num, Transport, TubeVersion } from '../domain/types';
+import type { AbcdNotes, BloodGasCord, Infusion, Instant, Measurement, MedicationAdministration, Num, ThompsonScore, Transport, TubeVersion } from '../domain/types';
 import { ABCD_KEYS } from '../domain/types';
 import {
   ABCD_LABELS,
@@ -16,6 +16,7 @@ import { correctedAge, formatGestation, transportDate } from '../domain/calc';
 import { sortedRates, sortedVersions } from '../domain/timeline';
 import { GAS_TYPE_LEGEND, TIMELINE_GROUP_LABELS, hasGas, timelineTable } from '../domain/timelineTable';
 import { OI_ALERT_THRESHOLD, OI_FORMULA, oxygenationIndex } from '../domain/oi';
+import { THOMPSON_ITEMS, thompsonItemText, thompsonTotalText } from '../domain/thompson';
 
 export type ReportRow =
   | { type: 'kv'; label: string; value: string }
@@ -110,6 +111,14 @@ function abcdRows(notes: AbcdNotes): ReportRow[] {
   return b.rows;
 }
 
+function thompsonRows(th: ThompsonScore, fi: (i: string | null) => string): ReportRow[] {
+  const b = new RowBuilder();
+  b.kv('Tijdstip score', fi(th.at));
+  for (const item of THOMPSON_ITEMS) b.kv(item.label, thompsonItemText(item.key, th.scores[item.key]));
+  b.kv('Totale score', thompsonTotalText(th.scores));
+  return b.orEmpty();
+}
+
 function cordGas(b: RowBuilder, title: string, g: BloodGasCord) {
   const parts = [
     formatNum(g.ph) !== null ? `pH ${formatNum(g.ph)}` : null,
@@ -153,7 +162,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       .kv('Telefoonnummer verwijzer', r.referrerPhone)
       .kv('Ontvangende afdeling', r.receivingDepartment)
       .kv('Ontvangend ziekenhuis', r.receivingHospital)
-      .para('Reden van overplaatsing', r.reason);
+      .para('Reden van overplaatsing', [r.therapeuticHypothermia ? 'Therapeutische hypothermie' : '', r.reason.trim()].filter(Boolean).join('\n'));
     sections.push({ title: 'Herkomst en bestemming', blocks: [{ rows: b.orEmpty() }] });
   }
 
@@ -180,6 +189,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks: [
         { title: 'Zwangerschap en geboorte', rows: b.orEmpty() },
         { title: 'Toestand bij verwijzing', rows: condition.length ? condition : [NOT_FILLED] },
+        ...(t.referral.therapeuticHypothermia ? [{ title: 'Thompson Score', rows: thompsonRows(t.referralCondition.thompson, fi) }] : []),
         ...(advice.rows.length ? [{ title: 'Advies', rows: advice.rows }] : []),
       ],
     });

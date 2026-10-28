@@ -215,6 +215,27 @@ async function basisLayout(page) {
   const letters = await page.locator('#s3 .abcd-letter').allTextContents();
   check('ABCD-kopjes met beginletter in een rondje (Verwijzing en Stabilisatie)', letters.join('') === 'ABCDEFGHI' && (await page.locator('#s5 .abcd-letter').count()) === 9 && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, letters.join(''));
   check('Verwijzing bevat Zwangerschap en geboorte, Toestand bij verwijzing en Advies (zonder "(optioneel)")', JSON.stringify(sub3) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3').getByLabel('Advies bij verwijzing', { exact: true }).count()) === 1 && (await page.locator('#s4').count()) === 0, sub3.join(' | '));
+  // Therapeutische hypothermie als reden van overplaatsing: Thompson Score bij Verwijzing.
+  const th = page.locator('#s2').getByRole('checkbox', { name: 'Therapeutische hypothermie' });
+  check('Reden van overplaatsing: optie Therapeutische hypothermie, standaard uit; geen Thompson Score', (await th.count()) === 1 && !(await th.isChecked()) && (await page.locator('#s3 .thompson').count()) === 0);
+  await th.check();
+  await page.waitForSelector('#s3 .thompson');
+  const sub3th = await page.locator('#s3 h3.subsection-title').allTextContents();
+  check('Na kiezen: kopje Thompson Score bij Verwijzing (voor Advies) met 9 onderdelen', JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Thompson Score', 'Advies']) && (await page.locator('#s3 .thompson fieldset').count()) === 9, sub3th.join(' | '));
+  await page.locator('#s3 .thompson fieldset', { hasText: 'Tonus' }).getByRole('radio', { name: '2 · hypotonie' }).check();
+  await page.locator('#s3 .thompson fieldset', { hasText: 'Ademhaling' }).getByRole('radio', { name: '3 · beademing (apneu)' }).check();
+  const totalText = await page.locator('#s3 .thompson-total').textContent();
+  check('Thompson Score: totaal telt mee (5 / 22, 2 van 9 ingevuld)', totalText.includes('5 / 22') && totalText.includes('2 van 9'), totalText);
+  await page.screenshot({ path: `${OUT}/390-thompson.png`, fullPage: false, clip: await page.locator('#s3 .thompson').boundingBox().then((b) => ({ x: 0, y: b.y - 80, width: 390, height: 700 })) }).catch(() => {});
+  check('Thompson Score: geen Wissen per onderdeel, wel één knop Score wissen', (await page.locator('#s3 .thompson').getByRole('button', { name: 'Wissen', exact: true }).count()) === 0 && (await page.locator('#s3 .thompson-total').getByRole('button', { name: 'Score wissen' }).count()) === 1);
+  await th.uncheck();
+  check('Optie uit: Thompson Score verdwijnt weer', (await page.locator('#s3 .thompson').count()) === 0);
+  await th.check();
+  const kept = await page.locator('#s3 .thompson-total').textContent();
+  check('Optie weer aan: ingevulde score is bewaard gebleven', kept.includes('5 / 22'), kept);
+  await page.locator('#s3 .thompson-total').getByRole('button', { name: 'Score wissen' }).click();
+  check('Score wissen: alle onderdelen leeg', (await page.locator('#s3 .thompson-total strong').textContent()) === '—' && (await page.locator('#s3 .thompson input:checked').count()) === 0);
+  await th.uncheck();
   check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[5] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
   const called = page.getByLabel('Ambulance aangevraagd', { exact: true });

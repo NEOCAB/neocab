@@ -10,6 +10,8 @@
  * - Alle onderliggende records hebben een stabiele `id`.
  */
 
+import type { ThompsonScores } from './thompson';
+
 export type Num = number | 'onbekend' | null;
 export type Instant = string | null;
 export type LocalDate = string;
@@ -55,6 +57,8 @@ export interface Referral {
   receivingHospital: string;
   receivingDepartment: string;
   reason: string;
+  /** Reden van overplaatsing: therapeutische hypothermie (dan ook de Thompsonscore bij Verwijzing). */
+  therapeuticHypothermia: boolean;
 }
 
 export interface BloodGasCord {
@@ -77,9 +81,16 @@ export interface Birth {
   vitaminKOther: string;
 }
 
+export interface ThompsonScore {
+  at: Instant;
+  scores: ThompsonScores;
+}
+
 export interface ReferralCondition {
   notes: AbcdNotes;
   advice: string;
+  /** Alleen getoond en in het verslag als `referral.therapeuticHypothermia`; bij uitzetten blijft de score bewaard. */
+  thompson: ThompsonScore;
 }
 
 /** Dispatch: inzet van de ambulance. */

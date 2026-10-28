@@ -1,3 +1,4 @@
+import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, emptyThompson, thompsonTotal, thompsonTotalText } from './thompson';
 import { describe, expect, it } from 'vitest';
 import { ageInHoursIfYoung, correctedAge, parseGestation, transportDate } from './calc';
 import { anonymize, isIdentifying, newMeasurement, newTransport, newTube, newTubeVersion } from './factory';
@@ -245,5 +246,20 @@ describe('anoniem vastleggen (persoonlijk apparaat)', () => {
     expect(a.measurements).toEqual(t.measurements);
     expect(isIdentifying(a)).toBe(false);
     expect(anonymize(a)).toBe(a);
+  });
+});
+
+describe('Thompsonscore', () => {
+  it('telt de ingevulde onderdelen op; maximaal 22', () => {
+    const s = emptyThompson();
+    expect(THOMPSON_MAX).toBe(22);
+    expect(thompsonTotalText(s)).toBeNull();
+    s.tone = 3;
+    s.seizures = 2;
+    s.respiration = 0;
+    expect(thompsonTotal(s)).toEqual({ total: 5, filled: 3, complete: false });
+    for (const k of THOMPSON_KEYS) s[k] = THOMPSON_ITEMS.find((i) => i.key === k)!.options.length - 1;
+    expect(thompsonTotal(s)).toEqual({ total: 22, filled: 9, complete: true });
+    expect(thompsonTotalText(s)).toBe('22 / 22');
   });
 });
