@@ -78,7 +78,7 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
       vitaminK: '',
       vitaminKOther: '',
     },
-    referralCondition: { notes: emptyAbcd(), advice: '', thompson: { at: null, scores: emptyThompson() }, asphyxia: { present: '', criteria: [] } },
+    referralCondition: { notes: emptyAbcd(), advice: '', thompson: { at: null, scores: emptyThompson() }, asphyxia: { criteria: [] } },
     dispatch: { ambulanceCalledAt: null, departedWithAmbulanceAt: null },
     teamAssessment: { arrivedAt: null, notes: emptyAbcd(), workingDiagnosis: '', stabilisationPlan: '', lastFeedAt: null },
     measurements: [],

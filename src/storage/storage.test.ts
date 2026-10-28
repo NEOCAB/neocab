@@ -93,7 +93,11 @@ describe('lokale conceptopslag', () => {
     const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
     expect(loaded.referral.therapeuticHypothermia).toBe(false);
     expect(loaded.referralCondition.thompson.at).toBeNull();
-    expect(loaded.referralCondition.asphyxia).toEqual({ present: '', criteria: [] });
+    expect(loaded.referralCondition.asphyxia).toEqual({ criteria: [] });
+    // Tussenversie met ja/nee/onbekend: alleen de criteria blijven over.
+    old.referralCondition.asphyxia = { present: 'ja', criteria: ['ph'] };
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
+    expect(new LocalStorageTransportRepository(storage).load(t.id)!.referralCondition.asphyxia).toEqual({ criteria: ['ph'] });
     expect(Object.values(loaded.referralCondition.thompson.scores).every((v) => v === null)).toBe(true);
   });
 

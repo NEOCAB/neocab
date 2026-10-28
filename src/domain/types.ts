@@ -88,8 +88,7 @@ export interface ThompsonScore {
 }
 
 export interface Asphyxia {
-  present: YesNoUnknown;
-  /** Aangevinkte criteria (minimaal één bij perinatale asfyxie); blijven bewaard als `present` wordt gewijzigd. */
+  /** Aangevinkte criteria voor perinatale asfyxie (minimaal één volgens het protocol). */
   criteria: AsphyxiaCriterion[];
 }
 

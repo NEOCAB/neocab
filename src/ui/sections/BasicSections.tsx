@@ -192,29 +192,26 @@ function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdN
   );
 }
 
-/** Perinatale asfyxie (bij reden van overplaatsing "Therapeutische hypothermie"): ja/nee/onbekend en bij ja de criteria. */
+/** Perinatale asfyxie (bij reden van overplaatsing "Therapeutische hypothermie"): criteria uit het protocol om aan te vinken. */
 function AsphyxiaFields({ value, birth, onChange }: { value: Asphyxia; birth: Transport['birth']; onChange: (v: Asphyxia) => void }) {
   const fromBirth = asphyxiaCriteriaFromBirth(birth);
   const toggle = (k: AsphyxiaCriterion, on: boolean) => onChange({ ...value, criteria: on ? [...value.criteria.filter((c) => c !== k), k] : value.criteria.filter((c) => c !== k) });
   return (
     <>
       <h3 className="subsection-title">Perinatale asfyxie</h3>
-      <Segmented legend="Is er sprake van perinatale asfyxie?" value={value.present} onChange={(v) => onChange({ ...value, present: v })} options={YES_NO_UNKNOWN_OPTIONS} />
-      {value.present === 'ja' && (
-        <fieldset className="group asphyxia-criteria">
-          <legend>Criteria (minimaal één)</legend>
-          {ASPHYXIA_CRITERIA.map((c) => (
-            <label key={c.key} className="check-setting">
-              <input type="checkbox" checked={value.criteria.includes(c.key)} onChange={(e) => toggle(c.key, e.target.checked)} />
-              <span>
-                {c.label}
-                {fromBirth.includes(c.key) && <span className="muted"> (volgens ingevulde geboortegegevens)</span>}
-              </span>
-            </label>
-          ))}
-          <p className="muted small-print">{ASPHYXIA_GAS_NOTE}</p>
-        </fieldset>
-      )}
+      <fieldset className="group asphyxia-criteria">
+        <legend>Criteria (minimaal één)</legend>
+        {ASPHYXIA_CRITERIA.map((c) => (
+          <label key={c.key} className="check-setting">
+            <input type="checkbox" checked={value.criteria.includes(c.key)} onChange={(e) => toggle(c.key, e.target.checked)} />
+            <span>
+              {c.label}
+              {fromBirth.includes(c.key) && <span className="muted"> (volgens ingevulde geboortegegevens)</span>}
+            </span>
+          </label>
+        ))}
+        <p className="muted small-print">{ASPHYXIA_GAS_NOTE}</p>
+      </fieldset>
     </>
   );
 }

@@ -114,9 +114,8 @@ function abcdRows(notes: AbcdNotes): ReportRow[] {
 
 function asphyxiaRows(a: Asphyxia): ReportRow[] {
   const b = new RowBuilder();
-  b.kv('Perinatale asfyxie', optionLabel(YES_NO_UNKNOWN_OPTIONS, a.present));
-  // Criteria alleen bij "ja"; volgorde zoals in het protocol.
-  if (a.present === 'ja') b.kv('Criteria', ASPHYXIA_CRITERIA.filter((c) => a.criteria.includes(c.key)).map((c) => c.label).join('\n'));
+  // Volgorde zoals in het protocol.
+  b.kv('Criteria', ASPHYXIA_CRITERIA.filter((c) => a.criteria.includes(c.key)).map((c) => c.label).join('\n'));
   return b.orEmpty();
 }
 

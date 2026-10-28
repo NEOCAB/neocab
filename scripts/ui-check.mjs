@@ -222,11 +222,8 @@ async function basisLayout(page) {
   await page.waitForSelector('#s3 .thompson');
   const sub3th = await page.locator('#s3 h3.subsection-title').allTextContents();
   check('Na kiezen: kopjes Perinatale asfyxie en Thompson Score bij Verwijzing (voor Advies), 9 onderdelen', JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Perinatale asfyxie', 'Thompson Score', 'Advies']) && (await page.locator('#s3 .thompson fieldset').count()) === 9, sub3th.join(' | '));
-  const asph = page.locator('#s3 fieldset.segmented', { hasText: 'sprake van perinatale asfyxie' });
-  check('Perinatale asfyxie: ja/nee/onbekend, criteria pas bij ja', (await asph.getByRole('radio').count()) === 3 && (await page.locator('#s3 .asphyxia-criteria').count()) === 0);
-  await asph.getByRole('radio', { name: 'Ja' }).check();
   await page.locator('#s3 .asphyxia-criteria').getByRole('checkbox', { name: /Apgarscore op 5 minuten/ }).check();
-  check('Perinatale asfyxie ja: zes criteria uit het protocol, aan te vinken', (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
+  check('Perinatale asfyxie: zes criteria direct zichtbaar (geen aparte ja/nee-keuze), aan te vinken', (await page.locator('#s3 fieldset.segmented', { hasText: /perinatale asfyxie/i }).count()) === 0 && (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
   await page.locator('#s3 .thompson fieldset', { hasText: 'Tonus' }).getByRole('radio', { name: '2 · hypotonie' }).check();
   await page.locator('#s3 .thompson fieldset', { hasText: 'Ademhaling' }).getByRole('radio', { name: '3 · beademing (apneu)' }).check();
   const totalText = await page.locator('#s3 .thompson-total').textContent();
