@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { formatInstant, formatLocalDate } from '../domain/time';
 import type { TransportSummary } from '../storage/repository';
-import { isValidTimeZone, type AppSettings, type DeviceKind } from '../storage/settings';
+import { isValidTimeZone, LETTER_FIELDS, type AppSettings, type DeviceKind } from '../storage/settings';
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
 import { DEFAULT_HOSPITAL_LINES } from '../domain/hospitals';
 import { childLabel, useTimeZone } from './context';
@@ -64,6 +64,58 @@ function HospitalListEditor({ settings, onChange }: { settings: AppSettings; onC
   );
 }
 
+/** Afzendergegevens en eigen logo voor de overplaatsingsbrief (Word); wijzigingen worden direct bewaard. */
+function LetterSettingsEditor({ settings, onChange }: { settings: AppSettings; onChange: (s: AppSettings) => void }) {
+  const l = settings.letter;
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const setLetter = (patch: Partial<AppSettings['letter']>) => onChange({ ...settings, letter: { ...l, ...patch } });
+  const readLogo = (file: File | undefined) => {
+    setLogoError(null);
+    if (!file) return;
+    if (!/^image\/(png|jpeg)$/.test(file.type)) return setLogoError('Kies een PNG- of JPEG-afbeelding.');
+    if (file.size > 400_000) return setLogoError('Het logo is te groot (maximaal 400 kB).');
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === 'string' && setLetter({ logo: reader.result });
+    reader.onerror = () => setLogoError('Het logo kon niet worden gelezen.');
+    reader.readAsDataURL(file);
+  };
+  return (
+    <fieldset className="group letter-settings">
+      <legend>Overplaatsingsbrief</legend>
+      <p className="field-hint">Afzendergegevens voor het briefhoofd van de brief (Word). Alleen op dit apparaat bewaard.</p>
+      <div className="grid">
+        {LETTER_FIELDS.map((f) => (
+          <div className="field" key={f.key}>
+            <label className="field-label" htmlFor={`letter-${f.key}`}>
+              {f.label}
+            </label>
+            <input id={`letter-${f.key}`} type={f.key === 'email' ? 'email' : f.key === 'phone' ? 'tel' : 'text'} value={l[f.key]} placeholder={f.placeholder} onChange={(e) => setLetter({ [f.key]: e.target.value })} />
+          </div>
+        ))}
+      </div>
+      <div className="field">
+        <label className="field-label" htmlFor="letter-logo">
+          Logo briefhoofd (PNG of JPEG)
+        </label>
+        {l.logo && <img className="letter-logo-preview" src={l.logo} alt="Huidig logo" />}
+        <div className="button-row">
+          <input id="letter-logo" type="file" accept="image/png,image/jpeg" onChange={(e) => readLogo(e.target.files?.[0])} />
+          {l.logo && (
+            <button type="button" className="link-button" onClick={() => setLetter({ logo: '' })}>
+              Logo verwijderen
+            </button>
+          )}
+        </div>
+        {logoError && (
+          <p className="field-error" role="alert">
+            {logoError}
+          </p>
+        )}
+      </div>
+    </fieldset>
+  );
+}
+
 function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange: (s: AppSettings) => void }) {
   const [routesText, setRoutesText] = useState(settings.medicationRoutes.join('\n'));
   const [saved, setSaved] = useState(false);
@@ -119,6 +171,7 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
         {saved && <span role="status">Opgeslagen.</span>}
       </div>
       <HospitalListEditor settings={settings} onChange={onChange} />
+      <LetterSettingsEditor settings={settings} onChange={onChange} />
     </details>
   );
 }

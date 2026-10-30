@@ -85,14 +85,14 @@ export function reportToText(report: Report): string {
 }
 
 /** Opgemaakte tekst voor de RTF-uitvoer: alinea's met stukken vet/cursief/onderstreept. */
-interface Span {
+export interface Span {
   text: string;
   b?: boolean;
   i?: boolean;
   u?: boolean;
 }
-type ParaKind = 'title' | 'section' | 'block' | 'normal' | 'indent' | 'rowhead' | 'sub' | 'end';
-interface Para {
+export type ParaKind = 'title' | 'section' | 'block' | 'normal' | 'indent' | 'rowhead' | 'sub' | 'end';
+export interface Para {
   kind: ParaKind;
   spans: Span[];
 }
@@ -101,7 +101,7 @@ interface Para {
  * Het verslag als opgemaakte alinea's: titel en sectiekoppen vet, subkoppen vet cursief, veldnamen cursief,
  * kopjes binnen een kaart onderstreept, meetmomenten met een vette kopregel. Koppen in gewone schrijfwijze.
  */
-function reportToParas(report: Report): Para[] {
+export function reportToParas(report: Report): Para[] {
   const out: Para[] = [];
   const p = (kind: ParaKind, ...spans: Span[]) => out.push({ kind, spans });
   p('title', { text: report.title, b: true });

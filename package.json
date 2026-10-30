@@ -15,6 +15,7 @@
   "dependencies": {
     "@fontsource/pt-sans": "^5.2.5",
     "@material-symbols/svg-700": "^0.48.0",
+    "docx": "^9.15.0",
     "jspdf": "^3.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

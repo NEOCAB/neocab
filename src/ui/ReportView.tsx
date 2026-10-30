@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToRtf, reportToText } from '../report/text';
-import { childLabel, useAnonymous, useTimeZone } from './context';
+import { childLabel, useAnonymous, useSettings, useTimeZone } from './context';
 import { DataTable } from './DataTable';
 import { Logo, SectionIcon } from './icons';
 import { canPrint, offerFile } from './viewer';
@@ -106,6 +106,24 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
     }
   };
 
+  /** Overplaatsingsbrief als Word-document, met de afzendergegevens uit Instellingen. */
+  const letterSettings = useSettings().letter;
+  const downloadLetter = async () => {
+    setBusy(true);
+    setStatus('Brief wordt gemaakt…');
+    try {
+      const { letterFileName, letterToDocx } = await import('../report/letter');
+      const blob = await letterToDocx({ transport, report, letter: letterSettings, timeZone: tz });
+      const result = await offerFile(letterFileName(transport.child.name, transport.child.patientNumber), blob);
+      const missing = !letterSettings.senderName.trim() ? ' Vul de afzendergegevens in bij Instellingen op het startscherm.' : '';
+      setStatus(result === 'saved' ? `Brief gemaakt (Word).${missing}` : result === 'declined' ? 'Opslaan van de brief is geannuleerd.' : 'Bestand opslaan is in deze weergave niet beschikbaar. Open de app lokaal.');
+    } catch (e) {
+      setStatus(`Brief maken is mislukt: ${e instanceof Error ? e.message : 'onbekende fout'}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   /** RTF-bestand met opmaak: te openen in Word of WordPad en van daaruit te kopiëren naar het EPD (bijv. HiX). */
   const downloadRtf = async () => {
     const name = rtfFileName(transport.child.name, transport.child.patientNumber);
@@ -199,6 +217,9 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
             </button>
             <button type="button" className="primary" onClick={copy}>
               E-mailtekst kopiëren
+            </button>
+            <button type="button" className="primary" onClick={downloadLetter} disabled={busy}>
+              Brief downloaden (Word)
             </button>
             <button type="button" className="secondary" onClick={downloadRtf}>
               Rtf downloaden

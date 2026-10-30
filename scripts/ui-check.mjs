@@ -190,6 +190,10 @@ async function basisLayout(page) {
   await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
   await page.locator('details.settings summary').click();
   await page.getByLabel(/alleen de letter tonen/).check();
+  // Briefgegevens voor de overplaatsingsbrief
+  check('Instellingen: afzendergegevens voor de overplaatsingsbrief', (await page.locator('.letter-settings input[type=text], .letter-settings input[type=email], .letter-settings input[type=tel]').count()) === 8 && (await page.getByLabel('Logo briefhoofd (PNG of JPEG)').count()) === 1);
+  await page.locator('#letter-senderName').fill('drs. T. Test');
+  await page.locator('#letter-senderRole').fill('Kinderarts');
   await page.getByRole('button', { name: 'Hervatten' }).first().click();
   await page.waitForSelector('#s3');
   const compact = await page.evaluate(() => {
@@ -447,6 +451,11 @@ async function basisLayout(page) {
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
   check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid \(mL\/uur\): 3,2 → 4 vanaf/.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
+  const [letterDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Brief downloaden (Word)' }).click()]);
+  const letterPath = `${OUT}/${letterDownload.suggestedFilename()}`;
+  await letterDownload.saveAs(letterPath);
+  const letterBytes = readFileSync(letterPath);
+  check('Brief gedownload als Word-document (.docx)', letterPath.endsWith('.docx') && letterBytes.subarray(0, 2).toString() === 'PK' && letterBytes.length > 5000, `${letterDownload.suggestedFilename()} ${letterBytes.length} bytes`);
   const [rtfDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Rtf downloaden' }).click()]);
   const rtfPath = `${OUT}/${rtfDownload.suggestedFilename()}`;
   await rtfDownload.saveAs(rtfPath);

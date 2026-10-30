@@ -2087,3 +2087,14 @@ button.danger-button {
     width: 22%;
   }
 }
+.letter-settings {
+  margin-top: 1rem;
+}
+.letter-logo-preview {
+  display: block;
+  max-width: 240px;
+  max-height: 72px;
+  margin: 0.25rem 0 0.5rem;
+  border: 1px solid var(--border);
+  background: #fff;
+}

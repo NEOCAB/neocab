@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { newMeasurement, newTransport } from '../domain/factory';
 import { sampleTransport } from '../domain/sample';
 import { LocalStorageTransportRepository, type KeyValueStorage } from './localRepository';
-import { loadSettings, saveSettings } from './settings';
+import { loadSettings, saveSettings, EMPTY_LETTER } from './settings';
 
 function memoryStorage(): KeyValueStorage & { data: Map<string, string> } {
   const data = new Map<string, string>();
@@ -118,8 +118,18 @@ describe('lokale conceptopslag', () => {
 
   it('bewaart configureerbare toedieningsroutes', () => {
     const storage = memoryStorage();
-    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], hospitals: [], abcdLettersOnly: false, device: 'werk' });
+    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], hospitals: [], abcdLettersOnly: false, device: 'werk', letter: EMPTY_LETTER });
     expect(loadSettings(storage).medicationRoutes).toEqual(['IV', 'Oraal']);
+  });
+
+  it('bewaart de briefgegevens; alleen een PNG/JPEG-logo, standaard leeg', () => {
+    const storage = memoryStorage();
+    expect(loadSettings(storage).letter).toEqual(EMPTY_LETTER);
+    saveSettings(storage, { ...loadSettings(storage), letter: { ...EMPTY_LETTER, senderName: 'drs. A. Jansen', logo: 'data:image/png;base64,iVBORw0KGgo=' } });
+    expect(loadSettings(storage).letter.senderName).toBe('drs. A. Jansen');
+    expect(loadSettings(storage).letter.logo).toBe('data:image/png;base64,iVBORw0KGgo=');
+    storage.setItem('neonataal-transport:v1:instellingen', JSON.stringify({ letter: { senderName: 3, logo: 'javascript:alert(1)' } }));
+    expect(loadSettings(storage).letter).toEqual(EMPTY_LETTER);
   });
 
   it('bewaart de instelling voor alleen ABCD-letters; standaard uit, ook bij oude instellingen', () => {

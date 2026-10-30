@@ -18,13 +18,49 @@ export interface AppSettings {
    * patiëntnummer (geboortedatum wel). Standaard: werkapparaat.
    */
   device: DeviceKind;
+  /** Afzendergegevens voor de overplaatsingsbrief (Word); per apparaat in te vullen. */
+  letter: LetterSettings;
+}
+
+export interface LetterSettings {
+  department: string;
+  postzone: string;
+  senderName: string;
+  senderRole: string;
+  visitAddress: string;
+  phone: string;
+  email: string;
+  /** Voetregel onderaan elke pagina (bijv. post- en bezoekadres). */
+  footer: string;
+  /** Eigen logo voor het briefhoofd (PNG of JPEG als data-URL), of leeg. */
+  logo: string;
+}
+
+export const LETTER_FIELDS: { key: Exclude<keyof LetterSettings, 'logo'>; label: string; placeholder?: string }[] = [
+  { key: 'department', label: 'Afdeling', placeholder: 'bijv. IC neonatologie' },
+  { key: 'postzone', label: 'Postzone' },
+  { key: 'senderName', label: 'Afzender', placeholder: 'bijv. drs. A. Jansen' },
+  { key: 'senderRole', label: 'Functie', placeholder: 'bijv. Kinderarts-neonatoloog' },
+  { key: 'visitAddress', label: 'Bezoekadres' },
+  { key: 'phone', label: 'Telefoon' },
+  { key: 'email', label: 'E-mail' },
+  { key: 'footer', label: 'Voetregel', placeholder: 'bijv. postadres van het ziekenhuis' },
+];
+
+export const EMPTY_LETTER: LetterSettings = { department: '', postzone: '', senderName: '', senderRole: '', visitAddress: '', phone: '', email: '', footer: '', logo: '' };
+
+function loadLetter(v: unknown): LetterSettings {
+  const o = v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+  const str = (k: keyof LetterSettings) => (typeof o[k] === 'string' ? (o[k] as string) : '');
+  const logo = str('logo');
+  return { ...Object.fromEntries(LETTER_FIELDS.map((f) => [f.key, str(f.key)])), logo: /^data:image\/(png|jpeg);base64,/.test(logo) ? logo : '' } as LetterSettings;
 }
 
 export type DeviceKind = 'werk' | 'persoonlijk';
 
 const KEY = 'neonataal-transport:v1:instellingen';
 
-export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, hospitals: DEFAULT_HOSPITAL_LINES, abcdLettersOnly: false, device: 'werk' };
+export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, hospitals: DEFAULT_HOSPITAL_LINES, abcdLettersOnly: false, device: 'werk', letter: EMPTY_LETTER };
 
 export function loadSettings(storage: KeyValueStorage): AppSettings {
   try {
@@ -37,6 +73,7 @@ export function loadSettings(storage: KeyValueStorage): AppSettings {
       hospitalsCustom: v.hospitalsCustom === true && Array.isArray(v.hospitals),
       abcdLettersOnly: v.abcdLettersOnly === true,
       device: v.device === 'persoonlijk' ? 'persoonlijk' : 'werk',
+      letter: loadLetter(v.letter),
     };
   } catch {
     return DEFAULT_SETTINGS;
