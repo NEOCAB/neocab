@@ -7,7 +7,7 @@ import { wallToInstant } from '../domain/time';
 import type { Transport } from '../domain/types';
 import { buildReport } from './buildReport';
 import { reportToPdf } from './pdf';
-import { reportToHtml, reportToRtf, reportToText } from './text';
+import { reportToRtf, reportToText } from './text';
 
 const TZ = 'Europe/Amsterdam';
 const fonts = {
@@ -33,18 +33,6 @@ function bigTransport(): Transport {
 }
 
 describe('verslag', () => {
-  it('opgemaakte e-mailtekst: vette koppen in gewone schrijfwijze, cursieve veldnamen, tekst geëscapet', () => {
-    const t = sampleTransport(TZ);
-    t.proceduresAndEvents = 'Regel 1 <script>x</script>\nRegel 2 & meer';
-    const html = reportToHtml(buildReport(t, TZ));
-    expect(html).toContain('<b>Basisgegevens kind</b>');
-    expect(html).toContain('<b><i>Zwangerschap en geboorte</i></b>');
-    expect(html).toContain('<i>Patiëntnummer:</i> 0012345');
-    expect(html).toContain('Regel 1 &lt;script&gt;x&lt;/script&gt;<br>Regel 2 &amp; meer');
-    expect(html).not.toContain('<script>');
-    expect(html).not.toContain('BASISGEGEVENS');
-  });
-
   it('rtf: geldig RTF met vette koppen, cursieve veldnamen en geëscapete tekst', () => {
     const t = sampleTransport(TZ);
     t.proceduresAndEvents = 'Accolades {x} en \\ backslash\nPatiëntje ≥ 7';

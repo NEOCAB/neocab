@@ -1,11 +1,11 @@
 import type { Report, ReportTable } from './buildReport';
 
 /**
- * Het verslag als e-mailtekst, in twee vormen met dezelfde inhoud:
- * - opgemaakte tekst (vet, cursief en onderstreept) als HTML en als RTF, voor het klembord en als .rtf-bestand,
- *   zodat plakken in een mailprogramma, tekstverwerker of EPD de opmaak behoudt;
- * - platte tekst als terugval (mailto-link, programma's zonder opmaak).
- * Koppen zijn vet en in gewone schrijfwijze (geen hoofdletters, geen streep eronder). Niets wordt ingekort.
+ * Het verslag als tekst, in twee vormen met dezelfde inhoud:
+ * - platte e-mailtekst (klembord, mailto-link); koppen in gewone schrijfwijze, zonder hoofdletters of streep eronder;
+ * - RTF-bestand met opmaak (koppen vet, veldnamen cursief), te openen in Word/WordPad en van daaruit te kopiëren
+ *   naar een EPD dat opmaak alleen als RTF overneemt (bijv. HiX).
+ * Niets wordt ingekort.
  */
 
 interface TableEntry {
@@ -84,7 +84,7 @@ export function reportToText(report: Report): string {
   return out.join('\n');
 }
 
-/** Opgemaakte tekst: alinea's met stukken vet/cursief/onderstreept; gedeeld door de HTML- en RTF-uitvoer. */
+/** Opgemaakte tekst voor de RTF-uitvoer: alinea's met stukken vet/cursief/onderstreept. */
 interface Span {
   text: string;
   b?: boolean;
@@ -139,34 +139,6 @@ function reportToParas(report: Report): Para[] {
   }
   p('end', { text: '— Einde transportverslag —', i: true });
   return out;
-}
-
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-const HTML_PARA: Record<ParaKind, string> = {
-  title: 'margin:0 0 4pt 0;font-size:15pt',
-  section: 'margin:16pt 0 4pt 0;font-size:13pt',
-  block: 'margin:8pt 0 2pt 0',
-  normal: 'margin:0 0 2pt 0',
-  indent: 'margin:0 0 2pt 18pt',
-  rowhead: 'margin:6pt 0 0 0',
-  sub: 'margin:6pt 0 2pt 0',
-  end: 'margin:16pt 0 0 0',
-};
-
-/** Opgemaakte e-mailtekst als HTML met inline-opmaak (blijft staan na plakken in Outlook of Word). */
-export function reportToHtml(report: Report): string {
-  const span = (s: Span) => {
-    let h = esc(s.text).replace(/\n/g, '<br>');
-    if (s.u) h = `<u>${h}</u>`;
-    if (s.i) h = `<i>${h}</i>`;
-    if (s.b) h = `<b>${h}</b>`;
-    return h;
-  };
-  const body = reportToParas(report)
-    .map((p) => `<p style="${HTML_PARA[p.kind]}">${p.spans.map(span).join('')}</p>`)
-    .join('');
-  return `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.35;color:#000">${body}</div>`;
 }
 
 /** Tekst voor RTF: \, { en } escapen; niet-ASCII als \uN? (16-bits, met vervangteken). */
