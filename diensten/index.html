@@ -213,6 +213,15 @@ details.gegevens summary { cursor: pointer; font-weight: 700; color: var(--blauw
 #grafiek-kaarten .kaart { padding: 14px 16px; }
 #grafiek-kaarten h3 { font-size: 1.05rem; }
 
+/* Optie D of optie A */
+.vergelijk td, .vergelijk th { padding: 9px 8px; }
+.vergelijk tbody tr.kop th { color: var(--blauw); font-weight: 700; border-bottom: 1px solid var(--b40); padding-top: 16px; }
+.vergelijk td.verschil { font-weight: 700; }
+.prijs { border-left: 5px solid var(--blauw); background: var(--b10); padding: 14px 18px; margin: 20px 0; font-size: 1.1rem; }
+.prijs p { margin: 0; }
+.pleit { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); margin: 20px 0; }
+.pleit ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+
 footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--rand); color: var(--stil); font-size: .9rem; }
 
 @media print {
@@ -247,6 +256,7 @@ footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--ran
         <li><a href="#opties">Opties A–D</a></li>
         <li><a href="#optie-d">Optie D uitgelegd</a></li>
         <li><a href="#grafiek">Grafiek</a></li>
+        <li><a href="#d-of-a">D of A?</a></li>
       </ul>
     </nav>
   </div>
@@ -459,6 +469,44 @@ footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--ran
           </table>
         </div>
         <div class="kaarten" id="grafiek-kaarten"></div>
+      </section>
+
+      <!-- 10. Optie D of optie A -->
+      <section id="d-of-a" aria-labelledby="d-of-a-titel">
+        <h2 id="d-of-a-titel">Optie D of optie A?</h2>
+        <p class="lead">Optie D is de eerlijkste verdeling: iedereen draagt evenveel punten. Optie A verandert het minst: alleen de neonatologen nemen de diensten van <span data-v="kTekst">één neonatoloog</span> over. Misschien kiezen we toch voor A. Dit is wat dat betekent.</p>
+        <div class="tabel-wrap">
+          <table class="vergelijk">
+            <caption class="sr">Optie A en optie D per persoon per jaar, met het verschil</caption>
+            <thead><tr><th scope="col">Per persoon per jaar</th><th scope="col" class="r">Optie A</th><th scope="col" class="r">Optie D</th><th scope="col" class="r">D t.o.v. A</th></tr></thead>
+            <tbody id="vergelijk-rijen"></tbody>
+          </table>
+        </div>
+        <div class="prijs" aria-live="polite">
+          <p id="prijs-tekst">Bij optie A draagt een fellow 52 punten, een neonatoloog 35,1.</p>
+        </div>
+        <div class="pleit">
+          <div class="kaart">
+            <h3>Wat pleit voor A</h3>
+            <ul>
+              <li>Voor fellows verandert er niets. Zij houden <span data-v="aF_vw">52</span> voorwachtnachten per jaar.</li>
+              <li>Neonatologen nemen alleen de diensten van de vertrekker over. Per neonatoloog komen er <span data-v="extraN_vw">2</span> voorwachtnachten, <span data-v="extraN_vdw">1,4</span> VDW en <span data-v="extraN_ad">3,2</span> AD bij.</li>
+              <li>Het rooster verandert het minst.</li>
+              <li>Fellows houden meer ervaring als voorwacht, voor zover de opleiding daarom vraagt.</li>
+            </ul>
+          </div>
+          <div class="kaart">
+            <h3>Wat pleit voor D</h3>
+            <ul>
+              <li>Iedereen draagt evenveel gewogen belasting: <span data-v="p">40,3</span> punten per persoon.</li>
+              <li id="pleit-d-fellow">Een fellow draait 11,7 voorwachtnachten minder dan bij A.</li>
+              <li id="pleit-d-neo">Een neonatoloog draait 5,2 voorwachtnachten meer dan bij A.</li>
+              <li>De verdeling volgt uit de afgesproken weging, niet uit hoe het historisch gegroeid is.</li>
+            </ul>
+          </div>
+        </div>
+        <p>Kiezen we A, leg dan vast waarom fellows meer voorwachtnachten draaien, bijvoorbeeld omdat de opleiding dat vraagt, en spreek af wanneer we de verdeling opnieuw bekijken.</p>
+        <div class="waarschuwing" id="waarschuwing-vergelijk" hidden></div>
       </section>
     </div>
   </div>
@@ -835,6 +883,34 @@ globalThis.Rekenmodel = (() => {
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(pasLabelsAan);
 
+  function renderVergelijking(res, gg) {
+    const A = res.samenvatting.A, D = res.samenvatting.D;
+    const teken = (x) => (Math.abs(x) < 0.05 ? '0' : (x > 0 ? '+' : '−') + getal(Math.abs(x)));
+    const rij = (label, a, d) => `<tr><th scope="row">${label}</th><td class="r num">${getal(a)}</td><td class="r num">${getal(d)}</td><td class="r num verschil">${teken(d - a)}</td></tr>`;
+    const kop = (label) => `<tr class="kop"><th scope="rowgroup" colspan="4">${label}</th></tr>`;
+    $('#vergelijk-rijen').innerHTML =
+      kop('Per fellow') +
+      rij('Voorwachtnachten', A.fellow.voorwacht, D.fellow.voorwacht) +
+      rij('Punten', A.fellow.punten, D.fellow.punten) +
+      kop('Per neonatoloog') +
+      rij('Voorwachtnachten', A.neo.voorwacht, D.neo.voorwacht) +
+      rij('VDW', A.neo.VDW, D.neo.VDW) +
+      rij('AD', A.neo.AD, D.neo.AD) +
+      rij('Punten', A.neo.punten, D.neo.punten);
+
+    const verschilPt = A.fellow.punten - A.neo.punten;
+    const pctTekst = A.neo.punten > 0 ? ` (${pct(Math.abs(verschilPt) / A.neo.punten)})` : '';
+    const aandeelA = res.vwTotaal > 0 ? gg.nFellows * A.fellow.voorwacht / res.vwTotaal : 0;
+    const bezetting = gg.nFellows / res.nArtsenNa;
+    $('#prijs-tekst').innerHTML = `Bij optie A draagt een fellow <strong>${getal(A.fellow.punten)} punten</strong>, een neonatoloog <strong>${getal(A.neo.punten)}</strong>. Dat is voor de fellow ${getal(Math.abs(verschilPt))} punten${pctTekst} ${verschilPt >= 0 ? 'meer' : 'minder'}. Fellows draaien dan <strong>${pct(aandeelA)}</strong> van de voorwachtnachten, bij ${pct(bezetting)} van de bezetting.`;
+
+    const dF = D.fellow.voorwacht - A.fellow.voorwacht;
+    const dN = D.neo.voorwacht - A.neo.voorwacht;
+    const meerMinder = (x) => (x < 0 ? 'minder' : 'meer');
+    $('#pleit-d-fellow').textContent = `Een fellow draait ${getal(Math.abs(dF))} voorwachtnachten ${meerMinder(dF)} dan bij A. Voor alle fellows samen is dat ${getal(Math.abs(dF) * gg.nFellows)} nachten per jaar.`;
+    $('#pleit-d-neo').textContent = `Een neonatoloog draait ${getal(Math.abs(dN))} voorwachtnachten ${meerMinder(dN)} dan bij A.`;
+  }
+
   function render() {
     const gg = staat.gegevens, w = staat.w;
     const res = R.bereken(gg, w);
@@ -857,6 +933,10 @@ globalThis.Rekenmodel = (() => {
       rDpct: pct(res.rD), rNpct: pct(res.rN),
       dF_vw: getal(res.D.fellowVW), dN_vw: getal(res.D.neoVW), dN_vdw: getal(res.D.neoVDW), dN_ad: getal(res.D.neoAD), dN_vastpt: getal(res.D.neoVastPunten),
       f_pts: getal(nu.fellow.punten), n_pts: getal(nu.neo.punten),
+      aF_vw: getal(res.samenvatting.A.fellow.voorwacht),
+      extraN_vw: getal(res.samenvatting.A.neo.voorwacht - nu.neo.voorwacht),
+      extraN_vdw: getal(res.samenvatting.A.neo.VDW - nu.neo.VDW),
+      extraN_ad: getal(res.samenvatting.A.neo.AD - nu.neo.AD),
     };
     for (const t of TYPES) {
       v['f_' + t] = getal(gg.fellow[t]);
@@ -869,13 +949,14 @@ globalThis.Rekenmodel = (() => {
     const melding = negatief
       ? `<strong>Let op:</strong> met deze weging hebben neonatologen aan VDW en AD alleen al ${getal(res.D.neoVastPunten)} punten, meer dan de ${getal(res.p)} punten per persoon. Hun voorwacht zou negatief worden (${getal(res.D.neoVWRuw)}); hij is op 0 gezet, dus optie D is met deze weging niet gelijk te maken.`
       : '';
-    for (const id of ['#waarschuwing-paneel', '#waarschuwing-opties', '#waarschuwing-d']) {
+    for (const id of ['#waarschuwing-paneel', '#waarschuwing-opties', '#waarschuwing-d', '#waarschuwing-vergelijk']) {
       $(id).hidden = !negatief;
       $(id).innerHTML = melding;
     }
 
     renderOpties(res);
     renderGrafiek(res);
+    renderVergelijking(res, gg);
   }
 
   leesURL();
