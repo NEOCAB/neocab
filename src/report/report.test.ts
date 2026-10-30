@@ -7,7 +7,7 @@ import { wallToInstant } from '../domain/time';
 import type { Transport } from '../domain/types';
 import { buildReport } from './buildReport';
 import { reportToPdf } from './pdf';
-import { reportToHtml, reportToText } from './text';
+import { reportToHtml, reportToRtf, reportToText } from './text';
 
 const TZ = 'Europe/Amsterdam';
 const fonts = {
@@ -43,6 +43,21 @@ describe('verslag', () => {
     expect(html).toContain('Regel 1 &lt;script&gt;x&lt;/script&gt;<br>Regel 2 &amp; meer');
     expect(html).not.toContain('<script>');
     expect(html).not.toContain('BASISGEGEVENS');
+  });
+
+  it('rtf: geldig RTF met vette koppen, cursieve veldnamen en geëscapete tekst', () => {
+    const t = sampleTransport(TZ);
+    t.proceduresAndEvents = 'Accolades {x} en \\ backslash\nPatiëntje ≥ 7';
+    const rtf = reportToRtf(buildReport(t, TZ));
+    expect(rtf.startsWith('{\\rtf1\\ansi')).toBe(true);
+    expect(rtf.endsWith('}')).toBe(true);
+    // Accolades in balans (geëscapete niet meegeteld).
+    const unescaped = rtf.replace(/\\[\\{}]/g, '');
+    expect(unescaped.split('{').length).toBe(unescaped.split('}').length);
+    expect(rtf).toContain('{\\b Basisgegevens kind}');
+    expect(rtf).toContain('{\\i Pati\\u235?ntnummer:}{ 0012345}');
+    expect(rtf).toContain('Accolades \\{x\\} en \\\\ backslash\\line Pati\\u235?ntje \\u8805? 7');
+    expect(/[^\x00-\x7f]/.test(rtf)).toBe(false);
   });
 
   it('toont de Thompsonscore alleen bij therapeutische hypothermie', () => {

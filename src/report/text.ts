@@ -2,8 +2,8 @@ import type { Report, ReportTable } from './buildReport';
 
 /**
  * Het verslag als e-mailtekst, in twee vormen met dezelfde inhoud:
- * - opgemaakte tekst (HTML met vet, cursief en onderstreept) voor het klembord, zodat plakken in een mailprogramma,
- *   tekstverwerker of EPD de opmaak behoudt (zoals RTF);
+ * - opgemaakte tekst (vet, cursief en onderstreept) als HTML en als RTF, voor het klembord en als .rtf-bestand,
+ *   zodat plakken in een mailprogramma, tekstverwerker of EPD de opmaak behoudt;
  * - platte tekst als terugval (mailto-link, programma's zonder opmaak).
  * Koppen zijn vet en in gewone schrijfwijze (geen hoofdletters, geen streep eronder). Niets wordt ingekort.
  */
@@ -84,60 +84,130 @@ export function reportToText(report: Report): string {
   return out.join('\n');
 }
 
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-/** Tekst met regelafbrekingen als HTML. */
-const lines = (s: string) => esc(s).replace(/\n/g, '<br>');
-
-const P = 'margin:0 0 2pt 0';
-const STYLE = {
-  doc: 'font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.35;color:#000',
-  title: 'margin:0 0 4pt 0;font-size:15pt',
-  section: 'margin:16pt 0 4pt 0;font-size:13pt',
-  block: 'margin:8pt 0 2pt 0;font-size:11pt',
-  indent: 'margin:0 0 2pt 18pt',
-};
+/** Opgemaakte tekst: alinea's met stukken vet/cursief/onderstreept; gedeeld door de HTML- en RTF-uitvoer. */
+interface Span {
+  text: string;
+  b?: boolean;
+  i?: boolean;
+  u?: boolean;
+}
+type ParaKind = 'title' | 'section' | 'block' | 'normal' | 'indent' | 'rowhead' | 'sub' | 'end';
+interface Para {
+  kind: ParaKind;
+  spans: Span[];
+}
 
 /**
- * Opgemaakte e-mailtekst (HTML met inline-opmaak, zodat die ook na plakken in Outlook, Word of een EPD blijft staan):
- * titel en sectiekoppen vet, subkoppen vet cursief, veldnamen cursief, kopjes binnen een kaart onderstreept.
+ * Het verslag als opgemaakte alinea's: titel en sectiekoppen vet, subkoppen vet cursief, veldnamen cursief,
+ * kopjes binnen een kaart onderstreept, meetmomenten met een vette kopregel. Koppen in gewone schrijfwijze.
  */
-export function reportToHtml(report: Report): string {
-  const out: string[] = [];
-  const p = (html: string, style = P) => out.push(`<p style="${style}">${html}</p>`);
-  p(`<b>${esc(report.title)}</b>`, STYLE.title);
-  report.meta.forEach((m, i) => p(i === 0 ? `<b>${esc(m)}</b>` : `<i>${esc(m)}</i>`));
+function reportToParas(report: Report): Para[] {
+  const out: Para[] = [];
+  const p = (kind: ParaKind, ...spans: Span[]) => out.push({ kind, spans });
+  p('title', { text: report.title, b: true });
+  report.meta.forEach((m, i) => p('normal', i === 0 ? { text: m, b: true } : { text: m, i: true }));
   for (const section of report.sections) {
-    p(`<b>${esc(section.title)}</b>`, STYLE.section);
-    if (section.subtitle) p(`<i>${esc(section.subtitle)}</i>`);
+    p('section', { text: section.title, b: true });
+    if (section.subtitle) p('normal', { text: section.subtitle, i: true });
     for (const block of section.blocks) {
-      if (block.title) p(`<b><i>${esc(block.title)}</i></b>`, STYLE.block);
+      if (block.title) p('block', { text: block.title, b: true, i: true });
       if (block.table) {
         for (const e of tableEntries(block.table)) {
-          p(`<b>${esc(e.head)}</b>`, 'margin:6pt 0 0 0');
-          p(e.data.length ? e.data.map((d, i) => esc(d) + (e.alert[i] ? `<b>${esc(ALERT_TEXT)}</b>` : '')).join('; ') : '<i>geen waarden</i>', STYLE.indent);
-          if (e.note) p(`<i>${esc(e.noteLabel)}:</i> ${lines(e.note)}`, STYLE.indent);
+          p('rowhead', { text: e.head, b: true });
+          if (!e.data.length) p('indent', { text: 'geen waarden', i: true });
+          else p('indent', ...e.data.flatMap((d, i): Span[] => [{ text: (i ? '; ' : '') + d }, ...(e.alert[i] ? [{ text: ALERT_TEXT, b: true }] : [])]));
+          if (e.note) p('indent', { text: `${e.noteLabel}:`, i: true }, { text: ` ${e.note}` });
         }
       }
       for (const row of block.rows) {
         switch (row.type) {
           case 'kv':
-            p(row.value.includes('\n') ? `<i>${esc(row.label)}:</i><br>${lines(row.value)}` : `<i>${esc(row.label)}:</i> ${esc(row.value)}`);
+            p('normal', { text: `${row.label}:`, i: true }, { text: row.value.includes('\n') ? `\n${row.value}` : ` ${row.value}` });
             break;
           case 'para':
-            p(row.label ? `<i>${esc(row.label)}:</i><br>${lines(row.text)}` : lines(row.text));
+            p('normal', ...(row.label ? [{ text: `${row.label}:`, i: true }, { text: `\n${row.text}` }] : [{ text: row.text }]));
             break;
           case 'sub':
-            p(`<u>${esc(row.text)}</u>`, 'margin:6pt 0 2pt 0');
+            p('sub', { text: row.text, u: true });
             break;
           case 'note':
-            p(`<i>${esc(row.text)}</i>`);
+            p('normal', { text: row.text, i: true });
             break;
         }
       }
     }
   }
-  p('<i>— Einde transportverslag —</i>', 'margin:16pt 0 0 0');
-  return `<div style="${STYLE.doc}">${out.join('')}</div>`;
+  p('end', { text: '— Einde transportverslag —', i: true });
+  return out;
+}
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const HTML_PARA: Record<ParaKind, string> = {
+  title: 'margin:0 0 4pt 0;font-size:15pt',
+  section: 'margin:16pt 0 4pt 0;font-size:13pt',
+  block: 'margin:8pt 0 2pt 0',
+  normal: 'margin:0 0 2pt 0',
+  indent: 'margin:0 0 2pt 18pt',
+  rowhead: 'margin:6pt 0 0 0',
+  sub: 'margin:6pt 0 2pt 0',
+  end: 'margin:16pt 0 0 0',
+};
+
+/** Opgemaakte e-mailtekst als HTML met inline-opmaak (blijft staan na plakken in Outlook of Word). */
+export function reportToHtml(report: Report): string {
+  const span = (s: Span) => {
+    let h = esc(s.text).replace(/\n/g, '<br>');
+    if (s.u) h = `<u>${h}</u>`;
+    if (s.i) h = `<i>${h}</i>`;
+    if (s.b) h = `<b>${h}</b>`;
+    return h;
+  };
+  const body = reportToParas(report)
+    .map((p) => `<p style="${HTML_PARA[p.kind]}">${p.spans.map(span).join('')}</p>`)
+    .join('');
+  return `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.35;color:#000">${body}</div>`;
+}
+
+/** Tekst voor RTF: \, { en } escapen; niet-ASCII als \uN? (16-bits, met vervangteken). */
+function rtfEscape(s: string): string {
+  let out = '';
+  for (const ch of s) {
+    const c = ch.codePointAt(0)!;
+    if (ch === '\\' || ch === '{' || ch === '}') out += `\\${ch}`;
+    else if (ch === '\n') out += '\\line ';
+    else if (ch === '\t') out += '\\tab ';
+    else if (c < 0x80) out += ch;
+    else if (c <= 0xffff) out += `\\u${c > 0x7fff ? c - 0x10000 : c}?`;
+    else {
+      // Buiten het BMP: als UTF-16-surrogaatpaar.
+      const hi = 0xd800 + ((c - 0x10000) >> 10);
+      const lo = 0xdc00 + ((c - 0x10000) & 0x3ff);
+      out += `\\u${hi - 0x10000}?\\u${lo - 0x10000}?`;
+    }
+  }
+  return out;
+}
+
+/** Alinea-opmaak in RTF (afstanden in twips, lettergrootte in halve punten). */
+const RTF_PARA: Record<ParaKind, string> = {
+  title: '\\sb0\\sa80\\fs30',
+  section: '\\sb320\\sa80\\fs26',
+  block: '\\sb160\\sa40\\fs22',
+  normal: '\\sb0\\sa40\\fs22',
+  indent: '\\li360\\sb0\\sa40\\fs22',
+  rowhead: '\\sb120\\sa0\\fs22',
+  sub: '\\sb120\\sa40\\fs22',
+  end: '\\sb320\\sa0\\fs22',
+};
+
+/** Het verslag als RTF-document (Rich Text Format) met dezelfde opmaak, bijv. om in het EPD te plakken of te importeren. */
+export function reportToRtf(report: Report): string {
+  const span = (s: Span) => `{${s.b ? '\\b' : ''}${s.i ? '\\i' : ''}${s.u ? '\\ul' : ''}${s.b || s.i || s.u ? ' ' : ''}${rtfEscape(s.text)}}`;
+  const body = reportToParas(report)
+    .map((p) => `{\\pard\\plain\\f0${RTF_PARA[p.kind]} ${p.spans.map(span).join('')}\\par}`)
+    .join('\n');
+  return `{\\rtf1\\ansi\\ansicpg1252\\deff0\\uc1{\\fonttbl{\\f0\\fswiss\\fcharset0 Calibri;}}\\viewkind4\n${body}\n}`;
 }
 
 export function emailSubject(report: Report): string {

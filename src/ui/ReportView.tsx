@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
-import { emailSubject, reportToHtml, reportToText } from '../report/text';
+import { emailSubject, reportToHtml, reportToRtf, reportToText } from '../report/text';
 import { childLabel, useAnonymous, useTimeZone } from './context';
 import { DataTable } from './DataTable';
 import { Logo, SectionIcon } from './icons';
@@ -39,22 +39,15 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 /**
- * Opgemaakte tekst naar het klembord (HTML met vet/cursief/onderstreept, plus platte tekst als terugval),
- * zodat plakken in een mailprogramma, tekstverwerker of EPD de opmaak behoudt.
+ * Opgemaakte tekst naar het klembord: HTML, RTF (waar de browser dat doorgeeft) en platte tekst als terugval,
+ * zodat plakken in een mailprogramma, tekstverwerker of EPD de opmaak zo veel mogelijk behoudt.
  */
-async function copyRich(html: string, text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard && window.isSecureContext && typeof ClipboardItem !== 'undefined') {
-      await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
-      return true;
-    }
-  } catch {
-    // val terug op execCommand
-  }
-  // Terugval (ook zonder https): bij het kopieer-event beide vormen zelf op het klembord zetten.
+async function copyRich(html: string, rtf: string, text: string): Promise<boolean> {
+  // Eerst via het kopieer-event: alleen zo kan ook RTF worden meegegeven (Chrome/Edge geven RTF niet door, Firefox wel).
   const onCopy = (e: ClipboardEvent) => {
-    e.clipboardData?.setData('text/html', html);
     e.clipboardData?.setData('text/plain', text);
+    e.clipboardData?.setData('text/html', html);
+    e.clipboardData?.setData('text/rtf', rtf);
     e.preventDefault();
   };
   document.addEventListener('copy', onCopy);
@@ -66,7 +59,28 @@ async function copyRich(html: string, text: string): Promise<boolean> {
   } finally {
     document.removeEventListener('copy', onCopy);
   }
-  return ok || copyText(text);
+  if (ok) return true;
+  try {
+    if (navigator.clipboard && window.isSecureContext && typeof ClipboardItem !== 'undefined') {
+      await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+      return true;
+    }
+  } catch {
+    // val terug op platte tekst
+  }
+  return copyText(text);
+}
+
+/** Bestandsnaam voor het RTF-verslag, zoals die van de pdf. */
+function rtfFileName(childName: string, patientNumber: string, now = new Date()): string {
+  const slug = [childName, patientNumber]
+    .join(' ')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 50);
+  return `transportverslag${slug ? `-${slug}` : ''}-${now.toISOString().slice(0, 10)}.rtf`;
 }
 
 function Row({ row }: { row: ReportRow }) {
@@ -98,6 +112,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
   const anonymous = useAnonymous();
   const text = useMemo(() => reportToText(report), [report]);
   const html = useMemo(() => reportToHtml(report), [report]);
+  const rtf = useMemo(() => reportToRtf(report), [report]);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
@@ -136,8 +151,21 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
     }
   };
 
+  /** RTF-bestand: te openen in Word/WordPad of te importeren; vandaar met opmaak te kopiëren naar het EPD (bijv. HiX). */
+  const downloadRtf = async () => {
+    const name = rtfFileName(transport.child.name, transport.child.patientNumber);
+    const result = await offerFile(name, new Blob([rtf], { type: 'application/rtf' }));
+    setStatus(
+      result === 'saved'
+        ? 'Rtf-bestand gemaakt. Open het (bijv. in Word of WordPad), selecteer alles en kopieer het naar het EPD; de opmaak blijft dan behouden.'
+        : result === 'declined'
+          ? 'Opslaan van het rtf-bestand is geannuleerd.'
+          : 'Bestand opslaan is in deze weergave niet beschikbaar. Open de app lokaal.',
+    );
+  };
+
   const copy = async () => {
-    const ok = await copyRich(html, text);
+    const ok = await copyRich(html, rtf, text);
     if (ok) setStatus('Volledige e-mailtekst met opmaak gekopieerd. Plak die in een e-mail, document of het EPD.');
     else {
       selectText();
@@ -150,7 +178,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
     const fits = encodeURIComponent(text).length <= MAILTO_BODY_LIMIT;
     // Altijd eerst de volledige opgemaakte tekst naar het klembord: een mailto-link kan geen opmaak meegeven
     // en wordt soms afgekapt; openen van het mailprogramma lukt bovendien niet op elk apparaat.
-    const copied = await copyRich(html, text);
+    const copied = await copyRich(html, rtf, text);
     const body = copied
       ? 'Het volledige transportverslag staat op het klembord. Plak het hier (Ctrl/Cmd+V); de opmaak blijft dan behouden.'
       : fits
@@ -217,6 +245,9 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
             <button type="button" className="primary" onClick={copy}>
               E-mailtekst kopiëren
             </button>
+            <button type="button" className="secondary" onClick={downloadRtf}>
+              Rtf downloaden
+            </button>
             <button type="button" className="secondary" onClick={openMail}>
               Concept openen in mailprogramma
             </button>
@@ -227,7 +258,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
             )}
           </div>
           <p className="muted small-print">
-            Er wordt nooit automatisch een e-mail verzonden. De e-mailtekst wordt mét opmaak (vet, cursief, onderstreept) naar het klembord gekopieerd; plak die in de e-mail, een document of het EPD. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe.
+            Er wordt nooit automatisch een e-mail verzonden. De e-mailtekst wordt mét opmaak (vet, cursief, onderstreept) naar het klembord gekopieerd. Neemt het EPD (bijv. HiX) de opmaak niet over, download dan het rtf-bestand, open het in Word of WordPad en kopieer het van daaruit. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe.
           </p>
           {status && (
             <p className="notice" role="status">

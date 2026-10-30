@@ -448,6 +448,11 @@ async function basisLayout(page) {
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
   check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid \(mL\/uur\): 3,2 → 4 vanaf/.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
+  const [rtfDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Rtf downloaden' }).click()]);
+  const rtfPath = `${OUT}/${rtfDownload.suggestedFilename()}`;
+  await rtfDownload.saveAs(rtfPath);
+  const rtfText = readFileSync(rtfPath, 'utf8');
+  check('Rtf gedownload: geldig RTF met vette kop', rtfPath.endsWith('.rtf') && rtfText.startsWith('{\\rtf1') && rtfText.includes('{\\b Basisgegevens kind}'), rtfDownload.suggestedFilename());
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Pdf downloaden' }).click()]);
   const pdfPath = `${OUT}/${download.suggestedFilename()}`;
   await download.saveAs(pdfPath);
