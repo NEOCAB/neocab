@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
-import { emailSubject, reportToText } from '../report/text';
+import { emailSubject, reportToHtml, reportToText } from '../report/text';
 import { childLabel, useAnonymous, useTimeZone } from './context';
 import { DataTable } from './DataTable';
 import { Logo, SectionIcon } from './icons';
@@ -38,6 +38,37 @@ async function copyText(text: string): Promise<boolean> {
   return ok;
 }
 
+/**
+ * Opgemaakte tekst naar het klembord (HTML met vet/cursief/onderstreept, plus platte tekst als terugval),
+ * zodat plakken in een mailprogramma, tekstverwerker of EPD de opmaak behoudt.
+ */
+async function copyRich(html: string, text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext && typeof ClipboardItem !== 'undefined') {
+      await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+      return true;
+    }
+  } catch {
+    // val terug op execCommand
+  }
+  // Terugval (ook zonder https): bij het kopieer-event beide vormen zelf op het klembord zetten.
+  const onCopy = (e: ClipboardEvent) => {
+    e.clipboardData?.setData('text/html', html);
+    e.clipboardData?.setData('text/plain', text);
+    e.preventDefault();
+  };
+  document.addEventListener('copy', onCopy);
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch {
+    ok = false;
+  } finally {
+    document.removeEventListener('copy', onCopy);
+  }
+  return ok || copyText(text);
+}
+
 function Row({ row }: { row: ReportRow }) {
   switch (row.type) {
     case 'kv':
@@ -66,9 +97,21 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
   const report = useMemo(() => buildReport(transport, tz), [transport, tz]);
   const anonymous = useAnonymous();
   const text = useMemo(() => reportToText(report), [report]);
+  const html = useMemo(() => reportToHtml(report), [report]);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const textRef = useRef<HTMLTextAreaElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  /** Selecteert de opgemaakte tekst, zodat die met Ctrl/Cmd+C (mét opmaak) gekopieerd kan worden. */
+  const selectText = () => {
+    const el = textRef.current;
+    const sel = window.getSelection();
+    if (!el || !sel) return;
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  };
 
   const downloadPdf = async () => {
     setBusy(true);
@@ -94,11 +137,10 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
   };
 
   const copy = async () => {
-    const ok = await copyText(text);
-    if (ok) setStatus(`Volledige e-mailtekst gekopieerd (${text.length.toLocaleString('nl-NL')} tekens).`);
+    const ok = await copyRich(html, text);
+    if (ok) setStatus('Volledige e-mailtekst met opmaak gekopieerd. Plak die in een e-mail, document of het EPD.');
     else {
-      textRef.current?.focus();
-      textRef.current?.select();
+      selectText();
       setStatus('Automatisch kopiëren lukt niet in deze browser. De tekst hieronder is geselecteerd; kopieer met Ctrl/Cmd+C.');
     }
   };
@@ -106,16 +148,17 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
   const openMail = async () => {
     const subject = emailSubject(report);
     const fits = encodeURIComponent(text).length <= MAILTO_BODY_LIMIT;
-    // Altijd eerst de volledige tekst naar het klembord: openen van het mailprogramma lukt niet op elk apparaat.
-    const copied = await copyText(text);
-    const body = fits
-      ? text
-      : copied
-        ? 'Het volledige transportverslag staat op het klembord. Plak het hier (Ctrl/Cmd+V).'
+    // Altijd eerst de volledige opgemaakte tekst naar het klembord: een mailto-link kan geen opmaak meegeven
+    // en wordt soms afgekapt; openen van het mailprogramma lukt bovendien niet op elk apparaat.
+    const copied = await copyRich(html, text);
+    const body = copied
+      ? 'Het volledige transportverslag staat op het klembord. Plak het hier (Ctrl/Cmd+V); de opmaak blijft dan behouden.'
+      : fits
+        ? text
         : 'Kopieer het volledige transportverslag uit de app en plak het hier.';
     setStatus(
       copied
-        ? 'De volledige tekst staat op het klembord. Als het mailprogramma niet opent, plak de tekst dan zelf in een nieuwe e-mail. Er wordt niets automatisch verzonden.'
+        ? 'De volledige tekst met opmaak staat op het klembord. Plak die in de e-mail (ook als het mailprogramma niet vanzelf opent). Er wordt niets automatisch verzonden.'
         : 'Kopiëren lukte niet; kopieer de tekst uit het tekstvak hieronder. Er wordt niets automatisch verzonden.',
     );
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -184,7 +227,7 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
             )}
           </div>
           <p className="muted small-print">
-            Er wordt nooit automatisch een e-mail verzonden. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe. Bij een lang verslag gaat de volledige tekst via het klembord, zodat er niets wegvalt.
+            Er wordt nooit automatisch een e-mail verzonden. De e-mailtekst wordt mét opmaak (vet, cursief, onderstreept) naar het klembord gekopieerd; plak die in de e-mail, een document of het EPD. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe.
           </p>
           {status && (
             <p className="notice" role="status">
@@ -245,10 +288,9 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
         </article>
 
         <section className="no-print email-text">
-          <h2>
-            <label htmlFor="email-text">Volledige e-mailtekst</label>
-          </h2>
-          <textarea id="email-text" ref={textRef} readOnly value={text} rows={14} />
+          <h2 id="email-text-title">Volledige e-mailtekst</h2>
+          {/* Zelf opgebouwde HTML met alleen geëscapete tekst en vaste opmaak (zie reportToHtml). */}
+          <div id="email-text" className="email-preview" ref={textRef} tabIndex={0} role="document" aria-labelledby="email-text-title" dangerouslySetInnerHTML={{ __html: html }} />
         </section>
       </main>
     </div>

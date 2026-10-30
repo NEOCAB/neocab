@@ -441,7 +441,9 @@ async function basisLayout(page) {
   await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
   await page.waitForSelector('.report');
   check('Geen horizontaal scrollen op 390 px (verslag)', await noHorizontalScroll(page));
-  const reportText = await page.locator('#email-text').inputValue();
+  const reportText = await page.locator('#email-text').innerText();
+  const previewHtml = await page.locator('#email-text').innerHTML();
+  check('E-mailtekst met opmaak: koppen vet, niet in hoofdletters en zonder streep eronder', previewHtml.includes('<b>Basisgegevens kind</b>') && !reportText.includes('BASISGEGEVENS') && !/\n[-=]{5,}/.test(reportText) && previewHtml.includes('<i>'));
   check('Logo Neo.Cab bovenaan het verslag', await page.locator('.report .report-head img.brand-logo').isVisible());
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);

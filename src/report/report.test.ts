@@ -7,7 +7,7 @@ import { wallToInstant } from '../domain/time';
 import type { Transport } from '../domain/types';
 import { buildReport } from './buildReport';
 import { reportToPdf } from './pdf';
-import { reportToText } from './text';
+import { reportToHtml, reportToText } from './text';
 
 const TZ = 'Europe/Amsterdam';
 const fonts = {
@@ -33,6 +33,18 @@ function bigTransport(): Transport {
 }
 
 describe('verslag', () => {
+  it('opgemaakte e-mailtekst: vette koppen in gewone schrijfwijze, cursieve veldnamen, tekst geëscapet', () => {
+    const t = sampleTransport(TZ);
+    t.proceduresAndEvents = 'Regel 1 <script>x</script>\nRegel 2 & meer';
+    const html = reportToHtml(buildReport(t, TZ));
+    expect(html).toContain('<b>Basisgegevens kind</b>');
+    expect(html).toContain('<b><i>Zwangerschap en geboorte</i></b>');
+    expect(html).toContain('<i>Patiëntnummer:</i> 0012345');
+    expect(html).toContain('Regel 1 &lt;script&gt;x&lt;/script&gt;<br>Regel 2 &amp; meer');
+    expect(html).not.toContain('<script>');
+    expect(html).not.toContain('BASISGEGEVENS');
+  });
+
   it('toont de Thompsonscore alleen bij therapeutische hypothermie', () => {
     const t = sampleTransport(TZ);
     t.referralCondition.thompson.scores.tone = 2;
@@ -42,9 +54,9 @@ describe('verslag', () => {
     let text = reportToText(buildReport(t, TZ));
     expect(text).toContain('Reden van overplaatsing:\n  Therapeutische hypothermie\n  Toenemende zuurstofbehoefte');
     expect(buildReport(t, TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Perinatale asfyxie', 'Thompson Score', 'Advies']);
-    expect(text).toContain('» Perinatale asfyxie\nNiet ingevuld.');
+    expect(text).toContain('\n\nPerinatale asfyxie\nNiet ingevuld.');
     t.referralCondition.asphyxia = { criteria: ['lactate', 'apgar5'] };
-    expect(reportToText(buildReport(t, TZ))).toContain('» Perinatale asfyxie\nCriteria:\n  Apgarscore op 5 minuten ≤ 5\n  Lactaat > 10.0 mmol/L\n\n» Thompson Score');
+    expect(reportToText(buildReport(t, TZ))).toContain('\n\nPerinatale asfyxie\nCriteria:\n  Apgarscore op 5 minuten ≤ 5\n  Lactaat > 10.0 mmol/L\n\nThompson Score');
     expect(text).toContain('Tonus: 2 – hypotonie\nBewustzijn: 2 – lethargisch\nTotale score: 4 / 22 (onvolledig: 2 van 9 onderdelen ingevuld)');
     for (const k of Object.keys(t.referralCondition.thompson.scores) as (keyof typeof t.referralCondition.thompson.scores)[]) t.referralCondition.thompson.scores[k] = 1;
     t.referralCondition.thompson.at = wallToInstant('2026-10-09T23:10', TZ);
@@ -55,9 +67,12 @@ describe('verslag', () => {
 
   it('bevat alle secties behalve de checklist, met eenheden', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
-    for (const h of ['BASISGEGEVENS KIND', 'DISPATCH', 'STABILISATIE\n', 'TIJDLIJN\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', '\nGEZIN\n', '\nTRANSPORT\n']) expect(text).toContain(h);
+    for (const h of ['\n\nBasisgegevens kind\n', '\n\nDispatch\n', '\n\nStabilisatie\n', '\n\nTijdlijn\n', 'Ademhalingsondersteuning, monitorgegevens en bloedgassen', '\n\nGezin\n', '\n\nTransport\n']) expect(text).toContain(h);
+    // Koppen in gewone schrijfwijze, zonder streep eronder.
+    expect(text).not.toMatch(/\n[-=]{5,}\n/);
+    expect(text).not.toContain('BASISGEGEVENS');
     for (const h of ['Airway', 'Breathing', 'Circulation', 'Disability', 'Exposure', 'Fluids', 'Gastro-intestinal', 'Infection']) expect(text).toContain(h);
-    for (const gone of ['CHECKLIST', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
+    for (const gone of ['Checklist', 'Nog niet gedaan', 'Gasvoorraad gecontroleerd', 'Niet van toepassing']) expect(text).not.toContain(gone);
     expect(text).not.toContain('Allergie');
     // Herkomst en bestemming; Verwijzing = zwangerschap en geboorte + toestand bij verwijzing.
     const titles = buildReport(sampleTransport(TZ), TZ).sections.map((sec) => sec.title);
@@ -68,7 +83,7 @@ describe('verslag', () => {
     expect(buildReport(noAdvice, TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing']);
     // Koppen zonder nummer.
     expect(buildReport(sampleTransport(TZ), TZ).sections.every((sec) => !/^\d/.test(sec.title))).toBe(true);
-    const s12 = text.slice(text.indexOf('\nGEZIN\n'), text.indexOf('\nTRANSPORT\n'));
+    const s12 = text.slice(text.indexOf('\n\nGezin\n'), text.indexOf('\n\nTransport\n'));
     expect(s12).toContain('Telefoonnummer moeder: 06 0000 0001\nTelefoonnummer partner: 06 0000 0002');
     expect(text).toContain('Patiëntnummer: 0012345');
     expect(text).not.toContain('LUMC');
@@ -77,7 +92,7 @@ describe('verslag', () => {
     expect(text).toContain('Gecorrigeerde leeftijd: 34+0 weken');
     expect(text).toContain('Ambulance aangevraagd: 09-10-2026 22:20');
     expect(text).toContain('Vertrek transportteam: 09-10-2026 22:35');
-    const s5 = text.slice(text.indexOf('DISPATCH'), text.indexOf('STABILISATIE\n'));
+    const s5 = text.slice(text.indexOf('\n\nDispatch\n'), text.indexOf('\n\nStabilisatie\n'));
     expect(s5).toContain('Aankomst bij kind: 09-10-2026 23:05');
     for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');

@@ -20,7 +20,7 @@ npm run build
 npm run preview      # http://localhost:4173
 ```
 
-Op een telefoon of iPad in hetzelfde netwerk: open `http://<ip-adres-van-de-computer>:5173`. Let op: kopiëren naar het klembord via de knop werkt in sommige browsers alleen via `https` of `localhost`; de app valt dan terug op een geselecteerd tekstvak.
+Op een telefoon of iPad in hetzelfde netwerk: open `http://<ip-adres-van-de-computer>:5173`. Let op: kopiëren naar het klembord via de knop werkt in sommige browsers alleen via `https` of `localhost`; de app valt dan terug op het kopieer-commando van de browser (ook met opmaak) of selecteert de tekst.
 
 ## Demo als claude.ai-artifact
 
@@ -29,7 +29,7 @@ Op een telefoon of iPad in hetzelfde netwerk: open `http://<ip-adres-van-de-comp
 - worden concepten alleen in de browser van de kijker bewaard (eigen `localStorage` per artifact);
 - loopt het opslaan van de pdf via de downloadbevestiging van claude.ai (capability `downloads`);
 - is de knop *Afdrukken* verborgen, omdat de ingebedde weergave niet kan afdrukken;
-- kan het openen van het mailprogramma niet werken; de volledige tekst staat dan al op het klembord en in het tekstvak.
+- kan het openen van het mailprogramma niet werken; de volledige tekst staat dan al op het klembord en onderaan het verslag.
 
 Bevestigingen (bijv. bij verwijderen) zijn een venster binnen de pagina, zodat ze ook in de ingebedde weergave werken. Als lokale opslag niet beschikbaar is (privévenster), meldt de app dat gegevens verloren gaan bij sluiten.
 
@@ -101,7 +101,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - **Infusen**: de eerste snelheid is de startsnelheid op het starttijdstip; wijzigingen worden met tijdstip toegevoegd. Het verslag toont het volledige verloop.
 - **Verwijzend ziekenhuis**: vrije invoer met een korte voorstel-lijst van bestaande Nederlandse ziekenhuisnamen (`HOSPITAL_SUGGESTIONS` in `src/domain/labels.ts`). Laat deze lijst inhoudelijk controleren en aanvullen voor gebruik.
 - **Toedieningsroutes** zijn configureerbaar via *Instellingen* op het startscherm (per apparaat).
-- **E-mail**: *E-mailtekst kopiëren* kopieert het volledige verslag als platte tekst. *Concept openen in mailprogramma* opent een `mailto:`-concept; past de tekst niet veilig in de link (> ca. 1800 tekens), dan wordt de volledige tekst eerst naar het klembord gekopieerd en bevat het concept alleen een plakinstructie. Een mailto-concept bevat geen pdf-bijlage; er wordt nooit automatisch verzonden. De volledige tekst staat ook in een selecteerbaar tekstvak.
+- **E-mail**: *E-mailtekst kopiëren* kopieert het volledige verslag **met opmaak** naar het klembord (HTML met vet, cursief en onderstreept, plus platte tekst als terugval; `reportToHtml` en `reportToText` in `src/report/text.ts`). Plakken in Outlook, Word of een EPD behoudt de opmaak, zoals bij RTF. Koppen zijn vet en in gewone schrijfwijze (geen hoofdletters, geen streep eronder); subkoppen vet cursief, veldnamen cursief, kopjes binnen een kaart onderstreept, meetmomenten met een vette kopregel. *Concept openen in mailprogramma* zet de opgemaakte tekst eerst op het klembord en opent een `mailto:`-concept met een plakinstructie (een mailto-link kan geen opmaak meegeven). Een mailto-concept bevat geen pdf-bijlage; er wordt nooit automatisch verzonden. Onderaan het verslag staat de opgemaakte e-mailtekst ook als voorbeeld.
 - **Tijdlijn als tabel**: de tijdlijn is één tabel met per rij één meetmoment (chronologisch) en kolommen voor ademhalingsondersteuning, monitorgegevens en bloedgas, gegroepeerd onder een kopregel. Meetnummer, fase en tube staan niet in de tabel (tubegegevens staan in sectie 10 en in het bewerkformulier van een invasief meetmoment). Type bloedgas wordt afgekort als A (arterieel), V (veneus) of C (capillair), met legenda. Kolommen zonder enige waarde worden weggelaten; eenheden staan in de kolomkop. Een instelling verschijnt alleen in de rij als die bij de modaliteit van dat meetmoment hoort. Bij CPAP wordt de druk als PEEP ingevoerd (CPAP-druk is gelijk aan PEEP) en staat die in de kolom PEEP; er is geen apart CPAP-veld of CPAP-kolom. Luchtwegdruk (MAP luchtweg, cmH₂O) en bloeddruk (Bloeddruk MAP, mmHg) zijn aparte kolommen. In het formulier scrolt de tabel horizontaal binnen zijn eigen kader (de tijdkolom blijft staan); het formulier zelf scrolt niet horizontaal. Bewerken: tik op het tijdstip; verwijderen gaat via het bewerkformulier (met bevestiging).
 - **Tijdlijn als grafiek**: met de weergavekeuze rechtsboven naast de kop *Tijdlijn* (knoppen met icoon table_chart / show_chart; op een smal scherm alleen de iconen); `src/ui/TimelineCharts.tsx`. Alle grafieken staan onder elkaar in één kolom, met de y-as op dezelfde plek en dezelfde tijd-as (werkelijke tijd), zodat een meetmoment overal recht boven elkaar staat. *Beademing*: drukken (PIP, PEEP, MAP luchtweg, PS, ΔP) en FiO₂ samen op één as, VG als eigen strook eronder (eigen schaal). *Vitale functies*: HF, AF, SpO₂ pre/post en bloeddruk samen op één as. *Bloedgas*: één grafiek met per waarde een strook met eigen schaal. Overige waarden (frequentie, temperatuur, capillaire refill, tcCO₂, OI) als losse grafieken; iT (inspiratietijd, in de tabel nu *iT*) staat niet in de grafieken. Boven de beademing staat de modaliteit als band. Series in één grafiek hebben elk een vaste kleur (categorisch palet, gecontroleerd op kleurenblindheid) én een eigen markeringsvorm; de legenda toont per serie de waarde. OI > 25 is een oranje punt met de drempel als oranje lijn. Wijzen (of pijltjestoetsen) toont in alle grafieken hetzelfde meetmoment; tikken of Enter opent het om te bewerken. Elke grafiek heeft voor schermlezers een tekstuele samenvatting; de tabel blijft beschikbaar. De gekozen weergave wordt per apparaat onthouden. Alleen in het formulier; verslag, pdf en e-mail gebruiken de tabel.
 - **Meetmoment invoeren**: datum en tijd, dan de ingeklapte kopjes *Ademhalingsondersteuning*, *Monitorgegevens* en *Bloedgas*, en het vrije veld *Beleidsaanpassingen*. Ingeklapt toont *Ademhalingsondersteuning* wat er laatst is ingevuld (modaliteit en instellingen); uitgeklapt verdwijnt die toelichting en verschijnt het volledige formulier. Er is geen veld Fase meer (oude gegevens blijven bewaard maar worden niet getoond).
@@ -117,7 +117,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 71 tests):
+Unit-tests (`npm test`, 72 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -134,7 +134,7 @@ Unit-tests (`npm test`, 71 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 183 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 184 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
