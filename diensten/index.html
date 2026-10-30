@@ -117,17 +117,6 @@ tfoot td, tfoot th { font-weight: 700; border-top: 2px solid var(--blauw); borde
 .statement p { font-size: 1.2rem; max-width: 44rem; }
 .statement strong { font-size: 1.35rem; }
 
-/* Omslagpunt */
-.omslag-uitkomst { font-size: clamp(1.5rem, 3.4vw, 2.1rem); color: var(--blauw); font-weight: 700; margin: 12px 0 8px; }
-.schaal { position: relative; margin: 44px 0 52px; height: 10px; border-radius: 5px; background: var(--b20); max-width: 640px; }
-.schaal .tik { position: absolute; top: 16px; transform: translateX(-50%); font-size: .85rem; color: var(--stil); }
-.schaal .merk { position: absolute; top: -5px; width: 4px; height: 20px; transform: translateX(-50%); border-radius: 2px; }
-.schaal .merk span { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: .9rem; font-weight: 700; }
-.schaal .merk.nu { background: var(--kobalt); }
-.schaal .merk.nu span { bottom: 24px; color: var(--blauw); }
-.schaal .merk.gelijk { background: var(--blauw); }
-.schaal .merk.gelijk span { top: 40px; color: var(--blauw); }
-
 /* Interactief blok */
 .interactief { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); padding-top: 56px; }
 @media (min-width: 1000px) {
@@ -342,10 +331,6 @@ footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--ran
     <div class="wrap">
       <h2>Wanneer is het nu gelijk?</h2>
       <p class="lead">Hoeveel moet een AD tellen om de fellow en de neonatoloog in de huidige situatie op evenveel punten te laten uitkomen? Dat hangt af van de weging van VNW en VDW, die je hieronder instelt.</p>
-      <p class="omslag-uitkomst" id="omslag-tekst" aria-live="polite">Gelijk als een AD ≈ 0,9 telt</p>
-      <p id="omslag-toelichting">Bij VNW = 1 en VDW = 0,6.</p>
-      <div class="schaal" id="omslag-schaal" aria-hidden="true"></div>
-      <p class="stil klein">Dit is een rekenkundig omslagpunt, geen voorstel. Het verandert niets aan de instellingen.</p>
     </div>
   </section>
 
@@ -792,30 +777,6 @@ globalThis.Rekenmodel = (() => {
     }).join('');
   }
 
-  function renderOmslag(res) {
-    const w = staat.w;
-    const x = res.omslagAD;
-    const sNu = res.samenvatting.nu;
-    const tekst = $('#omslag-tekst');
-    const toel = `Bij VNW = ${gewicht(w.VNW)} en VDW = ${gewicht(w.VDW)}. Nu telt een AD ${gewicht(w.AD)}: een fellow komt dan op ${getal(sNu.fellow.punten)} punten, een neonatoloog op ${getal(sNu.neo.punten)}.`;
-    if (x === null) {
-      tekst.textContent = 'Niet te bepalen: fellows en neonatologen draaien evenveel AD.';
-    } else if (x < 0) {
-      tekst.textContent = 'Een neonatoloog heeft nu al meer punten, ook als een AD niets telt.';
-    } else {
-      tekst.textContent = `Gelijk als een AD ≈ ${getal(x)} telt`;
-    }
-    $('#omslag-toelichting').textContent = toel + (x !== null && x > 2 ? ' Dat ligt buiten het bereik van het schuifje (0–2).' : '');
-
-    // schaal 0–2
-    const pos = (y) => (Math.min(2, Math.max(0, y)) / 2 * 100) + '%';
-    let html = '';
-    for (const t of [0, 0.5, 1, 1.5, 2]) html += `<span class="tik" style="left:${pos(t)}">${gewicht(t)}</span>`;
-    html += `<span class="merk nu" style="left:${pos(w.AD)}"><span>nu ${gewicht(w.AD)}</span></span>`;
-    if (x !== null && x >= 0 && x <= 2) html += `<span class="merk gelijk" style="left:${pos(x)}"><span>gelijk ≈ ${getal(x)}</span></span>`;
-    $('#omslag-schaal').innerHTML = html;
-  }
-
   function renderGrafiek(res) {
     const w = staat.w;
     const g = { VD: 1, VNW: w.VNW, VDW: w.VDW, AD: w.AD };
@@ -913,7 +874,6 @@ globalThis.Rekenmodel = (() => {
       $(id).innerHTML = melding;
     }
 
-    renderOmslag(res);
     renderOpties(res);
     renderGrafiek(res);
   }
