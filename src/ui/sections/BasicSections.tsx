@@ -13,7 +13,6 @@ import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/cal
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
-import { RouteBox } from '../RouteBox';
 import { CallIcon } from '../icons';
 import { useAnonymous, useSettings, useTimeZone } from '../context';
 
@@ -103,7 +102,7 @@ export function ReferralSection({ t, update }: SectionProps) {
   return (
     <Section id="s2" title="Herkomst en bestemming">
       <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
-      {/* Van en Naar als twee blokken: naast elkaar op een breed scherm, onder elkaar op een telefoon. */}
+      {/* Van (verwijzer) boven Naar (ontvanger). */}
       <div className="route-ends">
         <fieldset className="route-end">
           <legend>Van</legend>
@@ -128,8 +127,6 @@ export function ReferralSection({ t, update }: SectionProps) {
           <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
         </fieldset>
       </div>
-      {/* Zodra verwijzend én ontvangend ziekenhuis zijn ingevuld: route en geschatte reistijd. */}
-      <RouteBox from={r.referringHospital} to={r.receivingHospital} />
       <h3 className="subsection-title">Reden van overplaatsing</h3>
       {/* Vaste reden; bij therapeutische hypothermie verschijnen bij Verwijzing (onder Disability) asfyxie en Thompsonscore. */}
       <div className="reason-options">
