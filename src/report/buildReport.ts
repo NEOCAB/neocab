@@ -193,7 +193,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       .num('Apgar 10 minuten', g.apgar10);
     cordGas(b, 'Arterieel navelstrengbloedgas', g.cordArterial);
     cordGas(b, 'Veneus navelstrengbloedgas', g.cordVenous);
-    b.kv('Vitamine K', g.vitaminK === 'anders' ? `Anders${g.vitaminKOther.trim() ? `: ${g.vitaminKOther.trim()}` : ''}` : optionLabel(VITAMIN_K_OPTIONS, g.vitaminK));
+    b.kv('Vitamine K', optionLabel(VITAMIN_K_OPTIONS, g.vitaminK));
     const condition = abcdRows(t.referralCondition.notes);
     // Advies is optioneel: het blok verschijnt alleen als er advies is ingevuld.
     const advice = new RowBuilder();

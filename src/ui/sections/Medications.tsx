@@ -118,7 +118,6 @@ export function MedicationsSection({ t, update }: SectionProps) {
           )}
         />
       )}
-      <p className="muted small-print">Opties voor toedieningsroute zijn aan te passen via Instellingen op het startscherm.</p>
     </Section>
   );
 }

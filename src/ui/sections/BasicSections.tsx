@@ -1,6 +1,6 @@
 import type { AbcdKey, AbcdNotes, Asphyxia, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
 import { ASPHYXIA_CRITERIA, ASPHYXIA_GAS_NOTE, asphyxiaCriteriaFromBirth, type AsphyxiaCriterion } from '../../domain/asphyxia';
-import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, THOMPSON_THRESHOLD, emptyThompson, thompsonTotal } from '../../domain/thompson';
+import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, THOMPSON_THRESHOLD, thompsonTotal } from '../../domain/thompson';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
 import {
   ABCD_LABELS,
@@ -141,8 +141,9 @@ function CordGas({ legend, value, onChange }: { legend: string; value: BloodGasC
       <legend>{legend}</legend>
       <div className="grid three">
         <NumberField label="pH" value={value.ph} onChange={(v) => onChange({ ...value, ph: v })} rules={{ min: 0 }} />
-        <NumberField label="BE" value={value.be} onChange={(v) => onChange({ ...value, be: v })} unit="mmol/L" />
-        <NumberField label="Lactaat" value={value.lactate} onChange={(v) => onChange({ ...value, lactate: v })} unit="mmol/L" rules={{ min: 0 }} />
+        {/* Eenheid in het label, zodat beide bloedgassen naast elkaar passen. */}
+        <NumberField label="BE (mmol/L)" value={value.be} onChange={(v) => onChange({ ...value, be: v })} />
+        <NumberField label="Lactaat (mmol/L)" value={value.lactate} onChange={(v) => onChange({ ...value, lactate: v })} rules={{ min: 0 }} />
       </div>
     </fieldset>
   );
@@ -158,8 +159,8 @@ function BirthFields({ t, update }: SectionProps) {
       <TextArea label="Maternale en antenatale voorgeschiedenis" value={b.maternalHistory} onChange={(v) => set('maternalHistory', v)} />
       {/* Naast elkaar waar het past; nogmaals tikken op de gekozen optie wist de keuze. */}
       <div className="segmented-pair">
-        <Segmented legend="Antenatale corticosteroïden" value={b.antenatalCorticosteroids} onChange={(v) => set('antenatalCorticosteroids', v)} options={CORTICO_OPTIONS} deselect />
-        <Segmented legend="Antenataal magnesiumsulfaat" value={b.antenatalMagnesium} onChange={(v) => set('antenatalMagnesium', v)} options={YES_NO_UNKNOWN_OPTIONS} deselect />
+        <Segmented legend="Antenatale corticosteroïden" value={b.antenatalCorticosteroids} onChange={(v) => set('antenatalCorticosteroids', v)} options={CORTICO_OPTIONS} />
+        <Segmented legend="Antenataal magnesiumsulfaat" value={b.antenatalMagnesium} onChange={(v) => set('antenatalMagnesium', v)} options={YES_NO_UNKNOWN_OPTIONS} />
       </div>
       <TextArea label="Reanimatie bij geboorte" value={b.resuscitation} onChange={(v) => set('resuscitation', v)} />
       <fieldset className="group">
@@ -170,10 +171,11 @@ function BirthFields({ t, update }: SectionProps) {
           <NumberField label="10 minuten" value={b.apgar10} onChange={(v) => set('apgar10', v)} rules={apgar} />
         </div>
       </fieldset>
-      <CordGas legend="Arterieel navelstrengbloedgas" value={b.cordArterial} onChange={(v) => set('cordArterial', v)} />
-      <CordGas legend="Veneus navelstrengbloedgas" value={b.cordVenous} onChange={(v) => set('cordVenous', v)} />
+      <div className="cord-pair">
+        <CordGas legend="Arterieel navelstrengbloedgas" value={b.cordArterial} onChange={(v) => set('cordArterial', v)} />
+        <CordGas legend="Veneus navelstrengbloedgas" value={b.cordVenous} onChange={(v) => set('cordVenous', v)} />
+      </div>
       <Segmented legend="Vitamine K" value={b.vitaminK} onChange={(v) => set('vitaminK', v)} options={VITAMIN_K_OPTIONS} />
-      {b.vitaminK === 'anders' && <TextField label="Vitamine K: anders, namelijk" value={b.vitaminKOther} onChange={(v) => set('vitaminKOther', v)} />}
     </>
   );
 }
@@ -288,7 +290,7 @@ function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (
                     return (
                       <td key={i} className={v === i ? 'checked' : undefined}>
                         <label>
-                          <input type="radio" name={`thompson-${item.key}`} checked={v === i} aria-label={`${item.label} ${i}: ${text}`} onChange={() => onChange({ ...value, scores: { ...value.scores, [item.key]: i } })} />
+                          <input type="radio" name={`thompson-${item.key}`} checked={v === i} aria-label={`${item.label} ${i}: ${text}`} onChange={() => onChange({ ...value, scores: { ...value.scores, [item.key]: i } })} onClick={v === i ? () => onChange({ ...value, scores: { ...value.scores, [item.key]: null } }) : undefined} />
                           <span>{hyphenate(text)}</span>
                         </label>
                       </td>
@@ -304,11 +306,6 @@ function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (
         <span>Totale score</span>
         <strong>{filled ? `${total} / ${THOMPSON_MAX}` : '—'}</strong>
         {filled > 0 && !complete && <span className="muted">{`${filled} van ${THOMPSON_KEYS.length} onderdelen ingevuld`}</span>}
-        {filled > 0 && (
-          <button type="button" className="link-button" onClick={() => onChange({ ...value, scores: emptyThompson() })}>
-            Score wissen
-          </button>
-        )}
       </div>
       <p className="muted small-print">Protocol: therapeutische hypothermie bij een Thompsonscore ≥ {THOMPSON_THRESHOLD} op 1 uur na de reanimatie, of een afwijkend aEEG.</p>
     </>

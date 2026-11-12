@@ -20,7 +20,7 @@ export type Id = string;
 
 export type Corticosteroids = '' | 'niet' | 'onvolledig' | 'volledig' | 'onbekend';
 export type YesNoUnknown = '' | 'ja' | 'nee' | 'onbekend';
-export type VitaminK = '' | 'ja_oraal' | 'nee' | 'anders';
+export type VitaminK = '' | 'ja_oraal' | 'ja_im' | 'ja_iv' | 'nee';
 
 export const ABCD_KEYS = [
   'airway',
@@ -79,7 +79,6 @@ export interface Birth {
   cordArterial: BloodGasCord;
   cordVenous: BloodGasCord;
   vitaminK: VitaminK;
-  vitaminKOther: string;
 }
 
 export interface ThompsonScore {

@@ -30,7 +30,16 @@ export function normalizeTransport(raw: unknown): Transport | null {
   const t = mergeDefaults({ ...defaults, id: raw.id }, raw);
   // Perinatale asfyxie had kort een ja/nee/onbekend-keuze; alleen de criteria blijven over.
   const asphyxia = { criteria: Array.isArray(t.referralCondition.asphyxia?.criteria) ? t.referralCondition.asphyxia.criteria : [] };
-  return migrateParentPhones({ ...t, referralCondition: { ...t.referralCondition, asphyxia }, measurements: t.measurements.map((m) => ({ ...migrateCpapToPeep(m), policyChanges: typeof m.policyChanges === 'string' ? m.policyChanges : '' })) }, raw);
+  return migrateParentPhones({ ...t, birth: migrateVitaminK(t.birth), referralCondition: { ...t.referralCondition, asphyxia }, measurements: t.measurements.map((m) => ({ ...migrateCpapToPeep(m), policyChanges: typeof m.policyChanges === 'string' ? m.policyChanges : '' })) }, raw);
+}
+
+/** Vitamine K had eerder de keuze "Anders" met vrije tekst; nu ja (oraal, IM of IV) of nee. Afgeleid uit de tekst waar mogelijk. */
+function migrateVitaminK(b: Transport['birth']): Transport['birth'] {
+  const { vitaminKOther, ...rest } = b as Transport['birth'] & { vitaminKOther?: unknown };
+  const other = typeof vitaminKOther === 'string' ? vitaminKOther : '';
+  if ((b.vitaminK as string) !== 'anders') return rest;
+  const route = /\biv\b|intraven/i.test(other) ? 'ja_iv' : /\bim\b|intramusc/i.test(other) ? 'ja_im' : /ora/i.test(other) ? 'ja_oraal' : '';
+  return { ...(rest as Transport['birth']), vitaminK: route };
 }
 
 /** Oudere concepten hadden een lijst `parentPhones`; nu: eerste nummer = moeder, overige = partner. */

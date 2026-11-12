@@ -76,7 +76,6 @@ export function newTransport(timeZone = DEFAULT_TIME_ZONE, now = Date.now()): Tr
       cordArterial: { ph: null, be: null, lactate: null },
       cordVenous: { ph: null, be: null, lactate: null },
       vitaminK: '',
-      vitaminKOther: '',
     },
     referralCondition: { notes: emptyAbcd(), advice: '', thompson: { at: null, scores: emptyThompson() }, asphyxia: { criteria: [] } },
     dispatch: { ambulanceCalledAt: null, departedWithAmbulanceAt: null },

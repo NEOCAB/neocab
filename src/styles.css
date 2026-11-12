@@ -230,7 +230,7 @@ input[type='time'] {
   display: flex;
   align-items: center;
 }
-.num-input-wrap input {
+.num-input-wrap:has(.unit) input {
   padding-right: 4.6rem;
 }
 .unit {
@@ -977,14 +977,31 @@ a.button:hover {
 .combo {
   position: relative;
   display: flex;
-  gap: 0.35rem;
 }
 .combo input {
   flex: 1 1 auto;
   min-width: 0;
+  padding-right: 2.6rem;
 }
+/* Keuzelijst: blauwe pijl in het veld zelf (geen aparte knop). */
 .combo-toggle {
-  flex: none;
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 2.5rem;
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+}
+.combo-toggle:hover {
+  background: var(--primary-10);
 }
 .combo-toggle .expand-icon {
   transform: rotate(90deg);
@@ -2243,4 +2260,44 @@ button.danger-button {
   display: block;
   font-size: 0.82em;
   color: var(--muted);
+}
+/* Keuzelijsten (select): zelfde blauwe pijl in het veld */
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2.4rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23003c7d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1.1rem;
+}
+/* Laatste voeding in lijn met het veld erboven (subkop van Gastro-intestinal) */
+.abcd:not(.letters-only) .abcd-extra {
+  padding-left: 0;
+}
+/* Minder ruimte boven de lijn bij Reden van overplaatsing */
+.party-rows + .subsection-title {
+  margin-top: 0.25rem;
+}
+/* Navelstrengbloedgassen (arterieel en veneus) naast elkaar waar het past */
+.cord-pair {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1rem;
+}
+.cord-pair > fieldset {
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+/* Lege lijst (bijv. nog geen ingebrachte materialen) telt niet mee voor de ruimte onderaan */
+.form-section > div:empty {
+  display: none;
+}
+.form-section > :has(+ div:empty:last-child) {
+  margin-bottom: 0;
+}
+/* Navelstrengbloedgas: pH, BE en lactaat ook op een telefoon naast elkaar */
+.cord-pair .grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
 }

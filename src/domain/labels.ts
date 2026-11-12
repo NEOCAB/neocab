@@ -44,8 +44,9 @@ export const YES_NO_UNKNOWN_OPTIONS: Options<YesNoUnknown> = [
 
 export const VITAMIN_K_OPTIONS: Options<VitaminK> = [
   { value: 'ja_oraal', label: 'Ja, oraal' },
+  { value: 'ja_im', label: 'Ja, IM' },
+  { value: 'ja_iv', label: 'Ja, IV' },
   { value: 'nee', label: 'Nee' },
-  { value: 'anders', label: 'Anders' },
 ];
 
 export const PHASE_OPTIONS: Options<Phase> = [

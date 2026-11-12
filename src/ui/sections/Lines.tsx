@@ -233,7 +233,6 @@ export function LinesSection({ t, update }: SectionProps) {
           />
         </>
       ) : null}
-      <p className="muted small-print">Tubegegevens worden hier één keer ingevoerd en verschijnen bij invasieve ademhalingsondersteuning op de tijdlijn, met de gegevens die op het tijdstip van het meetmoment golden.</p>
     </Section>
   );
 }

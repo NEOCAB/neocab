@@ -81,6 +81,22 @@ describe('lokale conceptopslag', () => {
     expect(loaded.referralCondition.notes.exposure).toBe('');
   });
 
+  it('zet vitamine K "Anders" uit oude concepten om naar de route uit de tekst', () => {
+    const storage = memoryStorage();
+    const t = sampleTransport();
+    const old = JSON.parse(JSON.stringify(t));
+    old.birth.vitaminK = 'anders';
+    old.birth.vitaminKOther = 'Intramusculair toegediend';
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
+    storage.setItem('neonataal-transport:v1:index', JSON.stringify([t.id]));
+    const loaded = new LocalStorageTransportRepository(storage).load(t.id)!;
+    expect(loaded.birth.vitaminK).toBe('ja_im');
+    expect('vitaminKOther' in loaded.birth).toBe(false);
+    old.birth.vitaminKOther = 'onbekend';
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify(old));
+    expect(new LocalStorageTransportRepository(storage).load(t.id)!.birth.vitaminK).toBe('');
+  });
+
   it('vult therapeutische hypothermie en de Thompsonscore aan bij oude concepten', () => {
     const storage = memoryStorage();
     const t = sampleTransport();

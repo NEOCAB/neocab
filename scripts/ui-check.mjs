@@ -166,6 +166,13 @@ async function basisLayout(page) {
   const corticoOn = await cortico.locator('input:checked').count();
   await cortico.getByRole('radio', { name: 'Volledige kuur', exact: true }).click();
   check('Corticosteroïden: geen Wissen-knop; nogmaals tikken op de keuze wist die', corticoOn === 1 && (await cortico.locator('input:checked').count()) === 0 && (await cortico.getByRole('button', { name: 'Wissen' }).count()) === 0);
+  check('Nergens een knop Wissen bij keuzeknoppen (ook niet bij ademhalingsondersteuning)', (await page.locator('.segmented, .mode-picker').getByRole('button', { name: /wissen/i }).count()) === 0);
+  check('Vitamine K: Ja, oraal / Ja, IM / Ja, IV / Nee (geen Anders)', JSON.stringify(await page.locator('#s3 fieldset.segmented', { hasText: 'Vitamine K' }).locator('.seg span').allTextContents()) === JSON.stringify(['Ja, oraal', 'Ja, IM', 'Ja, IV', 'Nee']));
+  const cordRow = await page.evaluate(() => { const f = [...document.querySelectorAll('#s3 .cord-pair > fieldset')].map((e) => e.getBoundingClientRect()); return f.length === 2 && (innerWidth < 700 || Math.abs(f[0].top - f[1].top) < 2); });
+  check('Navelstrengbloedgassen naast elkaar waar het past', cordRow);
+  check('Geen toelichting meer bij toedieningsroute en tubegegevens', (await page.getByText('Opties voor toedieningsroute').count()) === 0 && (await page.getByText('Tubegegevens worden hier').count()) === 0);
+  const comboArrow = await page.locator('#s2 .combo').first().evaluate((c) => { const i = c.querySelector('input').getBoundingClientRect(); const b = c.querySelector('.combo-toggle').getBoundingClientRect(); return b.left >= i.left && b.right <= i.right + 1; });
+  check('Keuzelijst ziekenhuis: blauwe pijl in het veld zelf', comboArrow);
 
   // Material Symbols bij alle 15 sectiekoppen
   const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
@@ -245,14 +252,15 @@ async function basisLayout(page) {
   const totalText = await page.locator('#s3 .thompson-total').textContent();
   check('Thompson Score: totaal telt mee (5 / 22, 2 van 9 ingevuld)', totalText.includes('5 / 22') && totalText.includes('2 van 9'), totalText);
   await page.screenshot({ path: `${OUT}/390-thompson.png`, fullPage: false, clip: await page.locator('#s3 .thompson').boundingBox().then((b) => ({ x: 0, y: b.y - 80, width: 390, height: 700 })) }).catch(() => {});
-  check('Thompson Score: geen Wissen per onderdeel, wel één knop Score wissen', (await page.locator('#s3 .thompson').getByRole('button', { name: 'Wissen', exact: true }).count()) === 0 && (await page.locator('#s3 .thompson-total').getByRole('button', { name: 'Score wissen' }).count()) === 1);
+  check('Thompson Score: geen knoppen Wissen of Score wissen', (await page.locator('#s3 .hypothermia-panel').getByRole('button', { name: /^(score )?wissen$/i }).count()) === 0);
   await th.uncheck();
   check('Optie uit: Thompson Score verdwijnt weer', (await page.locator('#s3 .thompson').count()) === 0);
   await th.check();
   const kept = await page.locator('#s3 .thompson-total').textContent();
   check('Optie weer aan: ingevulde score is bewaard gebleven', kept.includes('5 / 22'), kept);
-  await page.locator('#s3 .thompson-total').getByRole('button', { name: 'Score wissen' }).click();
-  check('Score wissen: alle onderdelen leeg', (await page.locator('#s3 .thompson-total strong').textContent()) === '—' && (await page.locator('#s3 .thompson input:checked').count()) === 0);
+  await page.locator('#s3 .thompson-table').getByRole('radio', { name: 'Tonus 2: hypotonie' }).click();
+  await page.locator('#s3 .thompson-table').getByRole('radio', { name: 'Ademhaling 3: beademing (apneu)' }).click();
+  check('Thompson: nogmaals tikken op de gekozen score wist die', (await page.locator('#s3 .thompson-total strong').textContent()) === '—' && (await page.locator('#s3 .thompson input:checked').count()) === 0);
   await th.uncheck();
   check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[5] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);

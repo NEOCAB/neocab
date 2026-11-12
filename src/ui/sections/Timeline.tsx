@@ -82,18 +82,13 @@ function ModePicker({ value, onChange }: { value: RespMode | ''; onChange: (m: R
           <div className="segmented-options">
             {g.modes.map((m) => (
               <label key={m} className={`seg ${value === m ? 'checked' : ''}`}>
-                <input type="radio" name="resp-mode" value={m} checked={value === m} onChange={() => onChange(m)} />
+                <input type="radio" name="resp-mode" value={m} checked={value === m} onChange={() => onChange(m)} onClick={value === m ? () => onChange('') : undefined} />
                 <span>{RESP_MODE_LABELS[m]}</span>
               </label>
             ))}
           </div>
         </div>
       ))}
-      {value !== '' && (
-        <button type="button" className="link-button" onClick={() => onChange('')}>
-          Keuze wissen
-        </button>
-      )}
     </fieldset>
   );
 }

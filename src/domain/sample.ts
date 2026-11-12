@@ -41,8 +41,7 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
       apgar10: 9,
       cordArterial: { ph: 7.21, be: -6.4, lactate: 4.1 },
       cordVenous: { ph: 7.28, be: -4.9, lactate: 3.2 },
-      vitaminK: 'anders',
-      vitaminKOther: 'Intramusculair toegediend',
+      vitaminK: 'ja_im',
     },
     referralCondition: {
       notes: {
