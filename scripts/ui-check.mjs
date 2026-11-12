@@ -145,7 +145,7 @@ async function basisLayout(page) {
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
   const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
-  const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance aangevraagd'], ['sdispatch', 'Vertrek transportteam'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst ontvangend centrum']];
+  const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (zonder omschrijving, streep, Nu of tijd met potlood)', tps.every((x) => x[2] === null && x[3] === 'rgb(0, 60, 125)' && x[4] >= 1));
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
@@ -256,26 +256,26 @@ async function basisLayout(page) {
   await th.uncheck();
   check('Koppen zonder nummer; Tijdlijn met toelichting eronder', order.every((h) => !/^\d/.test(h)) && order[5] === 'Tijdlijn' && (await page.locator('#s6 .section-intro').textContent()) === 'Ademhalingsondersteuning, monitorgegevens en bloedgassen');
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
-  check('Dispatch-tijden standaard leeg', (await tpVal('Ambulance aangevraagd')) === '' && (await tpVal('Vertrek transportteam')) === '');
-  const calledBox = page.locator('.timepoint[data-label="Ambulance aangevraagd"]');
+  check('Dispatch-tijden standaard leeg', (await tpVal('Ambulance gebeld')) === '' && (await tpVal('Vertrek team')) === '');
+  const calledBox = page.locator('.timepoint[data-label="Ambulance gebeld"]');
   check('Leeg tijdstip: één grote knop Nu, geen Wissen', (await calledBox.locator('.tp-now').count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
-  await page.getByRole('button', { name: 'Ambulance aangevraagd op nu zetten' }).click();
-  const calledVal = await tpVal('Ambulance aangevraagd');
-  check('Ambulance aangevraagd: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(calledVal), calledVal);
-  check('Ingevuld tijdstip: tijd groot met "vandaag", potlood om te wijzigen, geen Wissen', (await calledBox.locator('.tp-time').textContent()) === calledVal.slice(11, 16) && (await calledBox.locator('.tp-day').textContent()) === 'vandaag' && (await calledBox.getByRole('button', { name: 'Ambulance aangevraagd wijzigen' }).count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
-  await calledBox.getByRole('button', { name: 'Ambulance aangevraagd wijzigen' }).click();
-  const calledInput = page.getByLabel('Ambulance aangevraagd', { exact: true });
+  await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
+  const calledVal = await tpVal('Ambulance gebeld');
+  check('Ambulance gebeld: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(calledVal), calledVal);
+  check('Ingevuld tijdstip: tijd groot met "vandaag", potlood om te wijzigen, geen Wissen', (await calledBox.locator('.tp-time').textContent()) === calledVal.slice(11, 16) && (await calledBox.locator('.tp-day').textContent()) === 'vandaag' && (await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
+  await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).click();
+  const calledInput = page.getByLabel('Ambulance gebeld', { exact: true });
   await calledInput.fill('2026-10-09T22:20');
   await calledBox.getByRole('button', { name: /klaar met wijzigen/ }).click();
-  check('Wijzigen via potlood: nieuwe tijd zichtbaar', (await tpVal('Ambulance aangevraagd')) === '2026-10-09T22:20' && (await calledBox.locator('.tp-day').textContent()) === '09-10-2026');
-  await calledBox.getByRole('button', { name: 'Ambulance aangevraagd wijzigen' }).click();
-  await calledBox.getByRole('button', { name: 'Ambulance aangevraagd wissen' }).click();
-  const wiped = (await tpVal('Ambulance aangevraagd')) === '';
+  check('Wijzigen via potlood: nieuwe tijd zichtbaar', (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20' && (await calledBox.locator('.tp-day').textContent()) === '09-10-2026');
+  await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).click();
+  await calledBox.getByRole('button', { name: 'Ambulance gebeld wissen' }).click();
+  const wiped = (await tpVal('Ambulance gebeld')) === '';
   await calledBox.getByRole('button', { name: 'Ongedaan maken' }).click();
-  check('Wissen alleen bij wijzigen, met Ongedaan maken', wiped && (await tpVal('Ambulance aangevraagd')) === '2026-10-09T22:20');
-  await calledBox.getByRole('button', { name: 'Ambulance aangevraagd wijzigen' }).click();
-  await calledBox.getByRole('button', { name: 'Ambulance aangevraagd wissen' }).click();
-  await page.getByRole('button', { name: 'Ambulance aangevraagd op nu zetten' }).click();
+  check('Wissen alleen bij wijzigen, met Ongedaan maken', wiped && (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20');
+  await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).click();
+  await calledBox.getByRole('button', { name: 'Ambulance gebeld wissen' }).click();
+  await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
@@ -596,6 +596,14 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   check(`${w}px: geen route en reistijd meer`, (await page.locator('#s2 .route-box').count()) === 0);
+  // Herkomst en bestemming (optie C): ingevuld als samenvatting met Wijzigen; leeg als invulvelden
+  const vanSum = page.locator('#s2 .party-summary[data-party="Van"]');
+  const vanText = (await vanSum.textContent()) ?? '';
+  check(`${w}px: Van als samenvatting (ziekenhuis, afdeling, verwijzer, telefoon) en Naar (leeg) als invulvelden`, vanText.includes('Alrijne Ziekenhuis, Leiderdorp') && vanText.includes('Dr. A. Fictief') && (await vanSum.locator('a.party-phone').getAttribute('href')) === 'tel:0710000000' && (await page.locator('#s2 fieldset.route-end[data-party="Naar"]').count()) === 1, vanText);
+  await vanSum.getByRole('button', { name: 'Gegevens verwijzer wijzigen' }).click();
+  const vanEditing = (await page.locator('#s2').getByRole('combobox', { name: 'Verwijzend ziekenhuis' }).inputValue()) === 'Alrijne Ziekenhuis, Leiderdorp';
+  await page.locator('#s2 fieldset.route-end[data-party="Van"]').getByRole('button', { name: 'Klaar' }).click();
+  check(`${w}px: Wijzigen opent de velden, Klaar toont weer de samenvatting`, vanEditing && (await page.locator('#s2 .party-summary[data-party="Van"]').count()) === 1 && (await page.evaluate(() => document.activeElement?.classList.contains('party-edit'))));
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });

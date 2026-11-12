@@ -10,7 +10,7 @@ import {
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
 import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
-import { Fragment, useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
 import { CallIcon } from '../icons';
@@ -92,6 +92,69 @@ function useNow(): number {
   return now;
 }
 
+/**
+ * Verwijzer of ontvanger. Ingevuld (ziekenhuis bekend): een samenvatting op twee regels met "Wijzigen".
+ * Leeg of tijdens wijzigen: de invulvelden met "Klaar".
+ */
+function PartyBlock({ kind, hospital, summary, children }: { kind: 'Van' | 'Naar'; hospital: string; summary: ReactNode[]; children: ReactNode }) {
+  const filled = hospital.trim() !== '';
+  // Bij openen van een leeg blok direct de velden; tijdens het typen niet dichtklappen.
+  const [editing, setEditing] = useState(!filled);
+  const editRef = useRef<HTMLButtonElement>(null);
+  const backToSummary = useRef(false);
+  useEffect(() => {
+    if (!editing && backToSummary.current) {
+      backToSummary.current = false;
+      editRef.current?.focus();
+    }
+  }, [editing]);
+  const who = kind === 'Van' ? 'verwijzer' : 'ontvanger';
+  if (!editing && filled) {
+    const parts = summary.filter(Boolean);
+    return (
+      <div className="party-summary" data-party={kind}>
+        <span className="party-key">{kind}</span>
+        <div className="party-text">
+          <div className="party-main">{hospital}</div>
+          {parts.length > 0 && (
+            <div className="party-sub">
+              {parts.map((p, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <span aria-hidden="true"> · </span>}
+                  {p}
+                </Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+        <button ref={editRef} type="button" className="link-button party-edit" aria-label={`Gegevens ${who} wijzigen`} onClick={() => setEditing(true)}>
+          Wijzigen
+        </button>
+      </div>
+    );
+  }
+  return (
+    <fieldset className="route-end" data-party={kind}>
+      <legend>{kind}</legend>
+      {children}
+      {filled && (
+        <div className="party-done">
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              backToSummary.current = true;
+              setEditing(false);
+            }}
+          >
+            Klaar
+          </button>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
 export function ReferralSection({ t, update }: SectionProps) {
   // Keuzelijst ziekenhuislocaties met kinderafdeling/neonatologie (aan te passen via Instellingen); vrije tekst blijft mogelijk.
   const hospitals = hospitalOptions(useSettings().hospitals).map((h) => ({ label: h.label, badge: h.nicu ? 'NICU' : undefined }));
@@ -102,31 +165,36 @@ export function ReferralSection({ t, update }: SectionProps) {
   return (
     <Section id="s2" title="Herkomst en bestemming">
       <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
-      {/* Van (verwijzer) boven Naar (ontvanger). */}
-      <div className="route-ends">
-        <fieldset className="route-end">
-          <legend>Van</legend>
-          <ComboField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} options={hospitals} matches={matchHospital} />
-          <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
-          <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
-          <div className="phone-row">
-            <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
-            {tel && (
-              <a className="button secondary icon-button call-button" href={`tel:${tel}`} aria-label={`Verwijzer bellen (${r.referrerPhone})`} title="Bellen">
-                <CallIcon />
-              </a>
-            )}
-          </div>
-        </fieldset>
-        <div className="route-ends-arrow" aria-hidden="true">
-          →
+      {/* Van (verwijzer) boven Naar (ontvanger); ingevuld als samenvatting, "Wijzigen" opent de velden. */}
+      <PartyBlock
+        kind="Van"
+        hospital={r.referringHospital}
+        summary={[
+          r.referringDepartment.trim(),
+          r.referrerName.trim(),
+          r.referrerPhone.trim() && (
+            <a key="tel" href={`tel:${tel}`} className="party-phone">
+              <CallIcon /> {r.referrerPhone.trim()}
+            </a>
+          ),
+        ]}
+      >
+        <ComboField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} options={hospitals} matches={matchHospital} />
+        <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
+        <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
+        <div className="phone-row">
+          <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
+          {tel && (
+            <a className="button secondary icon-button call-button" href={`tel:${tel}`} aria-label={`Verwijzer bellen (${r.referrerPhone})`} title="Bellen">
+              <CallIcon />
+            </a>
+          )}
         </div>
-        <fieldset className="route-end">
-          <legend>Naar</legend>
-          <ComboField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} options={hospitals} matches={matchHospital} />
-          <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
-        </fieldset>
-      </div>
+      </PartyBlock>
+      <PartyBlock kind="Naar" hospital={r.receivingHospital} summary={[r.receivingDepartment.trim()]}>
+        <ComboField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} options={hospitals} matches={matchHospital} />
+        <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
+      </PartyBlock>
       <h3 className="subsection-title">Reden van overplaatsing</h3>
       {/* Vaste reden; bij therapeutische hypothermie verschijnen bij Verwijzing (onder Disability) asfyxie en Thompsonscore. */}
       <div className="reason-options">
@@ -352,8 +420,8 @@ export function DispatchSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['dispatch']>(k: K, v: Transport['dispatch'][K]) => update((x) => ({ ...x, dispatch: { ...x.dispatch, [k]: v } }));
   return (
     <Section id="sdispatch" title="Dispatch">
-      <TimepointField label="Ambulance aangevraagd" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
-      <TimepointField label="Vertrek transportteam" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
+      <TimepointField label="Ambulance gebeld" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
+      <TimepointField label="Vertrek team" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
       <TimepointField
         label="Aankomst bij kind"
         value={t.teamAssessment.arrivedAt}
@@ -442,7 +510,7 @@ export function ClosureSection({ t, update }: SectionProps) {
     <Section id="s14" title="Transport">
       <TimepointField label="Vertrek met kind" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
       <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
-      <TimepointField label="Aankomst ontvangend centrum" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
+      <TimepointField label="Aankomst" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
     </Section>
   );
 }

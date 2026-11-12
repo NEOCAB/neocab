@@ -211,7 +211,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   // Dispatch
   {
     const b = new RowBuilder();
-    b.kv('Ambulance aangevraagd', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek transportteam', fi(t.dispatch.departedWithAmbulanceAt)).kv('Aankomst bij kind', fi(t.teamAssessment.arrivedAt));
+    b.kv('Ambulance gebeld', fi(t.dispatch.ambulanceCalledAt)).kv('Vertrek team', fi(t.dispatch.departedWithAmbulanceAt)).kv('Aankomst bij kind', fi(t.teamAssessment.arrivedAt));
     sections.push({ title: 'Dispatch', blocks: [{ rows: b.orEmpty() }] });
   }
 
