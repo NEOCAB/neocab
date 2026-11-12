@@ -301,22 +301,161 @@ function ClearIcon() {
   );
 }
 
+/** Datum ten opzichte van vandaag: "vandaag", "gisteren", "morgen" of dd-mm-jjjj. */
+function relativeDay(wallDate: string, tz: string): string {
+  const today = todayLocalDate(tz);
+  const days = Math.round((Date.parse(`${wallDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+  if (days === 0) return 'vandaag';
+  if (days === -1) return 'gisteren';
+  if (days === 1) return 'morgen';
+  const [y, m, d] = wallDate.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+/** Potlood: tijdstip wijzigen. */
+function EditIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d="M4 20h4L19 9l-4-4L4 16v4z" />
+      <path d="M13.5 6.5l4 4" />
+    </svg>
+  );
+}
+
+/** Vinkje: klaar met wijzigen. */
+function DoneIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+const UNDO_MS = 10_000;
+
 /**
  * Vast tijdstip van het transport (verwijzing, ambulance aangevraagd, vertrek transportteam, aankomst bij kind,
- * vertrek met kind, aankomst ontvangend centrum). Alle zes in dezelfde vormgeving: icoon, naam, datum/tijd met Nu en Wissen.
+ * vertrek met kind, aankomst ontvangend centrum). Alle zes in dezelfde vormgeving:
+ * - leeg: één grote knop "Nu" (en "Tijd invoeren" om een eerdere tijd te typen);
+ * - ingevuld: de tijd groot en de dag klein ("22:10 · vandaag"), met een potlood om te wijzigen;
+ * - wijzigen: datum/tijd-veld met Klaar; Wissen staat alleen hier, met daarna "Ongedaan maken".
  */
 export function TimepointField({ label, value, onChange }: { label: string; value: Instant; onChange: (v: Instant) => void }) {
   const id = useId();
+  const labelId = `${id}-label`;
+  const tz = useTimeZone();
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [undo, setUndo] = useState<Instant>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const editRef = useRef<HTMLButtonElement>(null);
+  const focusEdit = useRef(false);
+  const wall = instantToWall(value, tz);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+    else if (focusEdit.current) {
+      focusEdit.current = false;
+      editRef.current?.focus();
+    }
+  }, [editing]);
+  useEffect(() => {
+    if (!undo) return;
+    const h = window.setTimeout(() => setUndo(null), UNDO_MS);
+    return () => window.clearTimeout(h);
+  }, [undo]);
+
+  const done = () => {
+    if (error) return;
+    focusEdit.current = value !== null;
+    setEditing(false);
+  };
+  const clear = () => {
+    setUndo(value);
+    setError(null);
+    onChange(null);
+    setEditing(false);
+  };
+
+  let body: ReactNode;
+  if (editing) {
+    body = (
+      <div className="dt-row">
+        <input
+          ref={inputRef}
+          id={id}
+          type="datetime-local"
+          value={wall}
+          aria-labelledby={labelId}
+          aria-describedby={error ? `${id}-error` : undefined}
+          aria-invalid={error ? true : undefined}
+          onKeyDown={(e) => e.key === 'Enter' && done()}
+          onChange={(e) => {
+            if (e.target.value === '') {
+              setError(null);
+              onChange(null);
+              return;
+            }
+            const i = wallToInstant(e.target.value, tz);
+            if (i) {
+              setError(null);
+              onChange(i);
+            } else setError('Voer een geldige datum en tijd in.');
+          }}
+        />
+        <button type="button" className="primary icon-button" aria-label={`${label}: klaar met wijzigen`} title="Klaar" onClick={done}>
+          <DoneIcon />
+        </button>
+        {value !== null && (
+          <button type="button" className="link-button tp-clear" aria-label={`${label} wissen`} onClick={clear}>
+            Wissen
+          </button>
+        )}
+      </div>
+    );
+  } else if (value === null) {
+    body = (
+      <div className="tp-empty">
+        <button type="button" className="primary tp-now" aria-label={`${label} op nu zetten`} onClick={() => { setUndo(null); onChange(nowInstant(tz)); }}>
+          <ClockIcon />
+          <span>Nu</span>
+        </button>
+        <button type="button" className="link-button" aria-label={`${label}: tijd invoeren`} onClick={() => setEditing(true)}>
+          Tijd invoeren
+        </button>
+        {undo && (
+          <span className="tp-undo" role="status">
+            Gewist.{' '}
+            <button type="button" className="link-button" onClick={() => { onChange(undo); setUndo(null); }}>
+              Ongedaan maken
+            </button>
+          </span>
+        )}
+      </div>
+    );
+  } else {
+    body = (
+      <div className="tp-filled">
+        <time className="tp-value" dateTime={value}>
+          <span className="tp-time">{wall.slice(11, 16)}</span>
+          <span className="tp-day">{relativeDay(wall.slice(0, 10), tz)}</span>
+        </time>
+        <button ref={editRef} type="button" className="secondary icon-button" aria-label={`${label} wijzigen`} title="Wijzigen" onClick={() => setEditing(true)}>
+          <EditIcon />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className={`field timepoint ${error ? 'has-error' : ''}`}>
+    <div className={`field timepoint ${error ? 'has-error' : ''}`} data-label={label} data-value={wall}>
       <div className="tp-head">
         <TimepointIcon />
-        <label htmlFor={id} className="field-label">
+        <span id={labelId} className="field-label">
           {label}
-        </label>
+        </span>
       </div>
-      <DateTimeInputs id={id} name={label} value={value} onChange={onChange} clearable describedBy={describedBy(id, undefined, error)} error={error} setError={setError} />
+      {body}
       {error && (
         <div className="field-error" id={`${id}-error`} role="alert">
           {error}

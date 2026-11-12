@@ -2240,3 +2240,50 @@ button.danger-button {
     padding: 0.6rem 0.6rem 0.4rem;
   }
 }
+/* Tijdstipvakken: leeg = grote knop Nu; ingevuld = tijd groot, dag klein, potlood om te wijzigen */
+.tp-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+}
+.tp-now {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  flex: 1 1 10rem;
+  min-height: var(--tap);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.tp-filled {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: var(--tap);
+}
+.tp-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.tp-time {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.tp-day {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.tp-clear {
+  margin-left: 0.25rem;
+}
+.tp-undo {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
