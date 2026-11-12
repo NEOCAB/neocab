@@ -604,6 +604,12 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   check(`${w}px: geen route en reistijd meer`, (await page.locator('#s2 .route-box').count()) === 0);
+  const side = await page.evaluate(() => {
+    const top = document.querySelector('.editor-layout .topbar').getBoundingClientRect();
+    const nav = document.querySelector('.sidenav').getBoundingClientRect();
+    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0 };
+  });
+  check(`${w}px: kop (Neo.Cab, kind, opslag, verslag) ${w >= 1000 ? 'links boven het sectiemenu' : 'als balk bovenaan'}, één keer in beeld`, side.headers === 1 && (w >= 1000 ? side.left && side.navVisible : !side.navVisible), JSON.stringify(side));
   // Herkomst en bestemming: direct invulbaar, verwijzer boven ontvanger, twee kolommen
   const partyLayout = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#s2 .party-row')];

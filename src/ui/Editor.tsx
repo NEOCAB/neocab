@@ -127,76 +127,79 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
 
   return (
     <div className="editor-layout">
-      <header className="topbar" role="banner">
-        {/* Logo en naam: terug naar het overzicht van concepten (er wordt eerst opgeslagen). */}
-        <button
-          type="button"
-          className="topbar-brand"
-          onClick={() => {
-            saveNow();
-            onExit();
-          }}
-          aria-label="Neo.Cab – terug naar overzicht van concepten"
-          title="Terug naar overzicht"
-        >
-          <Logo className="topbar-logo" />
-          <span className="topbar-name">Neo.Cab</span>
-        </button>
-        <div className="active-transport">
-          <strong>{childLabel(t.child.name, anonymous)}</strong>
-          <span className="muted">
-            {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
-          </span>
-        </div>
-        <div className="topbar-actions">
-          <div className="section-jump">
-            <label htmlFor="section-jump" className="sr-only">
-              Ga naar sectie
-            </label>
-            <select
-              id="section-jump"
-              value=""
-              onChange={(e) => {
-                if (e.target.value) goToSection(e.target.value);
-              }}
-            >
-              <option value="">Ga naar sectie…</option>
-              {SECTIONS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          {/* Opslagstatus links van Verslag & export; op een smal scherm alleen icoon en tijd. */}
-          <span className={`save-status ${level}`} role="status" title={saveText}>
-            <SaveIcon clock={level !== 'ok'} />
-            <span className="sr-only">{saveText}</span>
-          </span>
-          <button type="button" className="primary small" onClick={() => { saveNow(); onReport(); }}>
-            Verslag<span className="wide-only"> &amp; export</span>
-          </button>
-        </div>
-      </header>
       <div className="editor-body">
-        <nav className="sidenav" aria-label="Secties">
-          <ul>
-            {SECTIONS.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    goToSection(s.id);
+        {/* Smal scherm: bovenbalk. Breed scherm: links boven, boven het sectiemenu (één keer in beeld). */}
+        <div className="editor-side">
+          <header className="topbar" role="banner">
+            {/* Logo en naam: terug naar het overzicht van concepten (er wordt eerst opgeslagen). */}
+            <button
+              type="button"
+              className="topbar-brand"
+              onClick={() => {
+                saveNow();
+                onExit();
+              }}
+              aria-label="Neo.Cab – terug naar overzicht van concepten"
+              title="Terug naar overzicht"
+            >
+              <Logo className="topbar-logo" />
+              <span className="topbar-name">Neo.Cab</span>
+            </button>
+            <div className="active-transport">
+              <strong>{childLabel(t.child.name, anonymous)}</strong>
+              <span className="muted">
+                {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
+              </span>
+            </div>
+            <div className="topbar-actions">
+              <div className="section-jump">
+                <label htmlFor="section-jump" className="sr-only">
+                  Ga naar sectie
+                </label>
+                <select
+                  id="section-jump"
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) goToSection(e.target.value);
                   }}
                 >
-                  <SectionIcon id={s.id} />
-                  <span>{s.label}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                  <option value="">Ga naar sectie…</option>
+                  {SECTIONS.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Opslagstatus links van Verslag & export; op een smal scherm alleen icoon en tijd. */}
+              <span className={`save-status ${level}`} role="status" title={saveText}>
+                <SaveIcon clock={level !== 'ok'} />
+                <span className="sr-only">{saveText}</span>
+              </span>
+              <button type="button" className="primary small" onClick={() => { saveNow(); onReport(); }}>
+                Verslag<span className="wide-only"> &amp; export</span>
+              </button>
+            </div>
+          </header>
+          <nav className="sidenav" aria-label="Secties">
+            <ul>
+              {SECTIONS.map((s) => (
+                <li key={s.id}>
+                  <a
+                    href={`#${s.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToSection(s.id);
+                    }}
+                  >
+                    <SectionIcon id={s.id} />
+                    <span>{s.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
         <main className="form" id="main">
           <ChildSection {...props} />
           <ReferralSection {...props} />

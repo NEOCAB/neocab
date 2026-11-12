@@ -359,7 +359,7 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
   const a = t.teamAssessment;
   const set = <K extends keyof Transport['teamAssessment']>(k: K, v: Transport['teamAssessment'][K]) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, [k]: v } }));
   return (
-    <Section id="s5" title="Stabilisatie" intro="Eigen bevindingen van het transportteam; de toestand bij verwijzing blijft ongewijzigd bewaard.">
+    <Section id="s5" title="Stabilisatie">
       <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} after={{ gastrointestinal: <DateTimeField label="Laatste voeding" value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} /> }} />
       <hr className="subsection-rule" />
       <TextField label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
