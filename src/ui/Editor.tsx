@@ -176,7 +176,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                 <SaveIcon clock={level !== 'ok'} />
                 <span className="sr-only">{saveText}</span>
               </span>
-              <button type="button" className="primary small" onClick={() => { saveNow(); onReport(); }}>
+              <button type="button" className="primary small report-top" onClick={() => { saveNow(); onReport(); }}>
                 Verslag<span className="wide-only"> &amp; export</span>
               </button>
             </div>
@@ -198,6 +198,10 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                 </li>
               ))}
             </ul>
+            {/* Breed scherm: Verslag & export onderaan het sectiemenu (de knop in de bovenbalk is dan verborgen). */}
+            <button type="button" className="primary report-side" onClick={() => { saveNow(); onReport(); }}>
+              Verslag &amp; export
+            </button>
           </nav>
         </div>
         <main className="form" id="main">

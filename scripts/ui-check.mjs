@@ -607,9 +607,12 @@ for (const [w, h] of [
   const side = await page.evaluate(() => {
     const top = document.querySelector('.editor-layout .topbar').getBoundingClientRect();
     const nav = document.querySelector('.sidenav').getBoundingClientRect();
-    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0 };
+    const rep = document.querySelector('.report-side').getBoundingClientRect();
+    const save = document.querySelector('.save-status');
+    const sb = save.getBoundingClientRect();
+    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && rep.top >= document.querySelector('.sidenav ul').getBoundingClientRect().bottom - 1, saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60 };
   });
-  check(`${w}px: kop (Neo.Cab, kind, opslag, verslag) ${w >= 1000 ? 'links boven het sectiemenu' : 'als balk bovenaan'}, één keer in beeld`, side.headers === 1 && (w >= 1000 ? side.left && side.navVisible : !side.navVisible), JSON.stringify(side));
+  check(`${w}px: kop (Neo.Cab, kind) ${w >= 1000 ? 'links boven het sectiemenu, Verslag & export eronder, opslagicoon zwevend links onder' : 'als balk bovenaan'}, één keer in beeld`, side.headers === 1 && (w >= 1000 ? side.left && side.navVisible && side.reportUnderMenu && side.saveFloating : !side.navVisible && !side.reportUnderMenu), JSON.stringify(side));
   // Herkomst en bestemming: direct invulbaar, verwijzer boven ontvanger, twee kolommen
   const partyLayout = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#s2 .party-row')];

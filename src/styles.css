@@ -2360,3 +2360,32 @@ select {
     scroll-margin-top: 1rem;
   }
 }
+/* Verslag & export: op een breed scherm onderaan het sectiemenu; opslagstatus zwevend links onder */
+.report-side {
+  display: none;
+}
+@media (min-width: 1000px) {
+  .editor-side .report-top {
+    display: none;
+  }
+  .report-side {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+  /* Alleen de zwevende opslagstatus blijft over; de knoppenrij zelf neemt geen ruimte in. */
+  .editor-side .topbar-actions {
+    display: contents;
+  }
+  .editor-side .save-status {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 25;
+    display: inline-flex;
+    padding: 0.45rem;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+}
