@@ -377,17 +377,20 @@ export function medicationTable(meds: MedicationAdministration[], timeZone: stri
   };
 }
 
-/** Infusen als tabel (op starttijd): pompsnelheid met verloop, en stoptijd of "loopt". */
+/** Infusen als tabel (op starttijd): pompsnelheid met verloop; een gestopt infuus toont "Gestopt" (geen aparte stopkolom). */
 /**
- * Pompsnelheid: eerste regel de huidige (laatste) snelheid met eenheid, bijv. "4 mL/uur"; daaronder eerdere
- * snelheden (nieuwste eerst) met het tijdstip waarop ze eindigden, bijv. "3,2 mL/uur tot 00:15".
+ * Pompsnelheid: eerste regel de huidige snelheid met eenheid, bijv. "4 mL/uur", of "Gestopt" als het infuus is gestopt;
+ * daaronder eerdere snelheden (nieuwste eerst) met het tijdstip waarop ze eindigden, bijv. "3,2 mL/uur tot 00:15".
+ * Bij een gestopt infuus eindigt de laatste snelheid op de stoptijd.
  */
 function rateHistory(inf: Infusion, short: (i: Instant) => string): string {
   const rates = sortedRates(inf);
   const fmt = (v: Num) => `${formatNum(v) ?? '?'} mL/uur`;
-  if (!rates.length) return '';
-  const lines = [fmt(rates[rates.length - 1].rateMlPerHour)];
-  for (let i = rates.length - 2; i >= 0; i--) lines.push(`${fmt(rates[i].rateMlPerHour)} tot ${short(rates[i + 1].at)}`);
+  const ends = rates.map((_, i) => (i + 1 < rates.length ? rates[i + 1].at : inf.stopAt));
+  const lines: string[] = [];
+  if (inf.stopAt) lines.push('Gestopt');
+  else if (rates.length) lines.push(fmt(rates[rates.length - 1].rateMlPerHour));
+  for (let i = rates.length - (inf.stopAt ? 1 : 2); i >= 0; i--) lines.push(`${fmt(rates[i].rateMlPerHour)} tot ${short(ends[i])}`);
   return lines.join('\n');
 }
 
@@ -401,12 +404,11 @@ export function infusionTable(infusions: Infusion[], timeZone: string): { table:
     table: {
       simple: true,
       rowLabel: 'Infuus',
-      columns: [simpleColumn('Start', '', true), simpleColumn('Medicatie en concentratie'), { ...simpleColumn('Pompsnelheid'), historyLines: true }, simpleColumn('Stop')],
+      columns: [simpleColumn('Start', '', true), simpleColumn('Medicatie en concentratie'), { ...simpleColumn('Pompsnelheid'), historyLines: true }],
       rows: rows.map((inf) => [
         time(inf.startAt),
         inf.name,
         rateHistory(inf, short),
-        inf.stopAt ? short(inf.stopAt) : 'loopt',
       ]),
     },
   };

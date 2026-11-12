@@ -5,7 +5,7 @@ import { newMeasurement } from '../domain/factory';
 import { sampleTransport } from '../domain/sample';
 import { wallToInstant } from '../domain/time';
 import type { Transport } from '../domain/types';
-import { buildReport } from './buildReport';
+import { buildReport, infusionTable } from './buildReport';
 import { reportToPdf } from './pdf';
 import { reportToRtf, reportToText } from './text';
 
@@ -106,7 +106,7 @@ describe('verslag', () => {
     for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');
     expect(text).toContain('Medicatie en concentratie: Glucose 10%');
-    expect(text).toContain('Infuus 1 · 09-10-2026 23:15\n    Medicatie en concentratie: Glucose 10%; Pompsnelheid: 4 mL/uur; 3,2 mL/uur tot 10-10-2026 00:15; Stop: loopt');
+    expect(text).toContain('Infuus 1 · 09-10-2026 23:15\n    Medicatie en concentratie: Glucose 10%; Pompsnelheid: 4 mL/uur; 3,2 mL/uur tot 10-10-2026 00:15');
     expect(text).toContain('Toediening 1 · 23:22\n    Medicament: Voorbeeldmedicament; Dosis: 0,5 mg; Toedieningsroute: Intraveneus');
     expect(text).toContain('BE: -3,1 mmol/L');
     expect(text).toContain('Gemiddelde bloeddruk (MAP): 40 mmHg');
@@ -176,8 +176,12 @@ describe('verslag', () => {
       ['23:30', 'Surfactant (fictief voorbeeld)', '200 mg/kg', 'Endotracheaal'],
     ]);
     const inf = report.sections.find((s) => s.title === 'Infusen')!.blocks[0].table!;
-    expect(inf.columns.map((c) => `${c.header}${c.unit ? ` (${c.unit})` : ''}`)).toEqual(['Start', 'Medicatie en concentratie', 'Pompsnelheid', 'Stop']);
-    expect(inf.rows[0]).toEqual(['09-10-2026\n23:15', 'Glucose 10%', '4 mL/uur\n3,2 mL/uur tot 10-10-2026 00:15', 'loopt']);
+    expect(inf.columns.map((c) => `${c.header}${c.unit ? ` (${c.unit})` : ''}`)).toEqual(['Start', 'Medicatie en concentratie', 'Pompsnelheid']);
+    expect(inf.rows[0]).toEqual(['09-10-2026\n23:15', 'Glucose 10%', '4 mL/uur\n3,2 mL/uur tot 10-10-2026 00:15']);
+    // Gestopt infuus: "Gestopt" bovenaan, de laatste snelheid eindigt op de stoptijd.
+    const stopped = sampleTransport(TZ);
+    stopped.infusions[0].stopAt = wallToInstant('2026-10-10T01:00', TZ);
+    expect(infusionTable(stopped.infusions, TZ).table.rows[0][2]).toBe('Gestopt\n4 mL/uur tot 10-10-2026 01:00\n3,2 mL/uur tot 10-10-2026 00:15');
     const none = buildReport({ ...t, medications: [], infusions: [] }, TZ);
     expect(none.sections.find((s) => s.title === 'Medicatie')!.blocks[0].table).toBeUndefined();
     expect(reportToText(none)).toContain('Geen infusen geregistreerd.');
