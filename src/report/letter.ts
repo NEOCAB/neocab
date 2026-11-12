@@ -258,7 +258,21 @@ export function simpleDocxTable(table: ReportTable, width: number): Table {
     width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA },
     rows: [
       new TableRow({ tableHeader: true, cantSplit: true, children: table.columns.map((c, i) => cell(small(`${c.header}${c.unit ? ` (${c.unit})` : ''}`, { bold: true, size: 18 }), widths[i], HEAD_FILL)) }),
-      ...table.rows.map((row) => new TableRow({ cantSplit: true, children: row.map((v, i) => cell(small(v, { size: 18 }), widths[i])) })),
+      ...table.rows.map(
+        (row) =>
+          new TableRow({
+            cantSplit: true,
+            children: row.map((v, i) =>
+              cell(
+                // Geschiedenis (eerdere pompsnelheden) kleiner en grijs onder de actuele waarde.
+                table.columns[i].historyLines
+                  ? v.split('\n').map((line, li) => new TextRun({ text: line, break: li > 0 ? 1 : undefined, font: FONT, size: li > 0 ? 15 : 18, color: li > 0 ? '5C6670' : undefined }))
+                  : small(v, { size: 18 }),
+                widths[i],
+              ),
+            ),
+          }),
+      ),
     ],
   });
 }
@@ -379,9 +393,9 @@ export function buildLetterDocument({ transport: t, report, letter: l, timeZone 
   for (const sec of letterSections(report)) {
     const tableBlock = sec.blocks.find((b) => b.table && !b.table.simple);
     if (!tableBlock?.table) {
-      // Staand: medicatie en infusen als tabel; Plastic compact als "Ingebrachte materialen".
-      const plastic = sec.title === 'Plastic';
-      current.push(bodyParagraph({ kind: 'section', spans: [{ text: plastic ? 'Ingebrachte materialen' : sec.title, b: true }] }));
+      // Staand: medicatie en infusen als tabel; ingebrachte materialen compact.
+      const plastic = sec.title === 'Ingebrachte materialen';
+      current.push(bodyParagraph({ kind: 'section', spans: [{ text: sec.title, b: true }] }));
       if (sec.subtitle) current.push(bodyParagraph({ kind: 'normal', spans: [{ text: sec.subtitle, i: true }] }));
       for (const b of sec.blocks) {
         if (b.table) current.push(simpleDocxTable(b.table, portraitWidth));

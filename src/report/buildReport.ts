@@ -35,6 +35,8 @@ export interface ReportTableColumn {
   keyColumn: boolean;
   /** Kolomgroep (bovenste kopregel), bijv. "Ademhalingsondersteuning". */
   group: string;
+  /** Eerste regel is de actuele waarde; volgende regels zijn geschiedenis (kleiner en grijs weergegeven). */
+  historyLines?: boolean;
 }
 
 /** Tabel: elke rij is één record (bijv. één meetmoment). Lege cel = '' (niet ingevuld). */
@@ -251,7 +253,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
   }
 
-  // Plastic
+  // Ingebrachte materialen (lijnen, sondes, drains, endotracheale tube)
   {
     const blocks: ReportBlock[] = [];
     for (const l of t.lines) {
@@ -275,7 +277,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
       blocks.push({ card: true, title: `Endotracheale tube ${tubes.length > 1 ? i + 1 : ''}`.trim(), rows: b.rows });
     });
     if (blocks.length === 0) blocks.push({ rows: [{ type: 'note', text: 'Geen lijnen, sondes, drains of tube geregistreerd.' }] });
-    sections.push({ title: 'Plastic', blocks });
+    sections.push({ title: 'Ingebrachte materialen', blocks });
   }
 
   // Medicatie: tabel, één rij per toediening (chronologisch)
@@ -377,15 +379,16 @@ export function medicationTable(meds: MedicationAdministration[], timeZone: stri
 
 /** Infusen als tabel (op starttijd): pompsnelheid met verloop, en stoptijd of "loopt". */
 /**
- * Pompsnelheid: de huidige (laatste) snelheid bovenaan, eerdere snelheden eronder (nieuwste eerst),
- * bijv. "4 sinds 00:15" / "eerder 3,2 vanaf 23:15". Bij één snelheid alleen het getal.
+ * Pompsnelheid: eerste regel de huidige (laatste) snelheid met eenheid, bijv. "4 mL/uur"; daaronder eerdere
+ * snelheden (nieuwste eerst) met het tijdstip waarop ze eindigden, bijv. "3,2 mL/uur tot 00:15".
  */
 function rateHistory(inf: Infusion, short: (i: Instant) => string): string {
   const rates = sortedRates(inf);
-  const fmt = (v: Num) => formatNum(v) ?? '?';
-  if (rates.length <= 1) return rates.map((r) => fmt(r.rateMlPerHour)).join('');
-  const [current, ...earlier] = [...rates].reverse();
-  return [`${fmt(current.rateMlPerHour)} sinds ${short(current.at)}`, ...earlier.map((r) => `eerder ${fmt(r.rateMlPerHour)} vanaf ${short(r.at)}`)].join('\n');
+  const fmt = (v: Num) => `${formatNum(v) ?? '?'} mL/uur`;
+  if (!rates.length) return '';
+  const lines = [fmt(rates[rates.length - 1].rateMlPerHour)];
+  for (let i = rates.length - 2; i >= 0; i--) lines.push(`${fmt(rates[i].rateMlPerHour)} tot ${short(rates[i + 1].at)}`);
+  return lines.join('\n');
 }
 
 export function infusionTable(infusions: Infusion[], timeZone: string): { table: ReportTable; rows: Infusion[] } {
@@ -398,7 +401,7 @@ export function infusionTable(infusions: Infusion[], timeZone: string): { table:
     table: {
       simple: true,
       rowLabel: 'Infuus',
-      columns: [simpleColumn('Start', '', true), simpleColumn('Medicatie en concentratie'), simpleColumn('Pompsnelheid', 'mL/uur'), simpleColumn('Stop')],
+      columns: [simpleColumn('Start', '', true), simpleColumn('Medicatie en concentratie'), { ...simpleColumn('Pompsnelheid'), historyLines: true }, simpleColumn('Stop')],
       rows: rows.map((inf) => [
         time(inf.startAt),
         inf.name,

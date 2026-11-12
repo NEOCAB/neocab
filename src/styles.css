@@ -2238,3 +2238,9 @@ button.danger-button {
     flex: 1 1 auto;
   }
 }
+/* Eerdere waarden in een tabelcel (bijv. pompsnelheid): kleiner en grijs onder de actuele waarde */
+.cell-history {
+  display: block;
+  font-size: 0.82em;
+  color: var(--muted);
+}

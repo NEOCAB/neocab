@@ -182,7 +182,7 @@ function MeasurementEditor({
         {mode === 'geen' && <p className="muted">Geen ademhalingsinstellingen.</p>}
         {mode && isInvasive(mode) && (
           <p className="tube-line">
-            <strong>Endotracheale tube op dit tijdstip:</strong> {tube ? tubeSummary(tube.version, tz) : 'geen tube geregistreerd. Voer de tube in bij Plastic.'}
+            <strong>Endotracheale tube op dit tijdstip:</strong> {tube ? tubeSummary(tube.version, tz) : 'geen tube geregistreerd. Voer de tube in bij Ingebrachte materialen.'}
           </p>
         )}
       </Fold>

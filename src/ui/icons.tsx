@@ -54,7 +54,7 @@ const ID_BY_TITLE: Record<string, string> = {
   'Overige diagnostiek': 's7',
   Medicatie: 's8',
   Infusen: 's9',
-  Plastic: 's10',
+  'Ingebrachte materialen': 's10',
   Notities: 's11',
   Gezin: 's12',
   'Checklist voor vertrek': 's13',

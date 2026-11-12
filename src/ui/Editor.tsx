@@ -31,7 +31,7 @@ export const SECTIONS = [
   { id: 's5', label: 'Stabilisatie' },
   { id: 's6', label: 'Tijdlijn' },
   { id: 's7', label: 'Overige diagnostiek' },
-  { id: 's10', label: 'Plastic' },
+  { id: 's10', label: 'Ingebrachte materialen' },
   { id: 's8', label: 'Medicatie' },
   { id: 's9', label: 'Infusen' },
   { id: 's11', label: 'Notities' },

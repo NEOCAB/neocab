@@ -346,7 +346,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
       drawHeader();
 
       table.rows.forEach((row, ri) => {
-        const cellLines = idx.map((i, k) => split(row[i] ?? '', widths[k] - CELL_PAD * 2, TS.cell));
+        // Per regel: tekst en of het geschiedenis is (eerdere waarden, grijs; bijv. pompsnelheid).
+        const cellLines = idx.map((i, k) =>
+          (row[i] ?? '').split('\n').flatMap((src, si) => split(src, widths[k] - CELL_PAD * 2, TS.cell).map((t) => ({ t, muted: !!table.columns[i].historyLines && si > 0 }))),
+        );
         const h = Math.max(1, ...cellLines.map((l) => l.length)) * lhCell + 1.4;
         // Toelichtingsrij (beleidsaanpassingen) onder dezelfde tijd, over de volle breedte naast de tijdkolom.
         const note = table.notes?.[ri] ?? '';
@@ -382,7 +385,10 @@ export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
           doc.setFontSize(TS.cell);
           if (alert) doc.setTextColor(122, 60, 0);
           else doc.setTextColor(...C.text);
-          cellLines[k].forEach((l, li) => doc.text(l, xs[k] + CELL_PAD, y + 0.7 + lhCell * (li + 0.75)));
+          cellLines[k].forEach((l, li) => {
+            if (l.muted) doc.setTextColor(...C.muted);
+            doc.text(l.t, xs[k] + CELL_PAD, y + 0.7 + lhCell * (li + 0.75));
+          });
         });
         doc.line(xs[xs.length - 1], y, xs[xs.length - 1], y + h);
         // Met beleidsaanpassingen loopt de tijdcel door over beide rijen.

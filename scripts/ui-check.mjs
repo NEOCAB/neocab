@@ -151,8 +151,8 @@ async function basisLayout(page) {
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
   const tpFull = await page.locator('#sdispatch .timepoint').first().evaluate((e) => { const ps = getComputedStyle(e.parentElement); return Math.abs(e.getBoundingClientRect().width - (e.parentElement.clientWidth - parseFloat(ps.paddingLeft) - parseFloat(ps.paddingRight))) < 2; });
   check('Blauwe tijdstipvakken over de volle beschikbare breedte', tpFull);
-  // Plastic: maat zonder eenheid; tippositie als gewoon invulveld (één regel); werkdiagnose één regel
-  check('Plastic: geen eenheid bij maat; tippositie en controle één regel', (await page.getByLabel('Eenheid maat').count()) === 0 && (await page.locator('#s10 textarea').count()) === 0);
+  // Ingebrachte materialen: maat zonder eenheid; tippositie als gewoon invulveld (één regel); werkdiagnose één regel
+  check('Ingebrachte materialen: geen eenheid bij maat; tippositie en controle één regel', (await page.getByLabel('Eenheid maat').count()) === 0 && (await page.locator('#s10 textarea').count()) === 0);
   check('Werkdiagnose is een gewoon invulveld van één regel', (await page.locator('#s5').getByLabel('Werkdiagnose', { exact: true }).evaluate((e) => e.tagName)) === 'INPUT');
   const feedAfterGi = await page.evaluate(() => {
     const gi = [...document.querySelectorAll('#s5 .abcd textarea')].find((t) => t.closest('.field').textContent.includes('Gastro'));
@@ -177,17 +177,17 @@ async function basisLayout(page) {
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
   check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
-  check('Plastic staat vóór Medicatie', order.indexOf('Plastic') === order.indexOf('Medicatie') - 1, order.join(' | '));
-  // Plastic: toevoegknop met menu
+  check('Ingebrachte materialen staat vóór Medicatie', order.indexOf('Ingebrachte materialen') === order.indexOf('Medicatie') - 1, order.join(' | '));
+  // Ingebrachte materialen: toevoegknop met menu
   const linesBefore = await page.locator('#s10 .card').count();
   await page.locator('#s10').getByRole('button', { name: 'Toevoegen' }).click();
   const menuItems = await page.locator('#s10').getByRole('menuitem').allTextContents();
-  check('Plastic: toevoegknop opent een menu met alle typen', menuItems.includes('Maagsonde') && menuItems.some((m) => m.includes('ndotracheale tube')) && menuItems.length >= 5, menuItems.join(' | '));
+  check('Ingebrachte materialen: toevoegknop opent een menu met alle typen', menuItems.includes('Maagsonde') && menuItems.some((m) => m.includes('ndotracheale tube')) && menuItems.length >= 5, menuItems.join(' | '));
   await page.keyboard.press('Escape');
-  check('Plastic: Escape sluit het menu', (await page.locator('#s10').getByRole('menu').count()) === 0);
+  check('Ingebrachte materialen: Escape sluit het menu', (await page.locator('#s10').getByRole('menu').count()) === 0);
   await page.locator('#s10').getByRole('button', { name: 'Toevoegen' }).click();
   await page.locator('#s10').getByRole('menuitem', { name: 'Maagsonde' }).click();
-  check('Plastic: keuze uit het menu voegt dat type toe', (await page.locator('#s10 .card').count()) === linesBefore + 1 && (await page.locator('#s10').getByRole('menu').count()) === 0);
+  check('Ingebrachte materialen: keuze uit het menu voegt dat type toe', (await page.locator('#s10 .card').count()) === linesBefore + 1 && (await page.locator('#s10').getByRole('menu').count()) === 0);
   await page.locator('#s10 .card').last().getByRole('button', { name: /verwijderen/i }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Verwijderen' }).click();
   // Instelling: alleen ABCD-letters (links van het invulveld)
@@ -379,7 +379,7 @@ async function basisLayout(page) {
   check('Stoptijd leeg zolang infuus loopt', await page.getByText('Loopt nog — stoptijd wordt ingevuld bij Stoppen.').isVisible());
   await page.locator('#s9').getByRole('button', { name: 'Sluiten' }).click();
   const infRow = await page.locator('#s9 .data-table.simple tbody tr').first().textContent();
-  check('Infusentabel: huidige pompsnelheid bovenaan, eerdere eronder', /4 sinds[^\n]*\s*eerder 3,2 vanaf/.test(infRow), infRow);
+  check('Infusentabel: huidige pompsnelheid met eenheid bovenaan, eerdere grijs eronder (tot …)', /4 mL\/uur\s*3,2 mL\/uur tot \d/.test(infRow) && (await page.locator('#s9 .cell-history').count()) === 1 && !(await page.locator('#s9 thead').textContent()).includes('mL/uur'), infRow);
 
   // Medicatie als tabel: toevoegen via editor, bewerken via de tijd in de tabel
   await page.locator('#s8').getByRole('button', { name: 'Toevoegen', exact: true }).click();
@@ -488,7 +488,7 @@ async function basisLayout(page) {
   check('Logo Neo.Cab bovenaan het verslag', await page.locator('.report .report-head img.brand-logo').isVisible());
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
-  check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid \(mL\/uur\): 4 sinds [^;]+; eerder 3,2 vanaf/.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
+  check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid: 4 mL\/uur; 3,2 mL\/uur tot /.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
   const [letterDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Brief downloaden (Word)' }).click()]);
   const letterPath = `${OUT}/${letterDownload.suggestedFilename()}`;
   await letterDownload.saveAs(letterPath);
@@ -649,7 +649,7 @@ for (const [w, h] of [
       return Math.abs(b.top + b.height / 2 - (h.top + h.height / 2)) < 14 && b.left > h.right && sec.getBoundingClientRect().right - actions.right < 40 && !!btn.querySelector('.add-icon svg');
     }),
   );
-  check(`${w}px: toevoegknoppen (icoon add circle) rechtsboven naast de kop bij Tijdlijn, Plastic, Medicatie en Infusen`, addButtons.every(Boolean), JSON.stringify(addButtons));
+  check(`${w}px: toevoegknoppen (icoon add circle) rechtsboven naast de kop bij Tijdlijn, Ingebrachte materialen, Medicatie en Infusen`, addButtons.every(Boolean), JSON.stringify(addButtons));
   check(`${w}px: weergavekeuze rechtsboven naast de kop Tijdlijn, met iconen`, !!sw && sw.sameRow && sw.right && sw.icons === 2, JSON.stringify(sw));
   await page.locator('#s6').getByRole('radio', { name: 'Grafiek' }).check();
   const charts = page.locator('#s6 .chart-card:not(.chart-band)');

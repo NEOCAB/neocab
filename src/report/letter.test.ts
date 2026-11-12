@@ -71,7 +71,7 @@ describe('overplaatsingsbrief', () => {
     expect(xml).toContain('w:val="btLr"');
     expect(xml).toContain('w:fill="FFD8A8"');
     expect(xml).toContain('Besluit tot intubatie en surfactant (fictief).');
-    // Geen toelichting onder de tijdlijn; medicatie en infusen als tabel (staand); Plastic als Ingebrachte materialen.
+    // Geen toelichting onder de tijdlijn; medicatie en infusen als tabel (staand); ingebrachte materialen compact.
     expect(xml).not.toContain('Type bloedgas');
     expect(xml).not.toContain('OI = (MAP');
     expect([...xml.matchAll(/<w:tbl>/g)].length).toBe(4);

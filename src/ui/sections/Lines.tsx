@@ -176,7 +176,7 @@ export function LinesSection({ t, update }: SectionProps) {
   return (
     <Section
       id="s10"
-      title="Plastic"
+      title="Ingebrachte materialen"
       actions={
         !placing && (
           /* Eén toevoegknop met een menu: kies wat wordt toegevoegd. */

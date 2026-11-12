@@ -527,7 +527,7 @@ export function AddButton({ label, onClick }: { label: string; onClick: () => vo
   );
 }
 
-/** Toevoegknop met een menu om te kiezen wát wordt toegevoegd (bijv. bij Plastic). */
+/** Toevoegknop met een menu om te kiezen wát wordt toegevoegd (bijv. bij Ingebrachte materialen). */
 export function AddMenu<T extends string>({ label, options, onPick }: { label: string; options: { value: T; label: string }[]; onPick: (v: T) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

@@ -89,6 +89,19 @@ export function DataTable({
                           {v}
                           <span className="sr-only"> (alert: boven drempel)</span>
                         </>
+                      ) : cols[i].historyLines && v.includes('\n') ? (
+                        // Actuele waarde bovenaan; eerdere waarden kleiner en grijs eronder.
+                        <>
+                          {v.split('\n')[0]}
+                          {v
+                            .split('\n')
+                            .slice(1)
+                            .map((h, k) => (
+                              <span key={k} className="cell-history">
+                                {h}
+                              </span>
+                            ))}
+                        </>
                       ) : (
                         v
                       )}
