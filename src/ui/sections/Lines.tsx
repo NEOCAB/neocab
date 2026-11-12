@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import type { EndotrachealTube, Line, TubeVersion } from '../../domain/types';
-import { LINE_SIZE_UNIT_SUGGESTIONS, LINE_TYPE_LABELS, LINE_TYPES, TUBE_ROUTE_OPTIONS, optionLabel, tubeDepthLabel } from '../../domain/labels';
+import { LINE_TYPE_LABELS, LINE_TYPES, TUBE_ROUTE_OPTIONS, optionLabel, tubeDepthLabel } from '../../domain/labels';
 import { newLine, newTube, newTubeVersion } from '../../domain/factory';
 import { formatNum } from '../../domain/num';
 import { compareInstants, formatInstant, nowInstant } from '../../domain/time';
 import { currentTube, sortedVersions, tubePlacedAt } from '../../domain/timeline';
-import { AddMenu, DateTimeField, NumberField, Section, Segmented, SelectField, TextArea, TextField } from '../fields';
+import { AddMenu, DateTimeField, NumberField, Section, Segmented, SelectField, TextField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
@@ -17,14 +17,11 @@ function LineCard({ line, onChange, onDelete }: { line: Line; onChange: (l: Line
     <article className="card" aria-label={LINE_TYPE_LABELS[line.type]}>
       <div className="grid">
         <SelectField label="Type" value={line.type} onChange={(v) => v && onChange({ ...line, type: v })} options={LINE_ONLY_TYPES} emptyLabel={null} />
-        <div className="grid two tight">
-          <NumberField label="Maat" value={line.size} onChange={(v) => onChange({ ...line, size: v })} rules={{ min: 0 }} />
-          <TextField label="Eenheid maat" value={line.sizeUnit} onChange={(v) => onChange({ ...line, sizeUnit: v })} list={LINE_SIZE_UNIT_SUGGESTIONS} />
-        </div>
+        <NumberField label="Maat" value={line.size} onChange={(v) => onChange({ ...line, size: v })} rules={{ min: 0 }} />
         <NumberField label="Inbrengdiepte (indien van toepassing)" unit="cm" value={line.depthCm} onChange={(v) => onChange({ ...line, depthCm: v })} rules={{ min: 0 }} />
         <TextField label="Locatie" value={line.location} onChange={(v) => onChange({ ...line, location: v })} />
+        <TextField label="Tippositie en controle" value={line.tipPosition} onChange={(v) => onChange({ ...line, tipPosition: v })} />
       </div>
-      <TextArea label="Tippositie en controle" value={line.tipPosition} onChange={(v) => onChange({ ...line, tipPosition: v })} rows={2} />
       <div className="card-actions end">
         <button type="button" className="link-button danger" onClick={onDelete}>
           {LINE_TYPE_LABELS[line.type]} verwijderen
@@ -55,8 +52,8 @@ function TubeVersionForm({ mode, initial, onSave, onCancel }: { mode: TubeFormMo
         <NumberField label="Tubemaat (binnendiameter)" unit="mm" value={v.sizeMm} onChange={(x) => setV({ ...v, sizeMm: x })} rules={{ min: 0 }} />
         <Segmented legend="Route" value={v.route} onChange={(x) => setV({ ...v, route: x })} options={TUBE_ROUTE_OPTIONS} />
         <NumberField label={tubeDepthLabel(v.route).replace(' (cm)', '')} unit="cm" value={v.depthCm} onChange={(x) => setV({ ...v, depthCm: x })} rules={{ min: 0 }} hint={v.route ? undefined : 'Kies de route; het meetpunt (neus of tandenrij) volgt daaruit.'} />
+        <TextField label="Tippositie en controle" value={v.tipPosition} onChange={(x) => setV({ ...v, tipPosition: x })} />
       </div>
-      <TextArea label="Tippositie en controle" value={v.tipPosition} onChange={(x) => setV({ ...v, tipPosition: x })} rows={2} />
       {error && (
         <p className="field-error" role="alert">
           {error}

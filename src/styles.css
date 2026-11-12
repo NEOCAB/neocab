@@ -298,7 +298,7 @@ input[type='time'] {
   align-items: center;
   column-gap: 1rem;
   row-gap: 0.4rem;
-  max-width: 52rem;
+  max-width: none;
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.75rem;
   background: var(--tint);
@@ -2097,4 +2097,46 @@ button.danger-button {
   margin: 0.25rem 0 0.5rem;
   border: 1px solid var(--border);
   background: #fff;
+}
+/* Extra velden onder een ABCD-kopje (bijv. laatste voeding); bij alleen letters uitgelijnd met de invulvelden. */
+.abcd.letters-only .abcd-extra {
+  margin-left: 2.6rem;
+}
+/* Therapeutische hypothermie: apart blauw vlak onder Disability bij Verwijzing */
+.hypothermia-panel {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem 0.5rem;
+  background: var(--tint);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+}
+.hypothermia-title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--primary);
+}
+.hypothermia-note {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted, #555);
+}
+.hypothermia-subtitle {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 1rem;
+}
+.hypothermia-panel .thompson-table,
+.hypothermia-panel .thompson-total,
+.hypothermia-panel .asphyxia-criteria {
+  background: #fff;
+}
+/* Twee keuzegroepen naast elkaar waar het past */
+.segmented-pair {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 2rem;
+  align-items: flex-start;
+}
+.segmented-pair > .segmented {
+  flex: 0 1 auto;
 }

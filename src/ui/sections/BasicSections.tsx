@@ -1,4 +1,4 @@
-import type { AbcdNotes, Asphyxia, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
+import type { AbcdKey, AbcdNotes, Asphyxia, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
 import { ASPHYXIA_CRITERIA, ASPHYXIA_GAS_NOTE, asphyxiaCriteriaFromBirth, type AsphyxiaCriterion } from '../../domain/asphyxia';
 import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, THOMPSON_THRESHOLD, emptyThompson, thompsonTotal } from '../../domain/thompson';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
@@ -10,7 +10,7 @@ import {
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
 import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
 import { RouteBox } from '../RouteBox';
@@ -146,8 +146,11 @@ function BirthFields({ t, update }: SectionProps) {
     <>
       <h3 className="subsection-title">Zwangerschap en geboorte</h3>
       <TextArea label="Maternale en antenatale voorgeschiedenis" value={b.maternalHistory} onChange={(v) => set('maternalHistory', v)} />
-      <Segmented legend="Antenatale corticosteroïden" value={b.antenatalCorticosteroids} onChange={(v) => set('antenatalCorticosteroids', v)} options={CORTICO_OPTIONS} />
-      <Segmented legend="Antenataal magnesiumsulfaat" value={b.antenatalMagnesium} onChange={(v) => set('antenatalMagnesium', v)} options={YES_NO_UNKNOWN_OPTIONS} />
+      {/* Naast elkaar waar het past; nogmaals tikken op de gekozen optie wist de keuze. */}
+      <div className="segmented-pair">
+        <Segmented legend="Antenatale corticosteroïden" value={b.antenatalCorticosteroids} onChange={(v) => set('antenatalCorticosteroids', v)} options={CORTICO_OPTIONS} deselect />
+        <Segmented legend="Antenataal magnesiumsulfaat" value={b.antenatalMagnesium} onChange={(v) => set('antenatalMagnesium', v)} options={YES_NO_UNKNOWN_OPTIONS} deselect />
+      </div>
       <TextArea label="Reanimatie bij geboorte" value={b.resuscitation} onChange={(v) => set('resuscitation', v)} />
       <fieldset className="group">
         <legend>Apgarscores</legend>
@@ -165,28 +168,31 @@ function BirthFields({ t, update }: SectionProps) {
   );
 }
 
-function AbcdFields({ notes, onChange }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void }) {
+/** Negen klinische kopjes (Airway … Infection); `after` voegt extra velden direct onder een kopje in (bijv. laatste voeding). */
+function AbcdFields({ notes, onChange, after }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void; after?: Partial<Record<AbcdKey, ReactNode>> }) {
   // Instelling: alleen de letter (links van het veld) in plaats van letter + woord erboven.
   const lettersOnly = useSettings().abcdLettersOnly;
   return (
     <div className={`abcd ${lettersOnly ? 'letters-only' : ''}`}>
       {ABCD_KEYS.map((k) => (
-        <TextArea
-          key={k}
-          className={lettersOnly ? 'abcd-compact' : undefined}
-          label={
-            <>
-              {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
-              <span className="abcd-letter" aria-hidden="true" title={lettersOnly ? ABCD_LABELS[k] : undefined}>
-                {ABCD_LABELS[k][0]}
-              </span>
-              {lettersOnly ? <span className="sr-only">{ABCD_LABELS[k]}</span> : ABCD_LABELS[k]}
-            </>
-          }
-          value={notes[k]}
-          onChange={(v) => onChange({ ...notes, [k]: v })}
-          rows={1}
-        />
+        <Fragment key={k}>
+          <TextArea
+            className={lettersOnly ? 'abcd-compact' : undefined}
+            label={
+              <>
+                {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
+                <span className="abcd-letter" aria-hidden="true" title={lettersOnly ? ABCD_LABELS[k] : undefined}>
+                  {ABCD_LABELS[k][0]}
+                </span>
+                {lettersOnly ? <span className="sr-only">{ABCD_LABELS[k]}</span> : ABCD_LABELS[k]}
+              </>
+            }
+            value={notes[k]}
+            onChange={(v) => onChange({ ...notes, [k]: v })}
+            rows={1}
+          />
+          {after?.[k] && <div className="abcd-extra">{after[k]}</div>}
+        </Fragment>
       ))}
     </div>
   );
@@ -198,7 +204,7 @@ function AsphyxiaFields({ value, birth, onChange }: { value: Asphyxia; birth: Tr
   const toggle = (k: AsphyxiaCriterion, on: boolean) => onChange({ ...value, criteria: on ? [...value.criteria.filter((c) => c !== k), k] : value.criteria.filter((c) => c !== k) });
   return (
     <>
-      <h3 className="subsection-title">Perinatale asfyxie</h3>
+      <h4 className="hypothermia-subtitle">Perinatale asfyxie</h4>
       <fieldset className="group asphyxia-criteria">
         <legend>Criteria (minimaal één)</legend>
         {ASPHYXIA_CRITERIA.map((c) => (
@@ -238,7 +244,7 @@ function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (
   const { total, filled, complete } = thompsonTotal(value.scores);
   return (
     <>
-      <h3 className="subsection-title">Thompson Score</h3>
+      <h4 className="hypothermia-subtitle">Thompson Score</h4>
       <DateTimeField label="Tijdstip score" value={value.at} onChange={(v) => onChange({ ...value, at: v })} />
       {/* Tabel zoals in het protocol: per verschijnsel één rij, per score een kolom met een rond keuzerondje. */}
       <div className="thompson">
@@ -301,9 +307,23 @@ export function ReferralInfoSection(props: SectionProps) {
     <Section id="s3" title="Verwijzing">
       <BirthFields {...props} />
       <h3 className="subsection-title">Toestand bij verwijzing</h3>
-      <AbcdFields notes={rc.notes} onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))} />
-      {t.referral.therapeuticHypothermia && <AsphyxiaFields value={rc.asphyxia} birth={t.birth} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, asphyxia: v } }))} />}
-      {t.referral.therapeuticHypothermia && <ThompsonFields value={rc.thompson} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, thompson: v } }))} />}
+      <AbcdFields
+        notes={rc.notes}
+        onChange={(n) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, notes: n } }))}
+        after={{
+          // Alleen bij reden van overplaatsing "Therapeutische hypothermie": asfyxie en Thompsonscore onder Disability.
+          disability: t.referral.therapeuticHypothermia && (
+            <section className="hypothermia-panel" aria-labelledby="hypothermia-title">
+              <h3 id="hypothermia-title" className="hypothermia-title">
+                Therapeutische hypothermie
+              </h3>
+              <p className="hypothermia-note">Getoond omdat bij Reden van overplaatsing “Therapeutische hypothermie” is aangevinkt.</p>
+              <AsphyxiaFields value={rc.asphyxia} birth={t.birth} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, asphyxia: v } }))} />
+              <ThompsonFields value={rc.thompson} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, thompson: v } }))} />
+            </section>
+          ),
+        }}
+      />
       <h3 className="subsection-title">Advies</h3>
       <TextArea label="Advies bij verwijzing" value={rc.advice} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, advice: v } }))} />
     </Section>
@@ -331,10 +351,9 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['teamAssessment']>(k: K, v: Transport['teamAssessment'][K]) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, [k]: v } }));
   return (
     <Section id="s5" title="Stabilisatie" intro="Eigen bevindingen van het transportteam; de toestand bij verwijzing blijft ongewijzigd bewaard.">
-      <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} />
-      <TextArea label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
+      <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} after={{ gastrointestinal: <DateTimeField label="Laatste voeding" value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} /> }} />
+      <TextField label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
       <TextArea label="Stabilisatieplan" value={a.stabilisationPlan} onChange={(v) => set('stabilisationPlan', v)} />
-      <DateTimeField label="Laatste voeding" value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} />
     </Section>
   );
 }

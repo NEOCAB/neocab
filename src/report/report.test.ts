@@ -33,6 +33,12 @@ function bigTransport(): Transport {
 }
 
 describe('verslag', () => {
+  it('laatste voeding staat direct onder Gastro-intestinal (Stabilisatie)', () => {
+    const text = reportToText(buildReport(sampleTransport(TZ), TZ));
+    const s5 = text.slice(text.indexOf('\n\nStabilisatie\n'), text.indexOf('\n\nTijdlijn\n'));
+    expect(s5).toMatch(/Gastro-intestinal:\n  [^\n]+\nLaatste voeding: 09-10-2026 18:00\nInfection:/);
+  });
+
   it('rtf: geldig RTF met vette koppen, cursieve veldnamen en geëscapete tekst', () => {
     const t = sampleTransport(TZ);
     t.proceduresAndEvents = 'Accolades {x} en \\ backslash\nPatiëntje ≥ 7';

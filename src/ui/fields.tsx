@@ -207,7 +207,10 @@ export function SelectField<T extends string>({ label, value, onChange, options,
 }
 
 /** Keuzerondjes als segmentknoppen (toetsenbord: pijltjestoetsen). */
-export function Segmented<T extends string>({ legend, value, onChange, options, allowClear = true, className, name }: { legend: ReactNode; value: T | ''; onChange: (v: T | '') => void; options: { value: T; label: string }[]; allowClear?: boolean; className?: string; name?: string }) {
+/**
+ * Keuzeknoppen (één keuze). `deselect`: nogmaals tikken op de gekozen optie wist de keuze (dan geen knop Wissen).
+ */
+export function Segmented<T extends string>({ legend, value, onChange, options, allowClear = true, deselect = false, className, name }: { legend: ReactNode; value: T | ''; onChange: (v: T | '') => void; options: { value: T; label: string }[]; allowClear?: boolean; deselect?: boolean; className?: string; name?: string }) {
   const autoName = useId();
   return (
     <fieldset className={`segmented ${className ?? ''}`}>
@@ -215,11 +218,11 @@ export function Segmented<T extends string>({ legend, value, onChange, options, 
       <div className="segmented-options">
         {options.map((o) => (
           <label key={o.value} className={`seg ${value === o.value ? 'checked' : ''}`}>
-            <input type="radio" name={name ?? autoName} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />
+            <input type="radio" name={name ?? autoName} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} onClick={deselect && value === o.value ? () => onChange('') : undefined} />
             <span>{o.label}</span>
           </label>
         ))}
-        {allowClear && value !== '' && (
+        {allowClear && !deselect && value !== '' && (
           <button type="button" className="link-button" onClick={() => onChange('')}>
             Wissen
           </button>

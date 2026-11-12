@@ -162,6 +162,23 @@ async function basisLayout(page) {
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (zonder omschrijving, streep, Nu + Wissen)', tps.every((x) => x[2] === null && x[3] === 'rgb(0, 60, 125)' && x[4] === 2));
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
+  const tpFull = await page.locator('#sdispatch .timepoint').first().evaluate((e) => { const ps = getComputedStyle(e.parentElement); return Math.abs(e.getBoundingClientRect().width - (e.parentElement.clientWidth - parseFloat(ps.paddingLeft) - parseFloat(ps.paddingRight))) < 2; });
+  check('Blauwe tijdstipvakken over de volle beschikbare breedte', tpFull);
+  // Plastic: maat zonder eenheid; tippositie als gewoon invulveld (één regel); werkdiagnose één regel
+  check('Plastic: geen eenheid bij maat; tippositie en controle één regel', (await page.getByLabel('Eenheid maat').count()) === 0 && (await page.locator('#s10 textarea').count()) === 0);
+  check('Werkdiagnose is een gewoon invulveld van één regel', (await page.locator('#s5').getByLabel('Werkdiagnose', { exact: true }).evaluate((e) => e.tagName)) === 'INPUT');
+  const feedAfterGi = await page.evaluate(() => {
+    const gi = [...document.querySelectorAll('#s5 .abcd textarea')].find((t) => t.closest('.field').textContent.includes('Gastro'));
+    const feed = document.querySelector('#s5 .abcd .abcd-extra input[type=datetime-local]');
+    return !!gi && !!feed && gi.closest('.field').nextElementSibling?.contains(feed);
+  });
+  check('Laatste voeding direct onder Gastro-intestinal (Stabilisatie)', feedAfterGi);
+  // Antenatale corticosteroïden en magnesium: zonder knop Wissen; nogmaals tikken wist de keuze
+  const cortico = page.locator('#s3 fieldset.segmented', { hasText: 'Antenatale corticosteroïden' });
+  await cortico.getByRole('radio', { name: 'Volledige kuur', exact: true }).click();
+  const corticoOn = await cortico.locator('input:checked').count();
+  await cortico.getByRole('radio', { name: 'Volledige kuur', exact: true }).click();
+  check('Corticosteroïden: geen Wissen-knop; nogmaals tikken op de keuze wist die', corticoOn === 1 && (await cortico.locator('input:checked').count()) === 0 && (await cortico.getByRole('button', { name: 'Wissen' }).count()) === 0);
 
   // Material Symbols bij alle 15 sectiekoppen
   const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
@@ -225,7 +242,12 @@ async function basisLayout(page) {
   await th.check();
   await page.waitForSelector('#s3 .thompson');
   const sub3th = await page.locator('#s3 h3.subsection-title').allTextContents();
-  check('Na kiezen: kopjes Perinatale asfyxie en Thompson Score bij Verwijzing (voor Advies), 9 onderdelen', JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Perinatale asfyxie', 'Thompson Score', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, sub3th.join(' | '));
+  const panelPlace = await page.evaluate(() => {
+    const panel = document.querySelector('#s3 .hypothermia-panel');
+    const prev = panel?.closest('.abcd-extra')?.previousElementSibling;
+    return { underDisability: !!prev && prev.textContent.includes('Disability'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent) };
+  });
+  check('Na kiezen: blauw vlak Therapeutische hypothermie onder Disability met Perinatale asfyxie en Thompson Score (9 onderdelen)', panelPlace.underDisability && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
   await page.locator('#s3 .asphyxia-criteria').getByRole('checkbox', { name: /Apgarscore op 5 minuten/ }).check();
   check('Perinatale asfyxie: zes criteria direct zichtbaar (geen aparte ja/nee-keuze), aan te vinken', (await page.locator('#s3 fieldset.segmented', { hasText: /perinatale asfyxie/i }).count()) === 0 && (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
   check('Thompson Score als tabel met ronde keuzerondjes; Therapeutische hypothermie als vierkant vinkje', (await page.locator('#s3 .thompson-table input[type=radio]').count()) === 31 && (await page.locator('#s2 .reason-options .seg').count()) === 0);

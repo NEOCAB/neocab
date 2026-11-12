@@ -212,5 +212,4 @@ export function optionLabel<T extends string>(options: Options<T>, value: T | ''
 
 /** Verwijzende ziekenhuizen: voorstel-lijst, vrije invoer blijft altijd mogelijk. */
 export const DOSE_UNIT_SUGGESTIONS = ['mg', 'microg', 'g', 'mmol', 'mL', 'IE', 'mg/kg', 'microg/kg', 'mmol/kg', 'mL/kg'];
-export const LINE_SIZE_UNIT_SUGGESTIONS = ['G', 'Fr', 'Ch', 'mm'];
 export const DEFAULT_MEDICATION_ROUTES = ['Intraveneus', 'Intramusculair', 'Subcutaan', 'Oraal', 'Via maagsonde', 'Rectaal', 'Endotracheaal', 'Intraossaal', 'Inhalatie', 'Anders'];

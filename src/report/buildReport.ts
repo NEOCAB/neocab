@@ -106,9 +106,13 @@ class RowBuilder {
   }
 }
 
-function abcdRows(notes: AbcdNotes): ReportRow[] {
+/** ABCD-kopjes; `after` voegt per kopje extra regels direct eronder toe (bijv. laatste voeding onder Gastro-intestinal). */
+function abcdRows(notes: AbcdNotes, after: Partial<Record<(typeof ABCD_KEYS)[number], (b: RowBuilder) => void>> = {}): ReportRow[] {
   const b = new RowBuilder();
-  for (const k of ABCD_KEYS) b.para(ABCD_LABELS[k], notes[k]);
+  for (const k of ABCD_KEYS) {
+    b.para(ABCD_LABELS[k], notes[k]);
+    after[k]?.(b);
+  }
   return b.rows;
 }
 
@@ -215,8 +219,8 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
   {
     const a = t.teamAssessment;
     const b = new RowBuilder();
-    b.rows.push(...abcdRows(a.notes));
-    b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan).kv('Laatste voeding', fi(a.lastFeedAt));
+    b.rows.push(...abcdRows(a.notes, { gastrointestinal: (r) => r.kv('Laatste voeding', fi(a.lastFeedAt)) }));
+    b.para('Werkdiagnose', a.workingDiagnosis).para('Stabilisatieplan', a.stabilisationPlan);
     sections.push({ title: 'Stabilisatie', blocks: [{ rows: b.orEmpty() }] });
   }
 
