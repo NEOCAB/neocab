@@ -2401,3 +2401,7 @@ select {
     margin-top: 0.75rem;
   }
 }
+/* Zonder patiëntgegevens in de kop: knoppen op dezelfde regel als het logo (smal scherm) */
+.topbar-brand + .topbar-actions {
+  flex: 1 1 0;
+}

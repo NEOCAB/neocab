@@ -125,6 +125,17 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
 
   const props = { t, update };
 
+  // Patiëntgegevens in de kop alleen als Basisgegevens kind uit beeld is (anders staan ze dubbel in beeld).
+  const [childInView, setChildInView] = useState(true);
+  useEffect(() => {
+    const el = document.getElementById('s1');
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    // Bovenste 100 px telt niet mee: daar ligt op een smal scherm de bovenbalk overheen.
+    const io = new IntersectionObserver(([e]) => setChildInView(e.isIntersecting), { rootMargin: '-100px 0px 0px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div className="editor-layout">
       <div className="editor-body">
@@ -145,12 +156,14 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
               <Logo className="topbar-logo" />
               <span className="topbar-name">Neo.Cab</span>
             </button>
-            <div className="active-transport">
-              <strong>{childLabel(t.child.name, anonymous)}</strong>
-              <span className="muted">
-                {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
-              </span>
-            </div>
+            {!childInView && (
+              <div className="active-transport">
+                <strong>{childLabel(t.child.name, anonymous)}</strong>
+                <span className="muted">
+                  {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
+                </span>
+              </div>
+            )}
             <div className="topbar-actions">
               <div className="section-jump">
                 <label htmlFor="section-jump" className="sr-only">
