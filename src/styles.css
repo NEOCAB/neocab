@@ -2389,3 +2389,15 @@ select {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   }
 }
+/* Sectiemenu: geen witte lijn onder het laatste item; even veel ruimte boven het menu (wit vak) als eronder (Verslag & export) */
+.sidenav li:last-child a {
+  border-bottom: none;
+}
+@media (min-width: 1000px) {
+  .editor-side .sidenav {
+    padding-top: 0.75rem;
+  }
+  .report-side {
+    margin-top: 0.75rem;
+  }
+}
