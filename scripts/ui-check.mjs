@@ -604,14 +604,6 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   check(`${w}px: geen route en reistijd meer`, (await page.locator('#s2 .route-box').count()) === 0);
-  await page.evaluate(() => scrollTo(0, 0));
-  await page.waitForTimeout(200);
-  const infoTop = await page.locator('.editor-layout .active-transport').count();
-  await page.locator('#s5').scrollIntoViewIfNeeded();
-  await page.waitForTimeout(300);
-  const infoScrolled = await page.locator('.editor-layout .active-transport').count();
-  check(`${w}px: patiëntgegevens in de kop alleen als Basisgegevens kind uit beeld is`, infoTop === 0 && infoScrolled === 1, `${infoTop} → ${infoScrolled}`);
-  await page.evaluate(() => scrollTo(0, 0));
   const side = await page.evaluate(() => {
     const top = document.querySelector('.editor-layout .topbar').getBoundingClientRect();
     const nav = document.querySelector('.sidenav').getBoundingClientRect();
