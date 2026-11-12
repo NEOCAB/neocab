@@ -280,7 +280,7 @@ async function basisLayout(page) {
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
   check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling']), s2.join(' | '));
-  check('Herkomst en bestemming: blokken Van en Naar, subkop Reden van overplaatsing', JSON.stringify(await page.locator('#s2 .route-end > legend').allTextContents()) === JSON.stringify(['Van', 'Naar']) && (await page.locator('#s2 h3.subsection-title', { hasText: 'Reden van overplaatsing' }).count()) === 1 && (await page.locator('#s2').getByRole('textbox', { name: 'Reden van overplaatsing' }).count()) === 1);
+  check('Herkomst en bestemming: verwijzer en ontvanger, subkop Reden van overplaatsing', (await page.locator('#s2 .party-row').count()) === 2 && (await page.locator('#s2 h3.subsection-title', { hasText: 'Reden van overplaatsing' }).count()) === 1 && (await page.locator('#s2').getByRole('textbox', { name: 'Reden van overplaatsing' }).count()) === 1);
   await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('071 123 4567');
   check('Belknop bij telefoonnummer verwijzer', (await page.locator('#s2 a.call-button').getAttribute('href')) === 'tel:0711234567');
   await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('');
@@ -596,14 +596,13 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   check(`${w}px: geen route en reistijd meer`, (await page.locator('#s2 .route-box').count()) === 0);
-  // Herkomst en bestemming (optie C): ingevuld als samenvatting met Wijzigen; leeg als invulvelden
-  const vanSum = page.locator('#s2 .party-summary[data-party="Van"]');
-  const vanText = (await vanSum.textContent()) ?? '';
-  check(`${w}px: Van als samenvatting (ziekenhuis, afdeling, verwijzer, telefoon) en Naar (leeg) als invulvelden`, vanText.includes('Alrijne Ziekenhuis, Leiderdorp') && vanText.includes('Dr. A. Fictief') && (await vanSum.locator('a.party-phone').getAttribute('href')) === 'tel:0710000000' && (await page.locator('#s2 fieldset.route-end[data-party="Naar"]').count()) === 1, vanText);
-  await vanSum.getByRole('button', { name: 'Gegevens verwijzer wijzigen' }).click();
-  const vanEditing = (await page.locator('#s2').getByRole('combobox', { name: 'Verwijzend ziekenhuis' }).inputValue()) === 'Alrijne Ziekenhuis, Leiderdorp';
-  await page.locator('#s2 fieldset.route-end[data-party="Van"]').getByRole('button', { name: 'Klaar' }).click();
-  check(`${w}px: Wijzigen opent de velden, Klaar toont weer de samenvatting`, vanEditing && (await page.locator('#s2 .party-summary[data-party="Van"]').count()) === 1 && (await page.evaluate(() => document.activeElement?.classList.contains('party-edit'))));
+  // Herkomst en bestemming: direct invulbaar, verwijzer boven ontvanger, twee kolommen
+  const partyLayout = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#s2 .party-row')];
+    const labels = [...document.querySelectorAll('#s2 .party-row .field-label')].map((l) => l.textContent);
+    return { rows: rows.length, labels, twoCols: getComputedStyle(rows[0]).gridTemplateColumns.split(' ').length === 2, belowFirst: rows[1].getBoundingClientRect().top >= rows[0].getBoundingClientRect().bottom - 1 };
+  });
+  check(`${w}px: verwijzer boven ontvanger, direct invulbaar in twee kolommen, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 1, JSON.stringify(partyLayout));
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });

@@ -2106,73 +2106,21 @@ button.danger-button {
 .segmented-pair > .segmented {
   flex: 0 1 auto;
 }
-/* Herkomst en bestemming: Van boven Naar; ingevuld als samenvatting */
-.route-end {
-  margin: 0 0 0.6rem;
-  padding: 0.6rem 0.85rem 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  min-width: 0;
-}
-.route-end > legend {
-  padding: 0 0.35rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-.party-done {
-  display: flex;
-  justify-content: flex-end;
-  margin: -0.25rem 0 0.75rem;
-}
-.party-summary {
+/* Herkomst en bestemming: verwijzer boven ontvanger, gescheiden door een dunne lijn; twee kolommen op een breed scherm */
+.party-row {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
-  gap: 0.25rem 0.75rem;
-  align-items: start;
-  padding: 0.65rem 0.85rem;
-  margin-bottom: 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 1rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
 }
-.party-key {
-  font-weight: 700;
-  color: var(--primary);
-  padding-top: 0.1rem;
+.party-row:first-child {
+  padding-top: 0;
+  border-top: none;
 }
-.party-main {
-  font-size: 1.05rem;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-.party-sub {
-  margin-top: 0.15rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-.party-phone {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: var(--primary);
-  font-weight: 700;
-  white-space: nowrap;
-}
-.party-phone .call-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-}
-.party-edit {
-  padding-top: 0.1rem;
-}
-@media (max-width: 480px) {
-  .party-summary {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .party-key {
-    grid-column: 1 / -1;
-  }
-  .party-text {
-    grid-column: 1;
+@media (min-width: 700px) {
+  .party-row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   }
 }
 .phone-row {
