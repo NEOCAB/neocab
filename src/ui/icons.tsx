@@ -21,6 +21,7 @@ import saveClock from '@material-symbols/svg-700/outlined/save_clock.svg?raw';
 import addCircle from '@material-symbols/svg-700/outlined/add_circle.svg?raw';
 import chevron from '@material-symbols/svg-700/outlined/chevron_forward.svg?raw';
 import call from '@material-symbols/svg-700/outlined/call.svg?raw';
+import exportNotes from '@material-symbols/svg-700/outlined/export_notes.svg?raw';
 
 // Kleur volgt de tekstkleur; grootte volgt de lettergrootte.
 const prep = (svg: string) => svg.replace('<svg ', '<svg fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false" ');
@@ -117,4 +118,11 @@ const CALL = prep(call);
 /** Telefoonhoorn voor de belknop. */
 export function CallIcon() {
   return <span className="call-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CALL }} />;
+}
+
+const REPORT = prep(exportNotes);
+
+/** Icoon bij Verslag & export (export_notes). */
+export function ReportIcon() {
+  return <span className="report-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: REPORT }} />;
 }

@@ -3,7 +3,7 @@ import type { Transport } from '../domain/types';
 import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
-import { Logo, SaveIcon, SectionIcon } from './icons';
+import { Logo, ReportIcon, SaveIcon, SectionIcon } from './icons';
 import { saveLevel } from './saveStatus';
 import {
   ChecklistSection,
@@ -177,6 +177,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                 <span className="sr-only">{saveText}</span>
               </span>
               <button type="button" className="primary small report-top" onClick={() => { saveNow(); onReport(); }}>
+                <ReportIcon />
                 Verslag<span className="wide-only"> &amp; export</span>
               </button>
             </div>
@@ -200,6 +201,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
             </ul>
             {/* Breed scherm: Verslag & export onderaan het sectiemenu (de knop in de bovenbalk is dan verborgen). */}
             <button type="button" className="primary report-side" onClick={() => { saveNow(); onReport(); }}>
+              <ReportIcon />
               Verslag &amp; export
             </button>
           </nav>
@@ -221,6 +223,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           <ClosureSection {...props} />
           <div className="form-end">
             <button type="button" className="primary" onClick={() => { saveNow(); onReport(); }}>
+              <ReportIcon />
               Naar verslag &amp; export
             </button>
           </div>

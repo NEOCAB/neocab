@@ -2401,3 +2401,23 @@ select {
     margin-top: 0.75rem;
   }
 }
+/* Icoon bij Verslag & export */
+.report-top,
+.form-end .primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.report-icon {
+  display: inline-flex;
+  font-size: 1.3rem;
+}
+@media (min-width: 1000px) {
+  .report-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+}
