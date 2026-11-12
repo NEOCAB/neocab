@@ -7,6 +7,24 @@ import { addresseeLines, buildLetterDocument, imageSize, introSentence, letterFi
 
 const TZ = 'Europe/Amsterdam';
 
+/** word/document.xml uit een .docx (zip, deflate). */
+async function documentXml(buf: Buffer): Promise<string> {
+  const { inflateRawSync } = await import('node:zlib');
+  let i = 0;
+  while (i < buf.length - 30 && buf.readUInt32LE(i) === 0x04034b50) {
+    const method = buf.readUInt16LE(i + 8);
+    const size = buf.readUInt32LE(i + 18);
+    const nameLen = buf.readUInt16LE(i + 26);
+    const extraLen = buf.readUInt16LE(i + 28);
+    const name = buf.subarray(i + 30, i + 30 + nameLen).toString();
+    const start = i + 30 + nameLen + extraLen;
+    const data = buf.subarray(start, start + size);
+    if (name === 'word/document.xml') return (method === 8 ? inflateRawSync(data) : data).toString('utf8');
+    i = start + size;
+  }
+  throw new Error('document.xml niet gevonden');
+}
+
 describe('overplaatsingsbrief', () => {
   it('geadresseerde, openingszin, datum en bestandsnaam', () => {
     const t = sampleTransport(TZ);
@@ -37,5 +55,21 @@ describe('overplaatsingsbrief', () => {
     const buf = await Packer.toBuffer(buildLetterDocument({ transport: t, report: buildReport(t, TZ), letter: EMPTY_LETTER, timeZone: TZ }));
     expect(buf.subarray(0, 2).toString()).toBe('PK');
     expect(buf.length).toBeGreaterThan(5000);
+  });
+
+  it('zet de tijdlijn als tabel op een liggende A4-pagina, de rest staand', async () => {
+    const t = sampleTransport(TZ);
+    const buf = await Packer.toBuffer(buildLetterDocument({ transport: t, report: buildReport(t, TZ), letter: EMPTY_LETTER, timeZone: TZ }));
+    const xml = await documentXml(buf);
+    const sizes = [...xml.matchAll(/<w:pgSz [^>]*>/g)].map((m) => m[0]);
+    expect(sizes).toHaveLength(3);
+    expect(sizes[1]).toContain('w:orient="landscape"');
+    expect(sizes[0]).not.toContain('landscape');
+    expect(sizes[2]).not.toContain('landscape');
+    // Kopregels herhalen, verticale kolomkoppen, OI > 25 oranje gemarkeerd.
+    expect(xml).toContain('<w:tblHeader/>');
+    expect(xml).toContain('w:val="btLr"');
+    expect(xml).toContain('w:fill="FFD8A8"');
+    expect(xml).toContain('Besluit tot intubatie en surfactant (fictief).');
   });
 });

@@ -1,8 +1,8 @@
-import { AlignmentType, BorderStyle, Document, Footer, Header, ImageRun, LineRuleType, Packer, PageNumber, Paragraph, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType } from 'docx';
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeightRule, ImageRun, LineRuleType, Packer, PageNumber, PageOrientation, Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextDirection, TextRun, VerticalAlignTable, WidthType, type ISectionOptions } from 'docx';
 import type { Transport } from '../domain/types';
 import { DEFAULT_TIME_ZONE, formatLocalDate } from '../domain/time';
 import type { LetterSettings } from '../storage/settings';
-import type { Report } from './buildReport';
+import type { Report, ReportSection, ReportTable } from './buildReport';
 import { reportToParas, type Para, type ParaKind, type Span } from './text';
 
 /**
@@ -170,6 +170,81 @@ function headTable(rows: { label: string; value: string | TextRun[] }[], address
   });
 }
 
+/** Liggende A4 voor de tijdlijn (twips): smalle marges, zodat alle kolommen passen. */
+const LANDSCAPE = { top: 1134, right: 1021, bottom: 1134, left: 1021, header: 567, footer: 567 };
+const CELL_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '9AA3AD' };
+const CELL_BORDERS = { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER };
+const HEAD_FILL = 'E6ECF3';
+const ALERT_FILL = 'FFD8A8';
+const small = (t: string, opts: { bold?: boolean; italics?: boolean; size?: number } = {}) =>
+  t.split('\n').map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size ?? 14, bold: opts.bold, italics: opts.italics }));
+
+/**
+ * Tijdlijn als tabel (liggende A4): kopregel met kolomgroepen, kolomkoppen verticaal met eenheid, één rij per meetmoment;
+ * beleidsaanpassingen als aparte rij onder het meetmoment (tijdcel loopt door); OI > 25 oranje. Kopregels herhalen op elke pagina.
+ */
+export function timelineDocxTable(table: ReportTable, width: number): Table {
+  const keyIdx = table.columns.map((c, i) => (c.keyColumn ? i : -1)).filter((i) => i >= 0);
+  const keyW = 980;
+  const dataCount = table.columns.length - keyIdx.length;
+  const dataW = Math.floor((width - keyW * keyIdx.length) / Math.max(1, dataCount));
+  const widths = table.columns.map((c) => (c.keyColumn ? keyW : dataW));
+  const cell = (children: Paragraph[], o: { w: number; fill?: string; span?: number; rowSpan?: number; vertical?: boolean; vAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable] } ) =>
+    new TableCell({
+      width: { size: o.w, type: WidthType.DXA },
+      borders: CELL_BORDERS,
+      columnSpan: o.span,
+      rowSpan: o.rowSpan,
+      shading: o.fill ? { type: ShadingType.CLEAR, color: 'auto', fill: o.fill } : undefined,
+      textDirection: o.vertical ? TextDirection.BOTTOM_TO_TOP_LEFT_TO_RIGHT : undefined,
+      verticalAlign: o.vAlign ?? VerticalAlignTable.TOP,
+      margins: { top: 30, bottom: 30, left: 50, right: 50 },
+      children,
+    });
+  const para = (runs: TextRun[], align: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT) => new Paragraph({ alignment: align, spacing: { line: 200, lineRule: LineRuleType.AT_LEAST }, children: runs });
+
+  // Kopregel 1: groepen (aaneengesloten kolommen met dezelfde groep samengevoegd).
+  const groupCells: TableCell[] = [];
+  for (let i = 0; i < table.columns.length; ) {
+    let j = i;
+    while (j + 1 < table.columns.length && table.columns[j + 1].group === table.columns[i].group) j++;
+    const w = widths.slice(i, j + 1).reduce((a, b) => a + b, 0);
+    groupCells.push(cell([para(small(table.columns[i].group, { bold: true }))], { w, span: j - i + 1, fill: HEAD_FILL }));
+    i = j + 1;
+  }
+  // Kopregel 2: kolomkoppen (verticaal, met eenheid), behalve de tijdkolom.
+  const headCells = table.columns.map((c, i) =>
+    cell([para(small(`${c.header}${c.unit ? ` (${c.unit})` : ''}`, { bold: true }))], { w: widths[i], fill: HEAD_FILL, vertical: !c.keyColumn, vAlign: c.keyColumn ? VerticalAlignTable.BOTTOM : VerticalAlignTable.CENTER }),
+  );
+  const rows: TableRow[] = [
+    new TableRow({ tableHeader: true, cantSplit: true, children: groupCells }),
+    new TableRow({ tableHeader: true, cantSplit: true, height: { value: 1500, rule: HeightRule.ATLEAST }, children: headCells }),
+  ];
+  table.rows.forEach((row, r) => {
+    const note = table.notes?.[r]?.trim();
+    rows.push(
+      new TableRow({
+        cantSplit: true,
+        children: row.map((v, i) =>
+          cell([para(small(v, { bold: table.columns[i].keyColumn }))], { w: widths[i], fill: table.alerts?.[r]?.[i] ? ALERT_FILL : undefined, rowSpan: note && table.columns[i].keyColumn ? 2 : undefined }),
+        ),
+      }),
+    );
+    if (note) {
+      const w = widths.filter((_, i) => !table.columns[i].keyColumn).reduce((a, b) => a + b, 0);
+      rows.push(new TableRow({ cantSplit: true, children: [cell([para(small(note, { italics: true }))], { w, span: dataCount })] }));
+    }
+  });
+  return new Table({ layout: TableLayoutType.FIXED, columnWidths: widths, width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA }, rows });
+}
+
+/** Paragrafen van één verslagsectie (koppen vet, veldnamen cursief), zonder titel en slotregel. */
+function sectionParagraphs(sec: ReportSection): Paragraph[] {
+  return reportToParas({ title: '', meta: [], sections: [sec] })
+    .filter((p) => p.kind !== 'title' && p.kind !== 'end')
+    .map(bodyParagraph);
+}
+
 export interface LetterInput {
   transport: Transport;
   report: Report;
@@ -198,11 +273,6 @@ export function buildLetterDocument({ transport: t, report, letter: l, timeZone 
     addresseeLines(t),
   );
 
-  // Verslag zonder titel en kopregels (staan al in briefhoofd en openingszin) en zonder slotregel.
-  const paras = reportToParas(report);
-  const firstSection = paras.findIndex((p) => p.kind === 'section');
-  const body = paras.slice(firstSection < 0 ? 0 : firstSection).filter((p) => p.kind !== 'end');
-
   const logoBytes = l.logo ? dataUrlBytes(l.logo) : null;
   const logoSize = logoBytes ? imageSize(logoBytes) : null;
   // Logo maximaal 7 cm breed en 2 cm hoog (in pixels op 96 dpi), verhouding behouden.
@@ -222,33 +292,62 @@ export function buildLetterDocument({ transport: t, report, letter: l, timeZone 
   });
   const p = (children: TextRun[], after = 0) => new Paragraph({ spacing: { after }, children });
 
+  const portrait = { page: { size: { width: PAGE.width, height: PAGE.height }, margin: { top: PAGE.top, right: PAGE.right, bottom: PAGE.bottom, left: PAGE.left, header: PAGE.header, footer: PAGE.footer } } };
+  const landscape = {
+    page: { size: { width: PAGE.width, height: PAGE.height, orientation: PageOrientation.LANDSCAPE }, margin: LANDSCAPE },
+  };
+  const otherHeader = new Header({ children: [new Paragraph({ children: [text(`${subject} · ${longDate(now, timeZone)}`, { size: 14 })] })] });
+  const closing = [
+    new Paragraph({ spacing: { before: 360 }, keepNext: true, keepLines: true, children: [text('Met vriendelijke groet,')] }),
+    new Paragraph({ spacing: { before: 720 }, keepLines: true, children: [text(l.senderName.trim()), ...(l.senderRole.trim() ? [new TextRun({ text: l.senderRole.trim(), break: 1, font: FONT, size: 22 })] : [])] }),
+  ];
+
+  // Staande pagina's met de tekst; de tijdlijn (als die meetmomenten heeft) als tabel op liggende A4-pagina's.
+  const sections: ISectionOptions[] = [];
+  let current: (Paragraph | Table)[] = [head, p([], 600), p([text("Beste collega's,")], 200), p([text(introSentence(t))], 120)];
+  let first = true;
+  const flushPortrait = () => {
+    if (!current.length) return;
+    sections.push({
+      properties: { ...portrait, titlePage: first },
+      headers: first ? { first: new Header({ children: [new Paragraph({ indent: { left: HEAD_INDENT }, children: logo ? [logo] : [] })] }), default: otherHeader } : { default: otherHeader },
+      footers: first ? { first: footer, default: footer } : { default: footer },
+      children: current,
+    });
+    first = false;
+    current = [];
+  };
+  for (const sec of report.sections) {
+    const tableBlock = sec.blocks.find((b) => b.table && !b.table.simple);
+    if (!tableBlock?.table) {
+      current.push(...sectionParagraphs(sec));
+      continue;
+    }
+    flushPortrait();
+    const width = PAGE.height - LANDSCAPE.left - LANDSCAPE.right;
+    const rest = sec.blocks.filter((b) => b !== tableBlock);
+    sections.push({
+      properties: landscape,
+      headers: { default: otherHeader },
+      footers: { default: footer },
+      children: [
+        bodyParagraph({ kind: 'section', spans: [{ text: sec.title, b: true }] }),
+        ...(sec.subtitle ? [bodyParagraph({ kind: 'normal', spans: [{ text: sec.subtitle, i: true }] })] : []),
+        timelineDocxTable(tableBlock.table, width),
+        // Toelichting (afnametype, OI-formule) klein onder de tabel.
+        ...rest.flatMap((b) => b.rows).map((row, i) => new Paragraph({ spacing: { before: i === 0 ? 100 : 0 }, children: small(row.type === 'kv' ? `${row.label}: ${row.value}` : row.text, { size: 16, italics: true }) })),
+      ],
+    });
+  }
+  current.push(...closing);
+  flushPortrait();
+
   return new Document({
     creator: l.senderName || 'Neo.Cab',
     title: subject,
     description: 'Overplaatsingsbrief neonataal transport (Neo.Cab)',
     styles: { default: { document: { run: { font: FONT, size: 22 }, paragraph: { spacing: { line: LINE, lineRule: LineRuleType.AT_LEAST } } } } },
-    sections: [
-      {
-        properties: {
-          titlePage: true,
-          page: { size: { width: PAGE.width, height: PAGE.height }, margin: { top: PAGE.top, right: PAGE.right, bottom: PAGE.bottom, left: PAGE.left, header: PAGE.header, footer: PAGE.footer } },
-        },
-        headers: {
-          first: new Header({ children: [new Paragraph({ indent: { left: HEAD_INDENT }, children: logo ? [logo] : [] })] }),
-          default: new Header({ children: [new Paragraph({ children: [text(`${subject} · ${longDate(now, timeZone)}`, { size: 14 })] })] }),
-        },
-        footers: { first: footer, default: footer },
-        children: [
-          head,
-          p([], 600),
-          p([text("Beste collega's,")], 200),
-          p([text(introSentence(t))], 120),
-          ...body.map(bodyParagraph),
-          new Paragraph({ spacing: { before: 360 }, keepNext: true, keepLines: true, children: [text('Met vriendelijke groet,')] }),
-          new Paragraph({ spacing: { before: 720 }, keepLines: true, children: [text(l.senderName.trim()), ...(l.senderRole.trim() ? [new TextRun({ text: l.senderRole.trim(), break: 1, font: FONT, size: 22 })] : [])] }),
-        ],
-      },
-    ],
+    sections,
   });
 }
 
