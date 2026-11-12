@@ -14,6 +14,7 @@ import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
 import { RouteBox } from '../RouteBox';
+import { CallIcon } from '../icons';
 import { useAnonymous, useSettings, useTimeZone } from '../context';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
@@ -98,29 +99,46 @@ export function ReferralSection({ t, update }: SectionProps) {
   const matchHospital = (o: { label: string; badge?: string }, q: string) => matchesHospital({ label: o.label, nicu: !!o.badge }, q);
   const r = t.referral;
   const set = <K extends keyof Transport['referral']>(k: K, v: Transport['referral'][K]) => update((x) => ({ ...x, referral: { ...x.referral, [k]: v } }));
+  const tel = r.referrerPhone.replace(/[^\d+]/g, '');
   return (
     <Section id="s2" title="Herkomst en bestemming">
       <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
-      <div className="grid">
-        <ComboField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} options={hospitals} matches={matchHospital} />
-        <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
-        <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
-        <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
-      </div>
-      <div className="grid">
-        <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
-        <ComboField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} options={hospitals} matches={matchHospital} />
+      {/* Van en Naar als twee blokken: naast elkaar op een breed scherm, onder elkaar op een telefoon. */}
+      <div className="route-ends">
+        <fieldset className="route-end">
+          <legend>Van</legend>
+          <ComboField label="Verwijzend ziekenhuis" value={r.referringHospital} onChange={(v) => set('referringHospital', v)} options={hospitals} matches={matchHospital} />
+          <TextField label="Verwijzende afdeling" value={r.referringDepartment} onChange={(v) => set('referringDepartment', v)} />
+          <TextField label="Naam verwijzer" value={r.referrerName} onChange={(v) => set('referrerName', v)} />
+          <div className="phone-row">
+            <TextField label="Telefoonnummer verwijzer" type="tel" value={r.referrerPhone} onChange={(v) => set('referrerPhone', v)} />
+            {tel && (
+              <a className="button secondary icon-button call-button" href={`tel:${tel}`} aria-label={`Verwijzer bellen (${r.referrerPhone})`} title="Bellen">
+                <CallIcon />
+              </a>
+            )}
+          </div>
+        </fieldset>
+        <div className="route-ends-arrow" aria-hidden="true">
+          →
+        </div>
+        <fieldset className="route-end">
+          <legend>Naar</legend>
+          <ComboField label="Ontvangend ziekenhuis" value={r.receivingHospital} onChange={(v) => set('receivingHospital', v)} options={hospitals} matches={matchHospital} />
+          <TextField label="Ontvangende afdeling" value={r.receivingDepartment} onChange={(v) => set('receivingDepartment', v)} />
+        </fieldset>
       </div>
       {/* Zodra verwijzend én ontvangend ziekenhuis zijn ingevuld: route en geschatte reistijd. */}
       <RouteBox from={r.referringHospital} to={r.receivingHospital} />
-      <TextArea label="Reden van overplaatsing" value={r.reason} onChange={(v) => set('reason', v)} />
-      {/* Vaste reden; bij therapeutische hypothermie verschijnt bij Verwijzing de Thompsonscore. */}
+      <h3 className="subsection-title">Reden van overplaatsing</h3>
+      {/* Vaste reden; bij therapeutische hypothermie verschijnen bij Verwijzing (onder Disability) asfyxie en Thompsonscore. */}
       <div className="reason-options">
         <label className="check-setting">
           <input type="checkbox" checked={r.therapeuticHypothermia} onChange={(e) => set('therapeuticHypothermia', e.target.checked)} />
           <span>Therapeutische hypothermie</span>
         </label>
       </div>
+      <TextArea label={<span className="sr-only">Reden van overplaatsing</span>} value={r.reason} onChange={(v) => set('reason', v)} />
     </Section>
   );
 }
@@ -237,6 +255,12 @@ const SOFT_HYPHENS: Record<string, string> = {
   beademing: 'beade\u00adming',
   gespannen: 'ge\u00adspannen',
   normaal: 'nor\u00admaal',
+  Verschijnsel: 'Ver\u00adschijnsel',
+  Bewustzijn: 'Bewust\u00adzijn',
+  Ademhaling: 'Adem\u00adhaling',
+  Convulsies: 'Convul\u00adsies',
+  Grijpreflex: 'Grijp\u00adreflex',
+  Zuigreflex: 'Zuig\u00adreflex',
 };
 const hyphenate = (text: string) => text.replace(/\p{L}+/gu, (w) => SOFT_HYPHENS[w] ?? w);
 
@@ -252,7 +276,7 @@ function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (
           <caption className="sr-only">Thompson Score: kies per verschijnsel één score</caption>
           <thead>
             <tr>
-              <th scope="col">Verschijnsel</th>
+              <th scope="col">{hyphenate('Verschijnsel')}</th>
               {[0, 1, 2, 3].map((i) => (
                 <th key={i} scope="col">
                   {i}
@@ -265,7 +289,7 @@ function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (
               const v = value.scores[item.key];
               return (
                 <tr key={item.key}>
-                  <th scope="row">{item.label}</th>
+                  <th scope="row">{hyphenate(item.label)}</th>
                   {[0, 1, 2, 3].map((i) => {
                     const text = item.options[i];
                     if (text === undefined) return <td key={i} />;
@@ -313,11 +337,7 @@ export function ReferralInfoSection(props: SectionProps) {
         after={{
           // Alleen bij reden van overplaatsing "Therapeutische hypothermie": asfyxie en Thompsonscore onder Disability.
           disability: t.referral.therapeuticHypothermia && (
-            <section className="hypothermia-panel" aria-labelledby="hypothermia-title">
-              <h3 id="hypothermia-title" className="hypothermia-title">
-                Therapeutische hypothermie
-              </h3>
-              <p className="hypothermia-note">Getoond omdat bij Reden van overplaatsing “Therapeutische hypothermie” is aangevinkt.</p>
+            <section className="hypothermia-panel" aria-label="Therapeutische hypothermie">
               <AsphyxiaFields value={rc.asphyxia} birth={t.birth} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, asphyxia: v } }))} />
               <ThompsonFields value={rc.thompson} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, thompson: v } }))} />
             </section>
@@ -352,6 +372,7 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
   return (
     <Section id="s5" title="Stabilisatie" intro="Eigen bevindingen van het transportteam; de toestand bij verwijzing blijft ongewijzigd bewaard.">
       <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} after={{ gastrointestinal: <DateTimeField label="Laatste voeding" value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} /> }} />
+      <hr className="subsection-rule" />
       <TextField label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
       <TextArea label="Stabilisatieplan" value={a.stabilisationPlan} onChange={(v) => set('stabilisationPlan', v)} />
     </Section>

@@ -245,9 +245,11 @@ async function basisLayout(page) {
   const panelPlace = await page.evaluate(() => {
     const panel = document.querySelector('#s3 .hypothermia-panel');
     const prev = panel?.closest('.abcd-extra')?.previousElementSibling;
-    return { underDisability: !!prev && prev.textContent.includes('Disability'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent) };
+    const sizes = [...(panel?.querySelectorAll('h4, legend') ?? [])].map((h) => parseFloat(getComputedStyle(h).fontSize));
+    const labelSize = parseFloat(getComputedStyle(prev.querySelector('.field-label')).fontSize);
+    return { underDisability: !!prev && prev.textContent.includes('Disability'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent), noTitle: !panel.querySelector('h3, .hypothermia-note'), notBigger: sizes.every((x) => x <= labelSize) };
   });
-  check('Na kiezen: blauw vlak Therapeutische hypothermie onder Disability met Perinatale asfyxie en Thompson Score (9 onderdelen)', panelPlace.underDisability && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
+  check('Na kiezen: blauw vlak onder Disability (zonder eigen kop of toelichting) met Perinatale asfyxie en Thompson Score (9 onderdelen), kopjes niet groter dan Disability', panelPlace.underDisability && panelPlace.noTitle && panelPlace.notBigger && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
   await page.locator('#s3 .asphyxia-criteria').getByRole('checkbox', { name: /Apgarscore op 5 minuten/ }).check();
   check('Perinatale asfyxie: zes criteria direct zichtbaar (geen aparte ja/nee-keuze), aan te vinken', (await page.locator('#s3 fieldset.segmented', { hasText: /perinatale asfyxie/i }).count()) === 0 && (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
   check('Thompson Score als tabel met ronde keuzerondjes; Therapeutische hypothermie als vierkant vinkje', (await page.locator('#s3 .thompson-table input[type=radio]').count()) === 31 && (await page.locator('#s2 .reason-options .seg').count()) === 0);
@@ -275,7 +277,19 @@ async function basisLayout(page) {
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
-  check('Sectie 2 in gevraagde volgorde', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangende afdeling', 'Ontvangend ziekenhuis']), s2.join(' | '));
+  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling']), s2.join(' | '));
+  check('Herkomst en bestemming: blokken Van en Naar, subkop Reden van overplaatsing', JSON.stringify(await page.locator('#s2 .route-end > legend').allTextContents()) === JSON.stringify(['Van', 'Naar']) && (await page.locator('#s2 h3.subsection-title', { hasText: 'Reden van overplaatsing' }).count()) === 1 && (await page.locator('#s2').getByRole('textbox', { name: 'Reden van overplaatsing' }).count()) === 1);
+  await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('071 123 4567');
+  check('Belknop bij telefoonnummer verwijzer', (await page.locator('#s2 a.call-button').getAttribute('href')) === 'tel:0711234567');
+  await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('');
+  check('Stabilisatie: scheidingslijn tussen Infection en Werkdiagnose', (await page.locator('#s5 .abcd + hr.subsection-rule').count()) === 1);
+  const gaps = await page.evaluate(() => [...document.querySelectorAll('.form-section')].map((s) => {
+    const sb = s.getBoundingClientRect();
+    let maxBottom = 0;
+    for (const el of s.querySelectorAll('*')) { const b = el.getBoundingClientRect(); if (b.height && !el.closest('.sr-only')) maxBottom = Math.max(maxBottom, b.bottom); }
+    return Math.round(sb.bottom - maxBottom);
+  }));
+  check('Witte vlakken: onderaan niet meer ruimte dan bovenaan (≤ 16 px)', gaps.every((g) => g <= 16), gaps.join(','));
   check('Geen toelichting bij verwijzing', (await page.locator('#s2 .field-hint').count()) === 0);
   check('Geen extra tekst boven de tijdlijntabel', (await page.locator('#s6 .table-hint').count()) === 0);
 

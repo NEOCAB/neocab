@@ -754,7 +754,7 @@ fieldset.group > legend {
   /* Huisstijl: witte vlakken op een lichtblauwe achtergrond. */
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 0.75rem 1rem 1.25rem;
+  padding: 0.75rem 1rem 1rem;
   margin-bottom: 1rem;
   scroll-margin-top: 7.5rem;
 }
@@ -918,8 +918,8 @@ fieldset.group > legend {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  /* Zelfde ruimte als een losse h2 (0,83em van 1,3rem), zodat de kop niet verspringt. */
-  margin: 1.08rem 0;
+  /* Zelfde ruimte als een losse sectiekop. */
+  margin: 0 0 0.75rem;
 }
 .section-head .section-title {
   margin: 0;
@@ -1985,7 +1985,7 @@ button.danger-button {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: -0.25rem 0 0.75rem;
+  margin: 0 0 0.5rem;
 }
 /* Thompsonscore als tabel met ronde keuzerondjes */
 .thompson {
@@ -2102,6 +2102,14 @@ button.danger-button {
 .abcd.letters-only .abcd-extra {
   margin-left: 2.6rem;
 }
+/* Subkop onder een ABCD-kopje (bijv. Laatste voeding onder Gastro-intestinal): ingesprongen en kleiner. */
+.abcd:not(.letters-only) .abcd-extra {
+  padding-left: 1.6rem;
+}
+.abcd-extra > .field > .field-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
 /* Therapeutische hypothermie: apart blauw vlak onder Disability bij Verwijzing */
 .hypothermia-panel {
   margin: 0 0 1rem;
@@ -2111,19 +2119,19 @@ button.danger-button {
   border-left: 3px solid var(--primary);
   border-radius: var(--radius);
 }
-.hypothermia-title {
-  margin: 0;
-  font-size: 1.05rem;
-  color: var(--primary);
-}
-.hypothermia-note {
-  margin: 0.15rem 0 0.5rem;
-  font-size: 0.85rem;
-  color: var(--muted, #555);
-}
 .hypothermia-subtitle {
-  margin: 0.9rem 0 0.4rem;
-  font-size: 1rem;
+  /* Niet groter dan de koptekst van Disability (veldlabel). */
+  margin: 0.75rem 0 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.hypothermia-panel legend {
+  font-size: 0.92rem;
+}
+.hypothermia-panel > :first-child .hypothermia-subtitle,
+.hypothermia-panel > .hypothermia-subtitle:first-child {
+  margin-top: 0;
 }
 .hypothermia-panel .thompson-table,
 .hypothermia-panel .thompson-total,
@@ -2139,4 +2147,96 @@ button.danger-button {
 }
 .segmented-pair > .segmented {
   flex: 0 1 auto;
+}
+/* Herkomst en bestemming: blokken Van en Naar */
+.route-ends {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+.route-end {
+  margin: 0;
+  padding: 0.6rem 0.85rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.route-end > legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+.route-ends-arrow {
+  justify-self: center;
+  color: var(--primary);
+  font-size: 1.4rem;
+  line-height: 1;
+  transform: rotate(90deg);
+}
+@media (min-width: 760px) {
+  .route-ends {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .route-end {
+    align-self: stretch;
+  }
+  .route-ends-arrow {
+    transform: none;
+  }
+}
+.phone-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+.phone-row > .field {
+  flex: 1 1 auto;
+}
+.call-button {
+  margin-bottom: 0.75rem;
+  text-decoration: none;
+}
+.call-icon {
+  display: inline-flex;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.call-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+/* Scheidingslijn zoals boven een subkop (bijv. tussen Infection en Werkdiagnose) */
+.subsection-rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.25rem 0 0.75rem;
+}
+/* Witte vlakken: onderaan evenveel ruimte als bovenaan; de ondermarge van het laatste element telt niet mee. */
+.form-section > :last-child,
+.form-section > :last-child > :last-child,
+.form-section > :last-child > :last-child > :last-child {
+  margin-bottom: 0;
+}
+.form-section > .grid:last-child > .field,
+.form-section > :last-child > .grid:last-child > .field {
+  margin-bottom: 0;
+  /* rijen onderling: ruimte via de rij-tussenruimte */
+}
+.form-section > .grid:last-child,
+.form-section > :last-child > .grid:last-child {
+  row-gap: 0.75rem;
+}
+@media (max-width: 480px) {
+  /* Op een telefoon: het blauwe vlak niet inspringen, zodat de Thompsontabel ruimte heeft. */
+  .abcd .abcd-extra:has(> .hypothermia-panel) {
+    padding-left: 0;
+    margin-left: 0;
+  }
+  .hypothermia-panel {
+    padding: 0.6rem 0.6rem 0.4rem;
+  }
 }
