@@ -379,7 +379,7 @@ async function basisLayout(page) {
   check('Stoptijd leeg zolang infuus loopt', await page.getByText('Loopt nog — stoptijd wordt ingevuld bij Stoppen.').isVisible());
   await page.locator('#s9').getByRole('button', { name: 'Sluiten' }).click();
   const infRow = await page.locator('#s9 .data-table.simple tbody tr').first().textContent();
-  check('Infusentabel toont het verloop van de pompsnelheid', /3,2\s*4 vanaf/.test(infRow), infRow);
+  check('Infusentabel: huidige pompsnelheid bovenaan, eerdere eronder', /4 sinds[^\n]*\s*eerder 3,2 vanaf/.test(infRow), infRow);
 
   // Medicatie als tabel: toevoegen via editor, bewerken via de tijd in de tabel
   await page.locator('#s8').getByRole('button', { name: 'Toevoegen', exact: true }).click();
@@ -488,7 +488,7 @@ async function basisLayout(page) {
   check('Logo Neo.Cab bovenaan het verslag', await page.locator('.report .report-head img.brand-logo').isVisible());
   check('E-mailtekst bevat telefoonnummers', reportText.includes('0612345678') && reportText.includes('0687654321'));
   check('Verslag zonder checklist', !reportText.includes('CHECKLIST') && !reportText.includes('Nog niet gedaan') && (await page.locator('.report h2', { hasText: 'Checklist' }).count()) === 0);
-  check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid \(mL\/uur\): 3,2 → 4 vanaf/.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
+  check('E-mailtekst bevat infuushistorie en medicatie', /Pompsnelheid \(mL\/uur\): 4 sinds [^;]+; eerder 3,2 vanaf/.test(reportText) && reportText.includes('Medicament: Testmedicament; Dosis: 2 mg'));
   const [letterDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Brief downloaden (Word)' }).click()]);
   const letterPath = `${OUT}/${letterDownload.suggestedFilename()}`;
   await letterDownload.saveAs(letterPath);

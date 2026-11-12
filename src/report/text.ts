@@ -27,7 +27,7 @@ function tableEntries(table: ReportTable): TableEntry[] {
       if (!raw) return;
       if (c.keyColumn) key.push(raw.replace(/\n/g, ' '));
       else {
-        data.push(table.simple ? `${c.fullLabel}${c.unit ? ` (${c.unit})` : ''}: ${raw.replace(/\n/g, ' → ')}` : `${c.fullLabel}: ${raw.replace(/\n/g, ' ')}${c.unit ? ` ${c.unit}` : ''}`);
+        data.push(table.simple ? `${c.fullLabel}${c.unit ? ` (${c.unit})` : ''}: ${raw.replace(/\n/g, '; ')}` : `${c.fullLabel}: ${raw.replace(/\n/g, ' ')}${c.unit ? ` ${c.unit}` : ''}`);
         alert.push(!table.simple && !!table.alerts?.[r]?.[i]);
       }
     });

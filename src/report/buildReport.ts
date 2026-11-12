@@ -376,6 +376,18 @@ export function medicationTable(meds: MedicationAdministration[], timeZone: stri
 }
 
 /** Infusen als tabel (op starttijd): pompsnelheid met verloop, en stoptijd of "loopt". */
+/**
+ * Pompsnelheid: de huidige (laatste) snelheid bovenaan, eerdere snelheden eronder (nieuwste eerst),
+ * bijv. "4 sinds 00:15" / "eerder 3,2 vanaf 23:15". Bij één snelheid alleen het getal.
+ */
+function rateHistory(inf: Infusion, short: (i: Instant) => string): string {
+  const rates = sortedRates(inf);
+  const fmt = (v: Num) => formatNum(v) ?? '?';
+  if (rates.length <= 1) return rates.map((r) => fmt(r.rateMlPerHour)).join('');
+  const [current, ...earlier] = [...rates].reverse();
+  return [`${fmt(current.rateMlPerHour)} sinds ${short(current.at)}`, ...earlier.map((r) => `eerder ${fmt(r.rateMlPerHour)} vanaf ${short(r.at)}`)].join('\n');
+}
+
 export function infusionTable(infusions: Infusion[], timeZone: string): { table: ReportTable; rows: Infusion[] } {
   const rows = [...infusions].sort((a, b) => compareInstants(a.startAt, b.startAt));
   const all = rows.flatMap((i) => [i.startAt, i.stopAt, ...i.rates.map((r) => r.at)]);
@@ -390,9 +402,7 @@ export function infusionTable(infusions: Infusion[], timeZone: string): { table:
       rows: rows.map((inf) => [
         time(inf.startAt),
         inf.name,
-        sortedRates(inf)
-          .map((r, i) => `${formatNum(r.rateMlPerHour) ?? '?'}${i === 0 ? '' : ` vanaf ${short(r.at)}`}`)
-          .join('\n'),
+        rateHistory(inf, short),
         inf.stopAt ? short(inf.stopAt) : 'loopt',
       ]),
     },

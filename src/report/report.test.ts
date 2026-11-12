@@ -106,7 +106,7 @@ describe('verslag', () => {
     for (const tp of ['Verwijzing: 09-10-2026 22:10', 'Vertrek met kind: 10-10-2026 00:40', 'Aankomst ontvangend centrum: 10-10-2026 01:35']) expect(text).toContain(tp);
     expect(text).toContain('Postnatale leeftijd: dag 3');
     expect(text).toContain('Medicatie en concentratie: Glucose 10%');
-    expect(text).toContain('Infuus 1 · 09-10-2026 23:15\n    Medicatie en concentratie: Glucose 10%; Pompsnelheid (mL/uur): 3,2 → 4 vanaf 10-10-2026 00:15; Stop: loopt');
+    expect(text).toContain('Infuus 1 · 09-10-2026 23:15\n    Medicatie en concentratie: Glucose 10%; Pompsnelheid (mL/uur): 4 sinds 10-10-2026 00:15; eerder 3,2 vanaf 09-10-2026 23:15; Stop: loopt');
     expect(text).toContain('Toediening 1 · 23:22\n    Medicament: Voorbeeldmedicament; Dosis: 0,5 mg; Toedieningsroute: Intraveneus');
     expect(text).toContain('BE: -3,1 mmol/L');
     expect(text).toContain('Gemiddelde bloeddruk (MAP): 40 mmHg');
@@ -177,7 +177,7 @@ describe('verslag', () => {
     ]);
     const inf = report.sections.find((s) => s.title === 'Infusen')!.blocks[0].table!;
     expect(inf.columns.map((c) => `${c.header}${c.unit ? ` (${c.unit})` : ''}`)).toEqual(['Start', 'Medicatie en concentratie', 'Pompsnelheid (mL/uur)', 'Stop']);
-    expect(inf.rows[0]).toEqual(['09-10-2026\n23:15', 'Glucose 10%', '3,2\n4 vanaf 10-10-2026 00:15', 'loopt']);
+    expect(inf.rows[0]).toEqual(['09-10-2026\n23:15', 'Glucose 10%', '4 sinds 10-10-2026 00:15\neerder 3,2 vanaf 09-10-2026 23:15', 'loopt']);
     const none = buildReport({ ...t, medications: [], infusions: [] }, TZ);
     expect(none.sections.find((s) => s.title === 'Medicatie')!.blocks[0].table).toBeUndefined();
     expect(reportToText(none)).toContain('Geen infusen geregistreerd.');
