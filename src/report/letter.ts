@@ -2,7 +2,7 @@ import { AlignmentType, BorderStyle, Document, Footer, Header, HeightRule, Image
 import type { Transport } from '../domain/types';
 import { DEFAULT_TIME_ZONE, formatLocalDate } from '../domain/time';
 import type { LetterSettings } from '../storage/settings';
-import type { Report, ReportSection, ReportTable } from './buildReport';
+import type { Report, ReportBlock, ReportRow, ReportSection, ReportTable } from './buildReport';
 import { reportToParas, type Para, type ParaKind, type Span } from './text';
 
 /**
@@ -102,12 +102,13 @@ function runs(span: Span, extra: { size?: number } = {}): TextRun[] {
 
 const PARA_STYLE: Record<ParaKind, { before: number; after: number; size?: number; indent?: number; keepNext?: boolean }> = {
   title: { before: 0, after: 80, size: 26 },
-  section: { before: 280, after: 60, size: 24, keepNext: true },
-  block: { before: 160, after: 40, keepNext: true },
-  normal: { before: 0, after: 40 },
-  indent: { before: 0, after: 40, indent: 360 },
-  rowhead: { before: 120, after: 0, keepNext: true },
-  sub: { before: 120, after: 40, keepNext: true },
+  // Regels binnen een blok zonder extra ruimte ertussen; alleen boven koppen wat lucht.
+  section: { before: 280, after: 40, size: 24, keepNext: true },
+  block: { before: 120, after: 0, keepNext: true },
+  normal: { before: 0, after: 0 },
+  indent: { before: 0, after: 0, indent: 360 },
+  rowhead: { before: 80, after: 0, keepNext: true },
+  sub: { before: 80, after: 0, keepNext: true },
   end: { before: 0, after: 0 },
 };
 
@@ -238,6 +239,63 @@ export function timelineDocxTable(table: ReportTable, width: number): Table {
   return new Table({ layout: TableLayoutType.FIXED, columnWidths: widths, width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA }, rows });
 }
 
+/** Eenvoudige tabel (medicatie, infusen) op een staande pagina: kopregel herhaald, tekst mag afbreken. */
+export function simpleDocxTable(table: ReportTable, width: number): Table {
+  const keyW = 1250;
+  const others = table.columns.length - 1;
+  const widths = table.columns.map((_, i) => (i === 0 ? keyW : Math.floor((width - keyW) / Math.max(1, others))));
+  const cell = (runs: TextRun[], w: number, fill?: string) =>
+    new TableCell({
+      width: { size: w, type: WidthType.DXA },
+      borders: CELL_BORDERS,
+      shading: fill ? { type: ShadingType.CLEAR, color: 'auto', fill } : undefined,
+      margins: { top: 30, bottom: 30, left: 70, right: 70 },
+      children: [new Paragraph({ spacing: { line: 240, lineRule: LineRuleType.AT_LEAST }, children: runs })],
+    });
+  return new Table({
+    layout: TableLayoutType.FIXED,
+    columnWidths: widths,
+    width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA },
+    rows: [
+      new TableRow({ tableHeader: true, cantSplit: true, children: table.columns.map((c, i) => cell(small(`${c.header}${c.unit ? ` (${c.unit})` : ''}`, { bold: true, size: 18 }), widths[i], HEAD_FILL)) }),
+      ...table.rows.map((row) => new TableRow({ cantSplit: true, children: row.map((v, i) => cell(small(v, { size: 18 }), widths[i])) })),
+    ],
+  });
+}
+
+/** Ingebrachte materialen compact: per lijn/sonde/tube één regel (vet de soort), bij een tube per versie een regel. */
+function compactCardParagraphs(block: ReportBlock): Paragraph[] {
+  // Regels: eerst de soort (vet) met de gegevens erachter; bij een tube daaronder per plaatsing/aanpassing een regel.
+  const lines: { kind: 'normal' | 'indent'; head: Span; items: Span[][] }[] = [{ kind: 'normal', head: { text: block.title ?? '', b: true }, items: [] }];
+  for (const row of block.rows) {
+    if (row.type === 'sub') lines.push({ kind: 'indent', head: { text: row.text, i: true }, items: [] });
+    else if (row.type !== 'note') {
+      const label = row.label;
+      const value = (row.type === 'kv' ? row.value : row.text).replace(/\n/g, ' ');
+      lines[lines.length - 1].items.push([...(label ? [{ text: `${label} `, i: true }] : []), { text: value }]);
+    }
+  }
+  return lines
+    .filter((l, i) => i === 0 || l.items.length)
+    .map((l) => bodyParagraph({ kind: l.kind, spans: [l.head, ...l.items.flatMap((it, j) => [{ text: j === 0 ? (l.kind === 'normal' ? ' – ' : ': ') : '; ' }, ...it])] }));
+}
+
+/** Telefoonnummers van de ouders in de brief bij de kindgegevens (uit Gezin). */
+export function letterSections(report: Report): ReportSection[] {
+  const sections = report.sections.map((s) => ({ ...s, blocks: s.blocks.map((b) => ({ ...b, rows: [...b.rows] })) }));
+  const gezin = sections.find((s) => s.title === 'Gezin');
+  const kind = sections.find((s) => s.title === 'Basisgegevens kind');
+  if (!gezin || !kind) return sections;
+  const isPhone = (r: ReportRow) => r.type === 'kv' && r.label.startsWith('Telefoonnummer');
+  const phones = gezin.blocks.flatMap((b) => b.rows.filter(isPhone));
+  if (!phones.length) return sections;
+  for (const b of gezin.blocks) b.rows = b.rows.filter((r) => !isPhone(r));
+  if (gezin.blocks.every((b) => !b.rows.length && !b.table)) gezin.blocks = [{ rows: [{ type: 'note', text: 'Niet ingevuld.' }] }];
+  const target = kind.blocks[0];
+  target.rows = [...target.rows.filter((r) => !(r.type === 'note' && r.text === 'Niet ingevuld.')), ...phones];
+  return sections;
+}
+
 /** Paragrafen van één verslagsectie (koppen vet, veldnamen cursief), zonder titel en slotregel. */
 function sectionParagraphs(sec: ReportSection): Paragraph[] {
   return reportToParas({ title: '', meta: [], sections: [sec] })
@@ -317,15 +375,23 @@ export function buildLetterDocument({ transport: t, report, letter: l, timeZone 
     first = false;
     current = [];
   };
-  for (const sec of report.sections) {
+  const portraitWidth = PAGE.width - PAGE.left - PAGE.right;
+  for (const sec of letterSections(report)) {
     const tableBlock = sec.blocks.find((b) => b.table && !b.table.simple);
     if (!tableBlock?.table) {
-      current.push(...sectionParagraphs(sec));
+      // Staand: medicatie en infusen als tabel; Plastic compact als "Ingebrachte materialen".
+      const plastic = sec.title === 'Plastic';
+      current.push(bodyParagraph({ kind: 'section', spans: [{ text: plastic ? 'Ingebrachte materialen' : sec.title, b: true }] }));
+      if (sec.subtitle) current.push(bodyParagraph({ kind: 'normal', spans: [{ text: sec.subtitle, i: true }] }));
+      for (const b of sec.blocks) {
+        if (b.table) current.push(simpleDocxTable(b.table, portraitWidth));
+        else if (plastic && b.card) current.push(...compactCardParagraphs(b));
+        else current.push(...sectionParagraphs({ title: '', blocks: [b] }).slice(1));
+      }
       continue;
     }
     flushPortrait();
     const width = PAGE.height - LANDSCAPE.left - LANDSCAPE.right;
-    const rest = sec.blocks.filter((b) => b !== tableBlock);
     sections.push({
       properties: landscape,
       headers: { default: otherHeader },
@@ -334,8 +400,6 @@ export function buildLetterDocument({ transport: t, report, letter: l, timeZone 
         bodyParagraph({ kind: 'section', spans: [{ text: sec.title, b: true }] }),
         ...(sec.subtitle ? [bodyParagraph({ kind: 'normal', spans: [{ text: sec.subtitle, i: true }] })] : []),
         timelineDocxTable(tableBlock.table, width),
-        // Toelichting (afnametype, OI-formule) klein onder de tabel.
-        ...rest.flatMap((b) => b.rows).map((row, i) => new Paragraph({ spacing: { before: i === 0 ? 100 : 0 }, children: small(row.type === 'kv' ? `${row.label}: ${row.value}` : row.text, { size: 16, italics: true }) })),
       ],
     });
   }

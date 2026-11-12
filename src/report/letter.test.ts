@@ -3,7 +3,7 @@ import { Packer } from 'docx';
 import { sampleTransport } from '../domain/sample';
 import { EMPTY_LETTER } from '../storage/settings';
 import { buildReport } from './buildReport';
-import { addresseeLines, buildLetterDocument, imageSize, introSentence, letterFileName, longDate } from './letter';
+import { addresseeLines, buildLetterDocument, imageSize, introSentence, letterFileName, letterSections, longDate } from './letter';
 
 const TZ = 'Europe/Amsterdam';
 
@@ -71,5 +71,20 @@ describe('overplaatsingsbrief', () => {
     expect(xml).toContain('w:val="btLr"');
     expect(xml).toContain('w:fill="FFD8A8"');
     expect(xml).toContain('Besluit tot intubatie en surfactant (fictief).');
+    // Geen toelichting onder de tijdlijn; medicatie en infusen als tabel (staand); Plastic als Ingebrachte materialen.
+    expect(xml).not.toContain('Type bloedgas');
+    expect(xml).not.toContain('OI = (MAP');
+    expect([...xml.matchAll(/<w:tbl>/g)].length).toBe(4);
+    expect(xml).toContain('Ingebrachte materialen');
+    expect(xml).not.toContain('>Plastic<');
+    expect(xml).toContain('Toedieningsroute');
+  });
+
+  it('zet de telefoonnummers van de ouders bij de kindgegevens', () => {
+    const t = sampleTransport(TZ);
+    const secs = letterSections(buildReport(t, TZ));
+    const labels = (title: string) => secs.find((s) => s.title === title)!.blocks.flatMap((b) => b.rows).map((r) => (r.type === 'kv' ? r.label : r.type));
+    expect(labels('Basisgegevens kind').slice(-2)).toEqual(['Telefoonnummer moeder', 'Telefoonnummer partner']);
+    expect(labels('Gezin')).not.toContain('Telefoonnummer moeder');
   });
 });
