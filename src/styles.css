@@ -2757,3 +2757,30 @@ a.call-button:hover {
     margin-top: 0.7rem;
   }
 }
+/* Zijbalk minder fel: gedempt leisteenblauw; exportknop zacht lichtblauw in plaats van wit */
+@media (min-width: 1000px) {
+  .editor-side {
+    background: #263d57;
+  }
+  .editor-side .active-transport .muted {
+    color: #c3cfdc;
+  }
+  .editor-side .nav-phase {
+    color: #9aabbf;
+  }
+  .editor-side .sidenav .section-icon {
+    color: #a9bdd3;
+  }
+  .editor-side .sidenav a.active {
+    background: rgba(255, 255, 255, 0.13);
+  }
+  .editor-side .report-side {
+    background: #d5e0ec;
+    border-color: #d5e0ec;
+    color: #1d3349;
+  }
+  .editor-side .report-side:hover {
+    background: #c6d4e3;
+    border-color: #c6d4e3;
+  }
+}
