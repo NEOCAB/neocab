@@ -2784,3 +2784,49 @@ a.call-button:hover {
     border-color: #c6d4e3;
   }
 }
+/* Telefoon en smalle tablet: bovenbalk in dezelfde gedempte blauwe kleur als de zijbalk */
+@media (max-width: 999px) {
+  .editor-side .topbar {
+    background: #263d57;
+    border-bottom-color: #263d57;
+    color: #fff;
+  }
+  .editor-side .topbar-brand {
+    color: #fff;
+  }
+  .editor-side .topbar-brand:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .editor-side .topbar-logo {
+    filter: brightness(0) invert(1);
+  }
+  .editor-side .topbar-name,
+  .editor-side .active-transport strong {
+    color: #fff;
+  }
+  .editor-side .active-transport .muted {
+    color: #c3cfdc;
+  }
+  .editor-side .section-jump select {
+    border-color: #263d57;
+  }
+  /* Opslagicoon op een wit rondje, zodat groen/oranje/rood goed zichtbaar blijft */
+  .editor-side .save-status .save-icon {
+    padding: 0.15rem;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .editor-side .report-top {
+    background: #d5e0ec;
+    border-color: #d5e0ec;
+    color: #1d3349;
+  }
+  .editor-side .report-top:hover {
+    background: #c6d4e3;
+    border-color: #c6d4e3;
+  }
+  .editor-side :focus-visible {
+    outline-color: #fff;
+  }
+}
