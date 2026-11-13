@@ -28,7 +28,7 @@
   --line: #d9dcdf;
   --warning: #7a3c00;
   --focus: #007cc2;
-  --radius: 2px;
+  --radius: 8px; /* afgeronde hoeken, zoals de keuzebalken */
   --tap: 44px;
   font-family: 'PT Sans', Calibri, 'Segoe UI', Arial, sans-serif;
   font-size: 15px; /* huisstijl: hoofdtekst 15 px (invoervelden 16 px tegen inzoomen op iOS) */
@@ -2629,4 +2629,41 @@ select {
 /* Het (onzichtbare) keuzerondje blijft bovenop, zodat tikken altijd de keuze raakt */
 .segmented-options .seg input {
   z-index: 3;
+}
+/* Eén stijl voor knoppen en vakken: afgeronde hoeken, secundaire knoppen lichtgrijs zoals niet-gekozen opties */
+.form-section,
+.editor-side .topbar {
+  border-radius: 12px;
+}
+button.secondary,
+a.button.secondary,
+button.secondary.icon-button,
+a.call-button {
+  background: #f1f4f7;
+  border-color: #d5dbe1;
+}
+button.secondary:hover:not(:disabled),
+a.button.secondary:hover,
+a.call-button:hover {
+  background: #e7ecf1;
+}
+.combo-toggle {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+/* Thompsontabel met ronde hoeken (de andere tabellen hebben die al via hun scrollvak) */
+.thompson-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.thompson-table {
+  border: 1px solid var(--border);
+}
+/* Berekende waarden (bijv. gecorrigeerde leeftijd): rustig grijs, duidelijk niet invulbaar */
+.computed,
+.computed-value {
+  background: #f1f4f7;
+  border-color: #d5dbe1;
+  color: var(--label);
 }
