@@ -604,6 +604,13 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   check(`${w}px: geen route en reistijd meer`, (await page.locator('#s2 .route-box').count()) === 0);
+  if (w >= 1000) {
+    await page.evaluate(() => document.getElementById('s5').scrollIntoView({ block: 'start' }));
+    await page.waitForTimeout(300);
+    const dark = await page.evaluate(() => ({ bg: getComputedStyle(document.querySelector('.editor-side')).backgroundColor, active: document.querySelector('.sidenav a.active')?.getAttribute('href'), current: document.querySelector('.sidenav a[aria-current="location"]')?.getAttribute('href') }));
+    check(`${w}px: donkerblauwe zijbalk; sectie in beeld gemarkeerd in het menu`, dark.bg === 'rgb(0, 60, 125)' && dark.active === '#s5' && dark.current === '#s5', JSON.stringify(dark));
+    await page.evaluate(() => scrollTo(0, 0));
+  }
   const calm = await page.evaluate(() => {
     const px = (sel) => parseFloat(getComputedStyle(document.querySelector(sel)).fontSize);
     const sizes = [...document.querySelectorAll('.form-section .section-title')].map((h) => getComputedStyle(h).fontSize);

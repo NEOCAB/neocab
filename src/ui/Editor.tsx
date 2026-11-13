@@ -118,6 +118,35 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
 
   const props = { t, update };
 
+  // Sectie die in beeld is: de laatste sectie waarvan de kop het bovenste kwart van het scherm al voorbij is.
+  const [activeId, setActiveId] = useState(SECTIONS[0].id);
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const line = window.innerHeight * 0.25;
+      let current = SECTIONS[0].id;
+      for (const s of SECTIONS) {
+        const el = document.getElementById(s.id);
+        if (el && el.getBoundingClientRect().top <= line) current = s.id;
+      }
+      // Helemaal onderaan: de laatste sectie.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = SECTIONS[SECTIONS.length - 1].id;
+      setActiveId(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
     <div className="editor-layout">
       <div className="editor-body">
@@ -193,6 +222,8 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                         <li key={s.id}>
                           <a
                             href={`#${s.id}`}
+                            className={activeId === s.id ? 'active' : undefined}
+                            aria-current={activeId === s.id ? 'location' : undefined}
                             onClick={(e) => {
                               e.preventDefault();
                               goToSection(s.id);

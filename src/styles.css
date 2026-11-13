@@ -2667,3 +2667,93 @@ a.call-button:hover {
   border-color: #d5dbe1;
   color: var(--label);
 }
+/*
+ * Breed scherm: donkerblauwe zijbalk over de volle hoogte (huisstijlkleur) met witte tekst;
+ * de sectie die in beeld is, is gemarkeerd.
+ */
+@media (min-width: 1000px) {
+  .editor-body {
+    grid-template-columns: 16rem minmax(0, 1fr);
+  }
+  .editor-side {
+    height: 100vh;
+    max-height: 100vh;
+    padding: 1rem 0.75rem 4.5rem;
+    background: var(--primary);
+    color: #fff;
+  }
+  .editor-side .topbar {
+    padding: 0.25rem 0.25rem 0.5rem;
+    background: transparent;
+    border-radius: 0;
+    color: #fff;
+  }
+  .editor-side .topbar-brand {
+    color: #fff;
+  }
+  .editor-side .topbar-brand:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .editor-side .topbar-logo {
+    filter: brightness(0) invert(1);
+  }
+  .editor-side .topbar-name,
+  .editor-side .active-transport strong {
+    color: #fff;
+  }
+  .editor-side .active-transport .muted {
+    color: #c9d7e8;
+  }
+  .editor-side .sidenav {
+    padding: 0.75rem 0 0;
+  }
+  .editor-side .nav-phase {
+    color: #9fb6d3;
+  }
+  .editor-side .sidenav a {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: var(--radius);
+    color: #e9f0f8;
+  }
+  .editor-side .sidenav a:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+  .editor-side .sidenav a.active {
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-weight: 700;
+  }
+  .editor-side .sidenav .section-icon {
+    color: #9fc3ea;
+  }
+  .editor-side .sidenav a.active .section-icon {
+    color: #fff;
+  }
+  .editor-side .nav-dot {
+    background: #7fd1a0;
+  }
+  .editor-side :focus-visible {
+    outline-color: #fff;
+  }
+  .editor-side .report-side {
+    background: #fff;
+    border-color: #fff;
+    color: var(--primary);
+  }
+  .editor-side .report-side:hover {
+    background: #e6ecf2;
+  }
+}
+@media (min-width: 1000px) {
+  /* Compacter menu, zodat het samen met de knop boven het zwevende opslagicoon past */
+  .editor-side .sidenav a {
+    padding-top: 0.28rem;
+    padding-bottom: 0.28rem;
+  }
+  .editor-side .nav-phase {
+    margin-top: 0.7rem;
+  }
+}
