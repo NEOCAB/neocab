@@ -101,7 +101,7 @@ export function ReferralSection({ t, update }: SectionProps) {
   const tel = r.referrerPhone.replace(/[^\d+]/g, '');
   return (
     <Section id="s2" title="Herkomst en bestemming">
-      <TimepointField label="Verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
+      <TimepointField label="Tijdstip verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
       {/* Verwijzer boven ontvanger, direct in te vullen; twee kolommen op een breed scherm. */}
       <div className="party-rows">
         <div className="party-row">
@@ -137,7 +137,7 @@ export function ReferralSection({ t, update }: SectionProps) {
 
 function CordGas({ legend, value, onChange }: { legend: string; value: BloodGasCord; onChange: (v: BloodGasCord) => void }) {
   return (
-    <fieldset className="group">
+    <fieldset className="subgroup">
       <legend>{legend}</legend>
       <div className="grid three">
         <NumberField label="pH" value={value.ph} onChange={(v) => onChange({ ...value, ph: v })} rules={{ min: 0 }} />
@@ -171,10 +171,13 @@ function BirthFields({ t, update }: SectionProps) {
           <NumberField label="10 minuten" value={b.apgar10} onChange={(v) => set('apgar10', v)} rules={apgar} />
         </div>
       </fieldset>
-      <div className="cord-pair">
-        <CordGas legend="Arterieel navelstrengbloedgas" value={b.cordArterial} onChange={(v) => set('cordArterial', v)} />
-        <CordGas legend="Veneus navelstrengbloedgas" value={b.cordVenous} onChange={(v) => set('cordVenous', v)} />
-      </div>
+      <fieldset className="group">
+        <legend>Navelstrengbloedgas</legend>
+        <div className="cord-pair">
+          <CordGas legend="Arterieel" value={b.cordArterial} onChange={(v) => set('cordArterial', v)} />
+          <CordGas legend="Veneus" value={b.cordVenous} onChange={(v) => set('cordVenous', v)} />
+        </div>
+      </fieldset>
       <Segmented legend="Vitamine K" value={b.vitaminK} onChange={(v) => set('vitaminK', v)} options={VITAMIN_K_OPTIONS} />
     </>
   );

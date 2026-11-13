@@ -57,7 +57,7 @@ async function basisLayout(page) {
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
   await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
   const tpVal = (label) => page.locator(`.timepoint[data-label="${label}"]`).getAttribute('data-value');
-  const referred = await tpVal('Verwijzing');
+  const referred = await tpVal('Tijdstip verwijzing');
   // Keuzelijst ziekenhuizen (combobox): hele lijst via het pijltje, filteren door te typen, kiezen met muis of toetsenbord
   const refHosp = page.locator('#s2').getByRole('combobox', { name: 'Verwijzend ziekenhuis' });
   await page.locator('#s2').getByRole('button', { name: /Lijst verwijzend ziekenhuis openen/ }).click();
@@ -145,7 +145,7 @@ async function basisLayout(page) {
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
   const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
-  const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
+  const expected = [['s2', 'Tijdstip verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (zonder omschrijving, streep, Nu of tijd met potlood)', tps.every((x) => x[2] === null && x[3] === 'rgb(0, 60, 125)' && x[4] >= 1));
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
@@ -287,7 +287,7 @@ async function basisLayout(page) {
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
-  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling']), s2.join(' | '));
+  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Tijdstip verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling']), s2.join(' | '));
   check('Herkomst en bestemming: verwijzer en ontvanger, subkop Reden van overplaatsing', (await page.locator('#s2 .party-row').count()) === 2 && (await page.locator('#s2 h3.subsection-title', { hasText: 'Reden van overplaatsing' }).count()) === 1 && (await page.locator('#s2').getByRole('textbox', { name: 'Reden van overplaatsing' }).count()) === 1);
   await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('071 123 4567');
   check('Belknop bij telefoonnummer verwijzer', (await page.locator('#s2 a.call-button').getAttribute('href')) === 'tel:0711234567');
@@ -461,7 +461,7 @@ async function basisLayout(page) {
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
   check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('Patiëntnummer', { exact: true }).inputValue()) === '0007788');
-  check('Na herladen: verwijstijd ongewijzigd', (await page.locator('.timepoint[data-label="Verwijzing"]').getAttribute('data-value')) === referred);
+  check('Na herladen: verwijstijd ongewijzigd', (await page.locator('.timepoint[data-label="Tijdstip verwijzing"]').getAttribute('data-value')) === referred);
   const timesAfter = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));
   // Toetsenbord: Tab-volgorde begint bij de navigatie en bereikt de velden
@@ -604,13 +604,30 @@ for (const [w, h] of [
   await page.waitForSelector('#s6');
   check(`Geen horizontaal scrollen op ${w} px (formulier)`, await noHorizontalScroll(page));
   check(`${w}px: geen route en reistijd meer`, (await page.locator('#s2 .route-box').count()) === 0);
+  const calm = await page.evaluate(() => {
+    const px = (sel) => parseFloat(getComputedStyle(document.querySelector(sel)).fontSize);
+    const sizes = [...document.querySelectorAll('.form-section .section-title')].map((h) => getComputedStyle(h).fontSize);
+    const phases = [...document.querySelectorAll('.sidenav .nav-phase')].map((p) => p.textContent);
+    const dots = [...document.querySelectorAll('.sidenav a')].filter((a) => a.querySelector('.nav-dot')).map((a) => a.getAttribute('href'));
+    const groups = [...document.querySelectorAll('#s3 fieldset.group')].map((f) => getComputedStyle(f).borderTopStyle);
+    return {
+      oneSize: new Set(sizes).size === 1,
+      levels: px('.form-section .section-title') > px('.subsection-title') && px('.subsection-title') > px('#s3 fieldset.group > legend') && px('#s3 fieldset.group > legend') > px('#s1 .field-label'),
+      phases: phases.join(','),
+      dotsOk: dots.includes('#s1') && document.querySelectorAll('.sidenav .nav-dot').length === dots.length,
+      noGroupBorders: groups.every((b) => b === 'none'),
+      cord: [...document.querySelectorAll('#s3 fieldset.group > legend')].some((l) => l.textContent === 'Navelstrengbloedgas'),
+    };
+  });
+  check(`${w}px: vaste kopniveaus (sectie > subkop > groep > veldlabel), één sectiekopmaat, groepen zonder kader`, calm.oneSize && calm.levels && calm.noGroupBorders && calm.cord, JSON.stringify(calm));
+  check(`${w}px: sectiemenu met fases en stipje bij ingevulde secties`, w < 1000 || (calm.phases === 'Verwijzing,Transportteam,Behandeling,Afronding' && calm.dotsOk), JSON.stringify(calm));
   const side = await page.evaluate(() => {
     const top = document.querySelector('.editor-layout .topbar').getBoundingClientRect();
     const nav = document.querySelector('.sidenav').getBoundingClientRect();
     const rep = document.querySelector('.report-side').getBoundingClientRect();
     const save = document.querySelector('.save-status');
     const sb = save.getBoundingClientRect();
-    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && rep.top >= document.querySelector('.sidenav ul').getBoundingClientRect().bottom - 1, saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60, evenGaps: (() => { const a = [...document.querySelectorAll('.sidenav li a')].map((x) => x.getBoundingClientRect()); return Math.abs((a[0].top - top.bottom) - (rep.top - a[a.length - 1].bottom)) < 1.5 && getComputedStyle(document.querySelector('.sidenav li:last-child a')).borderBottomWidth === '0px'; })() };
+    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && rep.top >= document.querySelector('.sidenav ul').getBoundingClientRect().bottom - 1, saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60, evenGaps: (() => { const a = [...document.querySelectorAll('.sidenav li a')].map((x) => x.getBoundingClientRect()); const first = (document.querySelector('.sidenav .nav-phase') ?? document.querySelector('.sidenav li a')).getBoundingClientRect(); return Math.abs((first.top - top.bottom) - (rep.top - a[a.length - 1].bottom)) < 1.5 && getComputedStyle(document.querySelector('.sidenav li:last-child a')).borderBottomWidth === '0px'; })() };
   });
   check(`${w}px: kop (Neo.Cab, kind) ${w >= 1000 ? 'links boven het sectiemenu, Verslag & export eronder, opslagicoon zwevend links onder' : 'als balk bovenaan'}, één keer in beeld`, side.headers === 1 && (w >= 1000 ? side.left && side.navVisible && side.reportUnderMenu && side.saveFloating && side.evenGaps : !side.navVisible && !side.reportUnderMenu), JSON.stringify(side));
   // Herkomst en bestemming: direct invulbaar, verwijzer boven ontvanger, twee kolommen

@@ -5,6 +5,7 @@ import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
 import { Logo, ReportIcon, SaveIcon, SectionIcon } from './icons';
 import { saveLevel } from './saveStatus';
+import { sectionFilled } from '../domain/progress';
 import {
   ChecklistSection,
   ChildSection,
@@ -23,22 +24,14 @@ import { MedicationsSection } from './sections/Medications';
 import { InfusionsSection } from './sections/Infusions';
 import { LinesSection } from './sections/Lines';
 
-export const SECTIONS = [
-  { id: 's1', label: 'Basisgegevens kind' },
-  { id: 's2', label: 'Herkomst en bestemming' },
-  { id: 's3', label: 'Verwijzing' },
-  { id: 'sdispatch', label: 'Dispatch' },
-  { id: 's5', label: 'Stabilisatie' },
-  { id: 's6', label: 'Tijdlijn' },
-  { id: 's7', label: 'Overige diagnostiek' },
-  { id: 's10', label: 'Ingebrachte materialen' },
-  { id: 's8', label: 'Medicatie' },
-  { id: 's9', label: 'Infusen' },
-  { id: 's11', label: 'Notities' },
-  { id: 's12', label: 'Gezin' },
-  { id: 's13', label: 'Checklist voor vertrek' },
-  { id: 's14', label: 'Transport' },
+/** Secties in volgorde, gegroepeerd in vier fases (tussenkoppen in het sectiemenu). */
+export const PHASES = [
+  { title: 'Verwijzing', sections: [{ id: 's1', label: 'Basisgegevens kind' }, { id: 's2', label: 'Herkomst en bestemming' }, { id: 's3', label: 'Verwijzing' }] },
+  { title: 'Transportteam', sections: [{ id: 'sdispatch', label: 'Dispatch' }, { id: 's5', label: 'Stabilisatie' }, { id: 's6', label: 'Tijdlijn' }, { id: 's7', label: 'Overige diagnostiek' }] },
+  { title: 'Behandeling', sections: [{ id: 's10', label: 'Ingebrachte materialen' }, { id: 's8', label: 'Medicatie' }, { id: 's9', label: 'Infusen' }] },
+  { title: 'Afronding', sections: [{ id: 's11', label: 'Notities' }, { id: 's12', label: 'Gezin' }, { id: 's13', label: 'Checklist voor vertrek' }, { id: 's14', label: 'Transport' }] },
 ];
+export const SECTIONS = PHASES.flatMap((p) => p.sections);
 
 function goToSection(id: string) {
   const el = document.getElementById(id);
@@ -164,10 +157,14 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                   }}
                 >
                   <option value="">Ga naar sectie…</option>
-                  {SECTIONS.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
+                  {PHASES.map((p) => (
+                    <optgroup key={p.title} label={p.title}>
+                      {p.sections.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
@@ -184,18 +181,33 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           </header>
           <nav className="sidenav" aria-label="Secties">
             <ul>
-              {SECTIONS.map((s) => (
-                <li key={s.id}>
-                  <a
-                    href={`#${s.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToSection(s.id);
-                    }}
-                  >
-                    <SectionIcon id={s.id} />
-                    <span>{s.label}</span>
-                  </a>
+              {PHASES.map((p) => (
+                <li key={p.title}>
+                  <div className="nav-phase" aria-hidden="true">
+                    {p.title}
+                  </div>
+                  <ul>
+                    {p.sections.map((s) => {
+                      const filled = sectionFilled(t, s.id);
+                      return (
+                        <li key={s.id}>
+                          <a
+                            href={`#${s.id}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              goToSection(s.id);
+                            }}
+                          >
+                            <SectionIcon id={s.id} />
+                            <span>{s.label}</span>
+                            {/* Stipje: in deze sectie is al iets ingevuld. */}
+                            {filled && <span className="nav-dot" title="Ingevuld" />}
+                            {filled && <span className="sr-only"> (ingevuld)</span>}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </li>
               ))}
             </ul>
@@ -207,6 +219,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           </nav>
         </div>
         <main className="form" id="main">
+          <h1 className="sr-only">Transportregistratie {childLabel(t.child.name, anonymous)}</h1>
           <ChildSection {...props} />
           <ReferralSection {...props} />
           <ReferralInfoSection {...props} />

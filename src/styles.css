@@ -16,11 +16,15 @@
   --alert-bg: #ffe0b8;
   --alert-border: #e07b00;
   --alert-text: #7a3c00;
-  --bg: #e8f3fa; /* lichtblauwe pagina-achtergrond: zeer lichte tint van kobaltblauw */
+  --bg: #eef3f8; /* zachte blauwgrijze pagina-achtergrond */
   --surface: #ffffff;
   --text: #1a1a1a; /* lopende tekst bij voorkeur zwart */
   --muted: #4a545e;
-  --border: #b9bfc6;
+  --border: #cfd5dc; /* zachte randen; focus maakt het actieve veld duidelijk */
+  --heading: #2b3138; /* groepskoppen */
+  --label: #3a424b; /* veldlabels */
+  --icon: #56606b; /* rustige icoonknoppen */
+  --soft: #f4f7fa; /* tint van tijdstip- en hypothermievlak */
   --line: #d9dcdf;
   --warning: #7a3c00;
   --focus: #007cc2;
@@ -2420,4 +2424,132 @@ select {
     justify-content: center;
     gap: 0.4rem;
   }
+}
+
+/* ===== Kalme stijl met vaste kopniveaus =====
+ * 1 sectie (blauw, groot) · 2 subkop (blauw, lijn erboven) · 3 groep (donkergrijs, half vet, zonder kader) · 4 veldlabel. */
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem 1rem;
+}
+/* 1. Sectiekop: overal dezelfde maat, ook naast een knop rechtsboven */
+.form-section .section-title {
+  font-size: 1.375rem;
+}
+/* 2. Subkop */
+.subsection-title {
+  font-size: 1.0625rem;
+  border-top-color: var(--line);
+}
+/* 3. Groep: geen kaders, eigen kop */
+fieldset.group {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+fieldset.group > legend,
+.segmented > legend.field-label,
+.hypothermia-subtitle,
+.hypothermia-panel legend,
+.abcd-extra > .field > .field-label {
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--heading);
+}
+/* Subgroep (bijv. Arterieel / Veneus onder Navelstrengbloedgas) */
+fieldset.subgroup > legend {
+  padding: 0;
+  margin-bottom: 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--icon);
+}
+/* 4. Veldlabel */
+.field-label,
+legend.field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--label);
+}
+.timepoint .field-label {
+  font-size: 0.9375rem;
+  color: var(--heading);
+}
+/* Invulvelden: zachte rand, duidelijke focus */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 3px solid rgba(0, 60, 125, 0.35);
+  outline-offset: 0;
+  border-color: var(--primary);
+}
+/* Icoonknoppen (potlood, klok, kruis, bellen) rustig grijs; blauw bij aanwijzen */
+button.secondary.icon-button,
+a.call-button {
+  border-color: var(--border);
+  color: var(--icon);
+  background: #fff;
+}
+button.secondary.icon-button:hover:not(:disabled),
+a.call-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.combo-toggle {
+  color: var(--icon);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2356606b' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+/* Tijdstipvakken en hypothermievlak: alleen streep en tint */
+.timepoint,
+.hypothermia-panel {
+  border: none;
+  border-left: 3px solid var(--primary);
+  background: var(--soft);
+}
+.hypothermia-panel .asphyxia-criteria {
+  background: transparent;
+}
+/* ABCD-letters: lichtblauw rondje, donkerblauwe letter */
+.abcd-letter {
+  background: var(--primary-10);
+  color: var(--primary);
+}
+/* Keuzeknoppen: zachtere rand */
+.seg span {
+  border-color: var(--border);
+}
+/* Sectiemenu: fases als kleine tussenkoppen, geen lijnen, stipje bij ingevulde secties */
+.nav-phase {
+  margin: 0.9rem 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--icon);
+}
+.sidenav > ul > li:first-child > .nav-phase {
+  margin-top: 0;
+}
+/* Hypothermievlak: kopjes niet groter dan de koptekst van Disability */
+.hypothermia-panel .hypothermia-subtitle,
+.hypothermia-panel fieldset.group > legend {
+  font-size: 0.875rem;
+}
+.sidenav a {
+  border-bottom: none;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  color: #22303d;
+}
+.nav-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #2e8b57;
 }

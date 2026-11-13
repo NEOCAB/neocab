@@ -277,3 +277,17 @@ describe('Perinatale asfyxie', () => {
     expect(asphyxiaCriteriaFromBirth(b)).toEqual(['apgar5', 'ph', 'be', 'lactate']);
   });
 });
+
+describe('Voortgang per sectie (stipje in het sectiemenu)', () => {
+  it('telt alleen echt ingevulde gegevens, geen standaardwaarden', async () => {
+    const { sectionFilled } = await import('./progress');
+    const t = newTransport();
+    for (const id of ['s1', 's2', 's3', 'sdispatch', 's5', 's6', 's7', 's10', 's8', 's9', 's11', 's12', 's13', 's14']) expect(sectionFilled(t, id)).toBe(false);
+    t.child.name = 'Baby';
+    t.checklist.gas = 'gedaan';
+    t.birth.apgar5 = 0;
+    expect(sectionFilled(t, 's1')).toBe(true);
+    expect(sectionFilled(t, 's13')).toBe(true);
+    expect(sectionFilled(t, 's3')).toBe(true);
+  });
+});
