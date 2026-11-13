@@ -2553,3 +2553,80 @@ select {
   border-radius: 50%;
   background: #2e8b57;
 }
+/*
+ * Keuzeknoppen als aaneengesloten schakelaar: één balk per vraag; de gekozen optie lichtblauw met donkerblauwe rand,
+ * donkerblauwe tekst en een vinkje (ook zonder kleur te herkennen). Op een smal scherm mag tekst in een optie afbreken.
+ */
+.segmented-options {
+  flex-wrap: nowrap;
+  gap: 0;
+  max-width: 100%;
+}
+.segmented-options .seg {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.segmented-options .seg span {
+  justify-content: center;
+  height: 100%;
+  margin-left: -1px;
+  border-radius: 0;
+  border-color: #d5dbe1;
+  background: #f1f4f7;
+  color: var(--label);
+  text-align: center;
+  font-weight: 400;
+}
+.segmented-options .seg:first-child span {
+  margin-left: 0;
+  border-radius: 8px 0 0 8px;
+}
+.segmented-options .seg:last-child span {
+  border-radius: 0 8px 8px 0;
+}
+.segmented-options .seg:only-child span {
+  border-radius: 8px;
+}
+.segmented-options .seg:hover span {
+  background: #e7ecf1;
+}
+.segmented-options .seg.checked span {
+  position: relative;
+  z-index: 1;
+  border-color: var(--primary);
+  background: var(--primary-10);
+  color: var(--primary);
+  font-weight: 700;
+}
+.segmented-options .seg.checked span::before {
+  content: '';
+  flex: none;
+  width: 0.42em;
+  height: 0.75em;
+  margin: -0.2em 0.5em 0 0.05em;
+  border: solid var(--primary);
+  border-width: 0 0.16em 0.16em 0;
+  transform: rotate(45deg);
+}
+.segmented-options .seg input:focus-visible + span {
+  z-index: 2;
+}
+.segmented-options {
+  align-items: stretch;
+}
+.segmented-options .seg {
+  display: flex;
+}
+.segmented-options .seg span {
+  flex: 1 1 auto;
+  height: auto;
+}
+@media (max-width: 480px) {
+  .segmented-options .seg span {
+    padding-inline: 0.55rem;
+  }
+}
+/* Het (onzichtbare) keuzerondje blijft bovenop, zodat tikken altijd de keuze raakt */
+.segmented-options .seg input {
+  z-index: 3;
+}
