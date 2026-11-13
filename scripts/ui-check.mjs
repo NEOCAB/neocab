@@ -162,9 +162,9 @@ async function basisLayout(page) {
   check('Laatste voeding direct onder Gastro-intestinal (Stabilisatie)', feedAfterGi);
   // Antenatale corticosteroïden en magnesium: zonder knop Wissen; nogmaals tikken wist de keuze
   const cortico = page.locator('#s3 fieldset.segmented', { hasText: 'Antenatale corticosteroïden' });
-  await cortico.getByRole('radio', { name: 'Volledige kuur', exact: true }).click();
+  await cortico.getByRole('radio', { name: 'Volledig', exact: true }).click();
   const corticoOn = await cortico.locator('input:checked').count();
-  await cortico.getByRole('radio', { name: 'Volledige kuur', exact: true }).click();
+  await cortico.getByRole('radio', { name: 'Volledig', exact: true }).click();
   check('Corticosteroïden: geen Wissen-knop; nogmaals tikken op de keuze wist die', corticoOn === 1 && (await cortico.locator('input:checked').count()) === 0 && (await cortico.getByRole('button', { name: 'Wissen' }).count()) === 0);
   check('Nergens een knop Wissen bij keuzeknoppen (ook niet bij ademhalingsondersteuning)', (await page.locator('.segmented, .mode-picker').getByRole('button', { name: /wissen/i }).count()) === 0);
   check('Vitamine K: Ja, oraal / Ja, IM / Ja, IV / Nee (geen Anders)', JSON.stringify(await page.locator('#s3 fieldset.segmented', { hasText: 'Vitamine K' }).locator('.seg span').allTextContents()) === JSON.stringify(['Ja, oraal', 'Ja, IM', 'Ja, IV', 'Nee']));

@@ -31,8 +31,8 @@ export const ABCD_LABELS: Record<AbcdKey, string> = {
 
 export const CORTICO_OPTIONS: Options<Corticosteroids> = [
   { value: 'niet', label: 'Niet' },
-  { value: 'onvolledig', label: 'Onvolledige kuur' },
-  { value: 'volledig', label: 'Volledige kuur' },
+  { value: 'onvolledig', label: 'Onvolledig' },
+  { value: 'volledig', label: 'Volledig' },
   { value: 'onbekend', label: 'Onbekend' },
 ];
 
