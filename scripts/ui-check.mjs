@@ -449,13 +449,14 @@ async function basisLayout(page) {
   // Herladen: gegevens en tijdstippen behouden
   // Geen knop Concept opslaan meer: wachten tot de automatische opslag klaar is.
   check('Geen knop Concept opslaan en geen knop Overzicht; logo leidt terug', (await page.getByRole('button', { name: /Concept opslaan|^Opslaan$/ }).count()) === 0 && (await page.locator('.topbar .back').count()) === 0 && (await page.locator('.topbar').getByText('Actieve registratie').count()) === 0);
-  await page.locator('.save-status.ok').waitFor();
+  await page.locator('.save-status.ok').waitFor({ state: 'attached' });
   const saveLayout = await page.evaluate(() => {
     const st = document.querySelector('.topbar-actions .save-status');
-    const btn = [...document.querySelectorAll('.topbar-actions button')].find((b) => b.textContent.includes('Verslag'));
-    return !!st && !!btn && st.nextElementSibling === btn && !!st.querySelector('.save-icon svg');
+    const btn = document.querySelector('.topbar-actions .report-top');
+    const bar = document.querySelector('.editor-side .topbar');
+    return { hidden: getComputedStyle(st).display === 'none', iconOnly: btn.getBoundingClientRect().width <= 48 && btn.textContent.includes('Verslag & export'), square: getComputedStyle(bar).borderTopLeftRadius === '0px' };
   });
-  check('Opslagstatus met diskette-icoon links naast Verslag', saveLayout);
+  check('Bovenbalk telefoon: rechte hoeken, exportknop alleen icoon (naam voor schermlezers), opslagicoon verborgen zolang opslaan lukt', saveLayout.hidden && saveLayout.iconOnly && saveLayout.square, JSON.stringify(saveLayout));
   const timesBefore = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   await page.reload();
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
@@ -572,7 +573,7 @@ async function basisLayout(page) {
   check('Persoonlijk apparaat: geen naam of patiëntnummer in de lokale opslag', !stored.includes('Testbaby') && !stored.includes('0007788') && !stored.includes('Baby Voorbeeld') && !stored.includes('0012345'));
   // Opslagstatus: groen met diskette na opslaan; rood met klokje als opslaan mislukt
   await own.getByLabel('Geboortegewicht', { exact: true }).fill('2000');
-  await own.locator('.save-status.ok').waitFor();
+  await own.locator('.save-status.ok').waitFor({ state: 'attached' });
   const greenIcon = await own.locator('.save-status.ok .save-icon').evaluate((e) => [getComputedStyle(e).color, e.innerHTML.length]);
   await own.evaluate(() => {
     Storage.prototype.setItem = function () {

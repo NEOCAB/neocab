@@ -204,7 +204,8 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
               </span>
               <button type="button" className="primary small report-top" onClick={() => { saveNow(); onReport(); }}>
                 <ReportIcon />
-                Verslag<span className="wide-only"> &amp; export</span>
+                {/* In de bovenbalk alleen het icoon; de naam blijft voor schermlezers. */}
+                <span className="sr-only">Verslag &amp; export</span>
               </button>
             </div>
           </header>

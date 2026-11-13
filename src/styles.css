@@ -2830,3 +2830,20 @@ a.call-button:hover {
     outline-color: #fff;
   }
 }
+/* Bovenbalk (telefoon, smalle tablet): rechte hoeken, exportknop alleen icoon, opslagicoon alleen bij een opslagfout */
+@media (max-width: 999px) {
+  .editor-side .topbar {
+    border-radius: 0;
+  }
+  .editor-side .report-top {
+    width: var(--tap);
+    min-width: var(--tap);
+    padding: 0;
+  }
+  .editor-side .report-top .report-icon {
+    font-size: 1.45rem;
+  }
+  .editor-side .save-status:not(.error) {
+    display: none;
+  }
+}
