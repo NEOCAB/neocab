@@ -135,7 +135,7 @@ async function basisLayout(page) {
     font: getComputedStyle(document.body).fontFamily,
     loaded: document.fonts.check('15px "PT Sans"'),
     h2: getComputedStyle(document.querySelector('#s1 h2')).color,
-    primary: getComputedStyle(document.querySelector('button.primary')).backgroundColor,
+    primary: getComputedStyle(document.querySelector('#main button.primary')).backgroundColor,
   }));
   check('Huisstijl: PT Sans geladen', style.font.includes('PT Sans') && style.loaded, JSON.stringify(style));
   check('Huisstijl: koppen en primaire knop donkerblauw #003c7d', style.h2 === 'rgb(0, 60, 125)' && style.primary === 'rgb(0, 60, 125)', `${style.h2} / ${style.primary}`);
