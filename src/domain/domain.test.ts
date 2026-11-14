@@ -291,3 +291,17 @@ describe('Voortgang per sectie (stipje in het sectiemenu)', () => {
     expect(sectionFilled(t, 's3')).toBe(true);
   });
 });
+
+describe('Getypte kloktijd', () => {
+  it('parseert 2235, 22:35, 935 en 9; weigert ongeldige tijden', async () => {
+    const { parseClockTime } = await import('./time');
+    expect(parseClockTime('2235')).toBe('22:35');
+    expect(parseClockTime('22:35')).toBe('22:35');
+    expect(parseClockTime('935')).toBe('09:35');
+    expect(parseClockTime('9')).toBe('09:00');
+    expect(parseClockTime('2460')).toBeNull();
+    expect(parseClockTime('2575')).toBeNull();
+    expect(parseClockTime('')).toBeNull();
+    expect(parseClockTime('12345')).toBeNull();
+  });
+});

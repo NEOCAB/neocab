@@ -139,3 +139,18 @@ export function compareInstants(a: Instant, b: Instant): number {
   if (bm === null) return -1;
   return am - bm;
 }
+
+/** Lokale kalenderdatum van een tijdstip in milliseconden. */
+export function localDateOfMs(ms: number, timeZone: string = DEFAULT_TIME_ZONE): LocalDate {
+  return localDateOf(toInstant(ms, timeZone), timeZone);
+}
+
+/** Getypte kloktijd: "2235", "22:35", "935" of "9" → "HH:MM"; `null` als dit geen geldige tijd is. */
+export function parseClockTime(text: string): string | null {
+  const d = text.replace(/\D/g, '');
+  if (!d || d.length > 4) return null;
+  const h = d.length <= 2 ? Number(d) : Number(d.slice(0, d.length - 2));
+  const m = d.length <= 2 ? 0 : Number(d.slice(-2));
+  if (h > 23 || m > 59) return null;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}

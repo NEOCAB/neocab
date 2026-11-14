@@ -2847,3 +2847,193 @@ a.call-button:hover {
     display: none;
   }
 }
+/* ===== 12-koloms grid =====
+ * Eén kolomindeling voor alle secties: 12 kolommen met 16px tussenruimte. Veldbreedtes in kolommen
+ * (korte waarden 3, namen 6, vrije tekst 12), zodat randen overal op dezelfde lijnen vallen. */
+.form-section {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.grid,
+.grid.two,
+.grid.three,
+.basis-grid,
+.party-row,
+.cord-pair {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.grid > * {
+  grid-column: span 4;
+}
+.grid.two > *,
+.grid.two.tight > * {
+  grid-column: span 6;
+}
+.grid.three > * {
+  grid-column: span 4;
+}
+.basis-grid > * {
+  grid-column: span 3;
+}
+.party-row > * {
+  grid-column: span 6;
+}
+.cord-pair > * {
+  grid-column: span 6;
+}
+.cord-pair .grid.three > * {
+  grid-column: span 4;
+}
+.grid > .dt-field {
+  grid-column: 1 / -1;
+}
+@media (max-width: 699px) {
+  .grid > *,
+  .grid.two > *,
+  .grid.three > *,
+  .party-row > *,
+  .cord-pair > * {
+    grid-column: 1 / -1;
+  }
+  .grid.two.tight > *,
+  .grid.two.phones > * {
+    grid-column: span 6;
+  }
+  .basis-grid > * {
+    grid-column: span 6;
+  }
+}
+/* ===== Tijdstipblok op het grid =====
+ * Herkenbaar blok (streep, tint, icoon, naam) met een inline tijdveld: naam kolom 1-3, veld kolom 4-7. */
+.timepoint {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 0.25rem;
+  max-width: none;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.timepoint .tp-head {
+  grid-column: 1 / span 3;
+}
+.timepoint .tf {
+  grid-column: 4 / span 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 6px 0 12px;
+  background: #fff;
+}
+.timepoint .tf input[type='text'] {
+  flex: 1 1 auto;
+  min-width: 2rem;
+  min-height: 0;
+  height: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.timepoint .tf input[type='text']:focus {
+  outline: none;
+}
+.timepoint .tf:focus-within {
+  border: 2px solid var(--primary);
+  padding: 0 5px 0 11px;
+}
+.timepoint .tf input::placeholder {
+  color: #9aa3ad;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+.timepoint .tf .nu {
+  flex: none;
+  height: 32px;
+  min-height: 0;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary-10);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 14px;
+}
+.timepoint .tf .nu:hover {
+  background: var(--primary-20);
+}
+.timepoint .tf .tp-date {
+  flex: none;
+  min-height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+.timepoint .tf .tp-date:hover {
+  background: var(--primary-10);
+  color: var(--primary);
+}
+.timepoint .tf .tp-date-input {
+  flex: 0 1 11rem;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 6px;
+  font-size: 14px;
+}
+.timepoint .field-error,
+.timepoint .tp-undo {
+  grid-column: 4 / -1;
+}
+@media (max-width: 699px) {
+  .timepoint .tp-head {
+    grid-column: 1 / span 5;
+  }
+  .timepoint .tf {
+    grid-column: 6 / -1;
+  }
+  .timepoint .field-error,
+  .timepoint .tp-undo {
+    grid-column: 1 / -1;
+  }
+}
+/* ===== Zijbalk op het grid =====
+ * Breed scherm: de pagina is één 12-koloms grid; de zijbalk beslaat kolom 1-3, het formulier kolom 4-12. */
+@media (min-width: 1000px) {
+  .editor-body {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 16px;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  .editor-side {
+    grid-column: 1 / span 3;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  /* Donkere balk doorlopend tot de linker schermrand als de pagina gecentreerd is. */
+  .editor-side::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 100%;
+    width: 50vw;
+    background: #263d57;
+  }
+  .form {
+    grid-column: 4 / -1;
+    max-width: none;
+    padding: 0.75rem 16px 4rem 0;
+  }
+}

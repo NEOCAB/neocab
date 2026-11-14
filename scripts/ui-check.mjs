@@ -266,23 +266,33 @@ async function basisLayout(page) {
   check('Geen allergieën en geen checklistlegenda', (await page.getByLabel('Allergieën', { exact: true }).count()) === 0 && (await page.locator('#s13 .checklist-legend').count()) === 0);
   check('Dispatch-tijden standaard leeg', (await tpVal('Ambulance gebeld')) === '' && (await tpVal('Vertrek team')) === '');
   const calledBox = page.locator('.timepoint[data-label="Ambulance gebeld"]');
-  check('Leeg tijdstip: één grote knop Nu, geen Wissen', (await calledBox.locator('.tp-now').count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
+  const calledInput = calledBox.getByRole('textbox', { name: 'Ambulance gebeld' });
+  check('Leeg tijdstip: inline veld uu:mm met knop Nu erin, geen Wissen', (await calledInput.getAttribute('placeholder')) === 'uu:mm' && (await calledBox.locator('.tf .nu').count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
   await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
   const calledVal = await tpVal('Ambulance gebeld');
   check('Ambulance gebeld: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(calledVal), calledVal);
-  check('Ingevuld tijdstip: tijd groot met "vandaag", potlood om te wijzigen, geen Wissen', (await calledBox.locator('.tp-time').textContent()) === calledVal.slice(11, 16) && (await calledBox.locator('.tp-day').textContent()) === 'vandaag' && (await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
-  await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).click();
-  const calledInput = page.getByLabel('Ambulance gebeld', { exact: true });
-  await calledInput.fill('2026-10-09T22:20');
-  await calledBox.getByRole('button', { name: /klaar met wijzigen/ }).click();
-  check('Wijzigen via potlood: nieuwe tijd zichtbaar', (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20' && (await calledBox.locator('.tp-day').textContent()) === '09-10-2026');
-  await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).click();
-  await calledBox.getByRole('button', { name: 'Ambulance gebeld wissen' }).click();
+  check('Ingevuld tijdstip: tijd in het veld, dagknop "vandaag", geen potlood of Nu meer', (await calledInput.inputValue()) === calledVal.slice(11, 16) && (await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen \(vandaag\)/ }).count()) === 1 && (await calledBox.locator('.tf .nu').count()) === 0 && (await calledBox.getByRole('button', { name: /wijzigen$/ }).count()) === 0);
+  // Tijd overtypen: vier cijfers volstaan; de datum blijft staan.
+  await calledInput.fill('2220');
+  await calledInput.press('Enter');
+  const today = calledVal.slice(0, 10);
+  check('Tijd overtypen (2220 → 22:20), datum blijft', (await tpVal('Ambulance gebeld')) === `${today}T22:20`, await tpVal('Ambulance gebeld'));
+  // Datum aanpassen via de dagknop.
+  await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen/ }).click();
+  await calledBox.getByLabel('Datum van Ambulance gebeld', { exact: true }).fill('2026-10-09');
+  check('Dagknop: datum aanpasbaar zonder de tijd te verliezen', (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20' && (await calledBox.locator('.tf .tp-date').textContent()) === '09-10-2026', await tpVal('Ambulance gebeld'));
+  // Leegmaken wist de tijd, met Ongedaan maken.
+  await calledInput.fill('');
+  await calledInput.press('Enter');
   const wiped = (await tpVal('Ambulance gebeld')) === '';
   await calledBox.getByRole('button', { name: 'Ongedaan maken' }).click();
-  check('Wissen alleen bij wijzigen, met Ongedaan maken', wiped && (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20');
-  await calledBox.getByRole('button', { name: 'Ambulance gebeld wijzigen' }).click();
-  await calledBox.getByRole('button', { name: 'Ambulance gebeld wissen' }).click();
+  check('Leegmaken wist de tijd, met Ongedaan maken', wiped && (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20');
+  // Ongeldige tijd: foutmelding, waarde blijft.
+  await calledInput.fill('2575');
+  await calledInput.press('Enter');
+  check('Ongeldige tijd geeft een melding en wist niets', (await calledBox.locator('.field-error').count()) === 1 && (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20');
+  await calledInput.fill('');
+  await calledInput.press('Enter');
   await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
@@ -628,6 +638,13 @@ for (const [w, h] of [
     };
   });
   check(`${w}px: vaste kopniveaus (sectie > subkop > groep > veldlabel), één sectiekopmaat, groepen zonder kader`, calm.oneSize && calm.levels && calm.noGroupBorders && calm.cord, JSON.stringify(calm));
+  const grid12 = await page.evaluate(() => {
+    const tracks = (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length;
+    const body = document.querySelector('.editor-body');
+    const tp = document.querySelector('.timepoint');
+    return { basis: tracks(document.querySelector('.basis-grid')), tp: tracks(tp), tpField: !!tp.querySelector('.tf input'), body: innerWidth >= 1000 ? tracks(body) : 12, side: innerWidth >= 1000 ? getComputedStyle(document.querySelector('.editor-side')).gridColumnEnd : 'span 3' };
+  });
+  check(`${w}px: alles op het 12-koloms grid (secties, tijdstipblok, zijbalk kolom 1-3)`, grid12.basis === 12 && grid12.tp === 12 && grid12.tpField && grid12.body === 12 && grid12.side === 'span 3', JSON.stringify(grid12));
   check(`${w}px: sectiemenu met fases en stipje bij ingevulde secties`, w < 1000 || (calm.phases === 'Verwijzing,Transportteam,Behandeling,Afronding' && calm.dotsOk), JSON.stringify(calm));
   const side = await page.evaluate(() => {
     const top = document.querySelector('.editor-layout .topbar').getBoundingClientRect();
@@ -642,9 +659,9 @@ for (const [w, h] of [
   const partyLayout = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#s2 .party-row')];
     const labels = [...document.querySelectorAll('#s2 .party-row .field-label')].map((l) => l.textContent);
-    return { rows: rows.length, labels, twoCols: getComputedStyle(rows[0]).gridTemplateColumns.split(' ').length === 2, belowFirst: rows[1].getBoundingClientRect().top >= rows[0].getBoundingClientRect().bottom - 1 };
+    return { rows: rows.length, labels, twoCols: getComputedStyle(rows[0]).gridTemplateColumns.split(' ').length === 12, belowFirst: rows[1].getBoundingClientRect().top >= rows[0].getBoundingClientRect().bottom - 1 };
   });
-  check(`${w}px: verwijzer boven ontvanger, direct invulbaar in twee kolommen, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 1, JSON.stringify(partyLayout));
+  check(`${w}px: verwijzer boven ontvanger, direct invulbaar op het 12-koloms grid, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 1, JSON.stringify(partyLayout));
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });

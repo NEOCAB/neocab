@@ -2,7 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent
 import type { Instant, LocalDate, Num } from '../domain/types';
 import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
-import { instantToWall, isValidLocalDate, nowInstant, todayLocalDate, wallToInstant } from '../domain/time';
+import { instantToWall, isValidLocalDate, localDateOfMs, nowInstant, parseClockTime, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
 import { AddIcon, ExpandIcon, SectionIcon, TimepointIcon } from './icons';
 
@@ -308,140 +308,61 @@ function relativeDay(wallDate: string, tz: string): string {
   return `${d}-${m}-${y}`;
 }
 
-/** Potlood: tijdstip wijzigen. */
-function EditIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <path d="M4 20h4L19 9l-4-4L4 16v4z" />
-      <path d="M13.5 6.5l4 4" />
-    </svg>
-  );
-}
-
-/** Vinkje: klaar met wijzigen. */
-function DoneIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <path d="M5 12.5l4.5 4.5L19 7.5" />
-    </svg>
-  );
-}
-
 const UNDO_MS = 10_000;
 
 /**
- * Vast tijdstip van het transport (verwijzing, ambulance aangevraagd, vertrek transportteam, aankomst bij kind,
- * vertrek met kind, aankomst ontvangend centrum). Alle zes in dezelfde vormgeving:
- * - leeg: één grote knop "Nu" (en "Tijd invoeren" om een eerdere tijd te typen);
- * - ingevuld: de tijd groot en de dag klein ("22:10 · vandaag"), met een potlood om te wijzigen;
- * - wijzigen: datum/tijd-veld met Klaar; Wissen staat alleen hier, met daarna "Ongedaan maken".
+ * Vast tijdstip van het transport (tijdstip verwijzing, ambulance gebeld, vertrek team, aankomst bij kind,
+ * vertrek met kind, aankomst). Herkenbaar blok (streep, icoon, naam) met een inline tijdveld:
+ * - leeg: veld "uu:mm" met een knop Nu erin (één tik), of typ de tijd (2235 → 22:35);
+ * - ingevuld: de tijd staat in het veld, met de dag als klein knopje erachter (tik = datum aanpassen);
+ * - wijzigen: tik in het veld en typ eroverheen; leegmaken wist de tijd, met Ongedaan maken.
  */
 export function TimepointField({ label, value, onChange }: { label: string; value: Instant; onChange: (v: Instant) => void }) {
   const id = useId();
   const labelId = `${id}-label`;
   const tz = useTimeZone();
-  const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [text, setText] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [undo, setUndo] = useState<Instant>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editRef = useRef<HTMLButtonElement>(null);
-  const focusEdit = useRef(false);
+  const [dateOpen, setDateOpen] = useState(false);
   const wall = instantToWall(value, tz);
 
-  useEffect(() => {
-    if (editing) inputRef.current?.focus();
-    else if (focusEdit.current) {
-      focusEdit.current = false;
-      editRef.current?.focus();
-    }
-  }, [editing]);
   useEffect(() => {
     if (!undo) return;
     const h = window.setTimeout(() => setUndo(null), UNDO_MS);
     return () => window.clearTimeout(h);
   }, [undo]);
 
-  const done = () => {
-    if (error) return;
-    focusEdit.current = value !== null;
-    setEditing(false);
-  };
-  const clear = () => {
-    setUndo(value);
+  /** Verwerkt de getypte tijd; de datum blijft die van de bestaande waarde, of wordt automatisch gekozen. */
+  const commit = (raw: string) => {
+    const t = raw.trim();
+    if (t === '') {
+      if (value) {
+        setUndo(value);
+        onChange(null);
+      }
+      setError(null);
+      return;
+    }
+    const hm = parseClockTime(t);
+    if (!hm) {
+      setError('Voer een tijd in als 22:35 (of 2235).');
+      return;
+    }
+    let date = wall ? wall.slice(0, 10) : todayLocalDate(tz);
+    let inst = wallToInstant(`${date}T${hm}`, tz);
+    // Leeg veld: meer dan 12 uur in de toekomst kan niet; dan was het gisteren (bijv. rond middernacht).
+    if (!wall && inst && Date.parse(inst) - Date.now() > 12 * 3_600_000) {
+      date = localDateOfMs(Date.now() - 86_400_000, tz);
+      inst = wallToInstant(`${date}T${hm}`, tz);
+    }
     setError(null);
-    onChange(null);
-    setEditing(false);
+    setUndo(null);
+    onChange(inst);
   };
 
-  let body: ReactNode;
-  if (editing) {
-    body = (
-      <div className="dt-row">
-        <input
-          ref={inputRef}
-          id={id}
-          type="datetime-local"
-          value={wall}
-          aria-labelledby={labelId}
-          aria-describedby={error ? `${id}-error` : undefined}
-          aria-invalid={error ? true : undefined}
-          onKeyDown={(e) => e.key === 'Enter' && done()}
-          onChange={(e) => {
-            if (e.target.value === '') {
-              setError(null);
-              onChange(null);
-              return;
-            }
-            const i = wallToInstant(e.target.value, tz);
-            if (i) {
-              setError(null);
-              onChange(i);
-            } else setError('Voer een geldige datum en tijd in.');
-          }}
-        />
-        <button type="button" className="primary icon-button" aria-label={`${label}: klaar met wijzigen`} title="Klaar" onClick={done}>
-          <DoneIcon />
-        </button>
-        {value !== null && (
-          <button type="button" className="link-button tp-clear" aria-label={`${label} wissen`} onClick={clear}>
-            Wissen
-          </button>
-        )}
-      </div>
-    );
-  } else if (value === null) {
-    body = (
-      <div className="tp-empty">
-        <button type="button" className="primary tp-now" aria-label={`${label} op nu zetten`} onClick={() => { setUndo(null); onChange(nowInstant(tz)); }}>
-          <ClockIcon />
-          <span>Nu</span>
-        </button>
-        <button type="button" className="link-button" aria-label={`${label}: tijd invoeren`} onClick={() => setEditing(true)}>
-          Tijd invoeren
-        </button>
-        {undo && (
-          <span className="tp-undo" role="status">
-            Gewist.{' '}
-            <button type="button" className="link-button" onClick={() => { onChange(undo); setUndo(null); }}>
-              Ongedaan maken
-            </button>
-          </span>
-        )}
-      </div>
-    );
-  } else {
-    body = (
-      <div className="tp-filled">
-        <time className="tp-value" dateTime={value}>
-          <span className="tp-time">{wall.slice(11, 16)}</span>
-          <span className="tp-day">{relativeDay(wall.slice(0, 10), tz)}</span>
-        </time>
-        <button ref={editRef} type="button" className="secondary icon-button" aria-label={`${label} wijzigen`} title="Wijzigen" onClick={() => setEditing(true)}>
-          <EditIcon />
-        </button>
-      </div>
-    );
-  }
+  const shownTime = editing ? text : wall.slice(11, 16);
 
   return (
     <div className={`field timepoint ${error ? 'has-error' : ''}`} data-label={label} data-value={wall}>
@@ -451,11 +372,90 @@ export function TimepointField({ label, value, onChange }: { label: string; valu
           {label}
         </span>
       </div>
-      {body}
+      <div className={`tf ${editing ? 'editing' : ''}`}>
+        <input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          enterKeyHint="done"
+          placeholder="uu:mm"
+          value={shownTime}
+          aria-labelledby={labelId}
+          aria-describedby={error ? `${id}-error` : undefined}
+          aria-invalid={error ? true : undefined}
+          onFocus={(e) => {
+            setEditing(true);
+            setText(wall.slice(11, 16));
+            e.target.select();
+          }}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          }}
+          onBlur={() => {
+            setEditing(false);
+            commit(text);
+          }}
+        />
+        {!value && (
+          <button
+            type="button"
+            className="nu"
+            aria-label={`${label} op nu zetten`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setUndo(null);
+              setError(null);
+              onChange(nowInstant(tz));
+            }}
+          >
+            Nu
+          </button>
+        )}
+        {value &&
+          (dateOpen ? (
+            <input
+              className="tp-date-input"
+              type="date"
+              value={wall.slice(0, 10)}
+              aria-label={`Datum van ${label}`}
+              autoFocus
+              onChange={(e) => {
+                if (!isValidLocalDate(e.target.value)) return;
+                onChange(wallToInstant(`${e.target.value}T${wall.slice(11, 16)}`, tz));
+                setDateOpen(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.key === 'Enter') setDateOpen(false);
+              }}
+              onBlur={() => setDateOpen(false)}
+            />
+          ) : (
+            <button type="button" className="tp-date" title="Datum wijzigen" aria-label={`Datum van ${label} wijzigen (${relativeDay(wall.slice(0, 10), tz)})`} onClick={() => setDateOpen(true)}>
+              {relativeDay(wall.slice(0, 10), tz)}
+            </button>
+          ))}
+      </div>
       {error && (
         <div className="field-error" id={`${id}-error`} role="alert">
           {error}
         </div>
+      )}
+      {undo && (
+        <span className="tp-undo" role="status">
+          Gewist.{' '}
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => {
+              onChange(undo);
+              setUndo(null);
+            }}
+          >
+            Ongedaan maken
+          </button>
+        </span>
       )}
     </div>
   );
