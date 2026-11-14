@@ -144,13 +144,17 @@ async function basisLayout(page) {
   check('Geen LUMC-logo of -naam in titel, kop en bovenbalk', !(await page.title()).includes('LUMC') && !(await page.locator('.topbar').textContent()).includes('LUMC') && (await page.locator('img[alt*="LUMC" i]').count()) === 0);
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
-  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).boxShadow.includes('rgb(0, 60, 125)'), e.querySelectorAll('button').length]));
+  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(0, 60, 125)'), e.querySelectorAll('button').length]));
   const expected = [['s2', 'Tijdstip verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
-  check('Tijdstippen gelijk vormgegeven (streep als inzet-schaduw op het grid, zonder omschrijving)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
+  check('Tijdstippen gelijk vormgegeven (gewoon veld met blauwe streep erin, kop erboven)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
-  const tpFull = await page.locator('#sdispatch .timepoint').first().evaluate((e) => { const ps = getComputedStyle(e.parentElement); return Math.abs(e.getBoundingClientRect().width - (e.parentElement.clientWidth - parseFloat(ps.paddingLeft) - parseFloat(ps.paddingRight))) < 2; });
-  check('Blauwe tijdstipvakken over de volle beschikbare breedte', tpFull);
+  const tpField = await page.locator('#sdispatch .timepoint').first().evaluate((e) => {
+    const head = e.querySelector('.tp-head').getBoundingClientRect();
+    const tf = e.querySelector('.tf').getBoundingClientRect();
+    return { kopBoven: head.bottom <= tf.top + 1, span: getComputedStyle(e).gridColumnEnd, veldBreed: Math.abs(tf.width - e.getBoundingClientRect().width) < 2, smal: innerWidth < 700 };
+  });
+  check('Tijdstip: veldkop boven het veld, veld op het grid', tpField.kopBoven && tpField.veldBreed && (tpField.smal || tpField.span === 'span 4'), JSON.stringify(tpField));
   // Ingebrachte materialen: maat zonder eenheid; tippositie als gewoon invulveld (één regel); werkdiagnose één regel
   check('Ingebrachte materialen: geen eenheid bij maat; tippositie en controle één regel', (await page.getByLabel('Eenheid maat').count()) === 0 && (await page.locator('#s10 textarea').count()) === 0);
   check('Werkdiagnose is een gewoon invulveld van één regel', (await page.locator('#s5').getByLabel('Werkdiagnose', { exact: true }).evaluate((e) => e.tagName)) === 'INPUT');
@@ -642,7 +646,7 @@ for (const [w, h] of [
     const tracks = (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length;
     const body = document.querySelector('.editor-body');
     const tp = document.querySelector('.timepoint');
-    return { basis: tracks(document.querySelector('.basis-grid')), tp: tracks(tp), tpField: !!tp.querySelector('.tf input'), body: innerWidth >= 1000 ? tracks(body) : 12, side: innerWidth >= 1000 ? getComputedStyle(document.querySelector('.editor-side')).gridColumnEnd : 'span 3' };
+    return { basis: tracks(document.querySelector('.basis-grid')), tp: tracks(tp.parentElement), tpField: !!tp.querySelector('.tf input'), body: innerWidth >= 1000 ? tracks(body) : 12, side: innerWidth >= 1000 ? getComputedStyle(document.querySelector('.editor-side')).gridColumnEnd : 'span 3' };
   });
   check(`${w}px: alles op het 12-koloms grid (secties, tijdstipblok, zijbalk kolom 1-3)`, grid12.basis === 12 && grid12.tp === 12 && grid12.tpField && grid12.body === 12 && grid12.side === 'span 3', JSON.stringify(grid12));
   check(`${w}px: sectiemenu met fases en stipje bij ingevulde secties`, w < 1000 || (calm.phases === 'Verwijzing,Transportteam,Behandeling,Afronding' && calm.dotsOk), JSON.stringify(calm));

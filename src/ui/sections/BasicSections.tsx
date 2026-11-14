@@ -101,7 +101,9 @@ export function ReferralSection({ t, update }: SectionProps) {
   const tel = r.referrerPhone.replace(/[^\d+]/g, '');
   return (
     <Section id="s2" title="Herkomst en bestemming">
-      <TimepointField label="Tijdstip verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
+      <div className="grid">
+        <TimepointField label="Tijdstip verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
+      </div>
       {/* Verwijzer boven ontvanger, direct in te vullen; twee kolommen op een breed scherm. */}
       <div className="party-rows">
         <div className="party-row">
@@ -347,13 +349,16 @@ export function DispatchSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['dispatch']>(k: K, v: Transport['dispatch'][K]) => update((x) => ({ ...x, dispatch: { ...x.dispatch, [k]: v } }));
   return (
     <Section id="sdispatch" title="Dispatch">
-      <TimepointField label="Ambulance gebeld" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
-      <TimepointField label="Vertrek team" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
-      <TimepointField
-        label="Aankomst bij kind"
-        value={t.teamAssessment.arrivedAt}
-        onChange={(v) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, arrivedAt: v } }))}
-      />
+      {/* Drie tijden naast elkaar op het grid (elk 4 kolommen); op een telefoon onder elkaar. */}
+      <div className="grid">
+        <TimepointField label="Ambulance gebeld" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
+        <TimepointField label="Vertrek team" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
+        <TimepointField
+          label="Aankomst bij kind"
+          value={t.teamAssessment.arrivedAt}
+          onChange={(v) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, arrivedAt: v } }))}
+        />
+      </div>
     </Section>
   );
 }
@@ -435,9 +440,13 @@ export function ClosureSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['closure']>(k: K, v: Transport['closure'][K]) => update((x) => ({ ...x, closure: { ...x.closure, [k]: v } }));
   return (
     <Section id="s14" title="Transport">
-      <TimepointField label="Vertrek met kind" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
+      <div className="grid">
+        <TimepointField label="Vertrek met kind" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
+      </div>
       <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
-      <TimepointField label="Aankomst" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
+      <div className="grid">
+        <TimepointField label="Aankomst" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
+      </div>
     </Section>
   );
 }
