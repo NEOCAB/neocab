@@ -144,10 +144,10 @@ async function basisLayout(page) {
   check('Geen LUMC-logo of -naam in titel, kop en bovenbalk', !(await page.title()).includes('LUMC') && !(await page.locator('.topbar').textContent()).includes('LUMC') && (await page.locator('img[alt*="LUMC" i]').count()) === 0);
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
-  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).borderLeftColor, e.querySelectorAll('button').length]));
+  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e).boxShadow.includes('rgb(0, 60, 125)'), e.querySelectorAll('button').length]));
   const expected = [['s2', 'Tijdstip verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
-  check('Tijdstippen gelijk vormgegeven (zonder omschrijving, streep, Nu of tijd met potlood)', tps.every((x) => x[2] === null && x[3] === 'rgb(0, 60, 125)' && x[4] >= 1));
+  check('Tijdstippen gelijk vormgegeven (streep als inzet-schaduw op het grid, zonder omschrijving)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
   check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
   const tpFull = await page.locator('#sdispatch .timepoint').first().evaluate((e) => { const ps = getComputedStyle(e.parentElement); return Math.abs(e.getBoundingClientRect().width - (e.parentElement.clientWidth - parseFloat(ps.paddingLeft) - parseFloat(ps.paddingRight))) < 2; });
   check('Blauwe tijdstipvakken over de volle beschikbare breedte', tpFull);
