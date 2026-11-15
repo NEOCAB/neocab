@@ -312,25 +312,3 @@ describe('datum typen en getallen', () => {
     expect(formatNum(7.28, '')).toBe('7,28');
   });
 });
-
-describe('transportverloop', () => {
-  it('volgende stap is de eerste lege; alles ingevuld geeft -1', async () => {
-    const { flowNextIndex, flowDoneCount, FLOW_STEPS } = await import('./flow');
-    const t = newTransport();
-    // Een nieuw transport heeft alleen de verwijzing (standaard nu).
-    expect(flowDoneCount(t)).toBe(1);
-    expect(flowNextIndex(t)).toBe(1);
-    let x = t;
-    FLOW_STEPS.forEach((s) => (x = s.set(x, '2026-10-09T23:00:00+02:00')));
-    expect(flowNextIndex(x)).toBe(-1);
-    x = FLOW_STEPS[3].set(x, null);
-    expect(flowNextIndex(x)).toBe(3);
-  });
-  it('instantWithClock houdt de datum van het bestaande tijdstip; leeg + ver in de toekomst = gisteren', async () => {
-    const { instantWithClock } = await import('./flow');
-    const now = Date.parse('2026-10-10T00:10:00+02:00');
-    expect(instantWithClock('2026-10-09T22:10:00+02:00', '23:40', 'Europe/Amsterdam', now)).toBe('2026-10-09T23:40:00+02:00');
-    expect(instantWithClock(null, '23:50', 'Europe/Amsterdam', now)).toBe('2026-10-09T23:50:00+02:00');
-    expect(instantWithClock(null, '00:05', 'Europe/Amsterdam', now)).toBe('2026-10-10T00:05:00+02:00');
-  });
-});

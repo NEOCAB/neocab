@@ -127,7 +127,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 84 tests):
+Unit-tests (`npm test`, 82 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 84 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 244 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 236 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -272,9 +272,6 @@ Metatekst (intro, hint, eenheid) is 13 px, 400, grijs. Drie tekstkleuren: waarde
 
 In *Toestand bij verwijzing* en in *Stabilisatie* staan alleen de letters met inhoud als veld (en letters met een extra onderdeel: Disability met het hypothermiepaneel bij verwijzing, Gastro-intestinal met *Laatste voeding* bij stabilisatie). De overige letters staan als gestippelde knoppen ("＋ D Disability"); een tik voegt het veld toe en zet de cursor erin. Een leeg blok toont dus alleen negen knoppen.
 
-## Tijdstippen en Transportverloop
+## Tijdstippen
 
-- **Elk tijdstip staat op zijn logische plek** in het formulier, genummerd 1–6: *Verwijzing* bij Herkomst en bestemming, *Ambulance gebeld* en *Vertrek team* bij Dispatch, *Aankomst bij kind* bovenaan Stabilisatie, *Vertrek met kind* en *Aankomst* bij Transport. De datum is de datum van het vroegste tijdstip; latere dagen tonen "+1 dag" (tik voor de volledige datum).
-- **Pc:** het *Transportverloop* staat altijd open bovenaan de zijbalk (boven het sectiemenu): zes rijen met tijd (invulbaar), bij de volgende stap een knop **Nu**; *Verslag & export* blijft onderaan vast zichtbaar.
-- **Telefoon:** een blauwe balk onderaan met `2/6 · Volgende: Vertrek team · Nu · 19:36` en een pijltje. Uitklappen opent een blauwe lijst met alle zes de tijden (invulbaar, Nu per lege stap); de Nu-knop met de huidige tijd beweegt daarbij van de balk naar zijn eigen rij (en terug bij inklappen; niet bij `prefers-reduced-motion`).
-- **Volgende stap** is de eerste die nog leeg is; als alles is ingevuld staat er "Alle tijden ingevuld". Code: `src/domain/flow.ts` (stappen, volgorde, basisdatum) en `src/ui/Flow.tsx`.
+Elk tijdstip staat op zijn logische plek in het formulier: *Verwijzing* bij Herkomst en bestemming, *Ambulance gebeld* en *Vertrek team* bij Dispatch, *Aankomst bij kind* bovenaan Stabilisatie, *Vertrek met kind* en *Aankomst* bij Transport, *Laatste voeding* bij Gastro-intestinal. Een overzicht van het verloop (paneel of balk) is geprobeerd en weer verwijderd.

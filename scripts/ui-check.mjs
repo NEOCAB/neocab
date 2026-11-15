@@ -161,7 +161,7 @@ async function basisLayout(page) {
   const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['s5', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op hun logische plek (Herkomst, Dispatch, Stabilisatie, Transport)', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (gewoon veld met blauwe streep erin, kop erboven)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
-  check('Zes genummerde stappen (1–6) op hun plek, zonder schildje', JSON.stringify(await page.locator('main.form .timepoint .tp-step').allTextContents()) === JSON.stringify(['1', '2', '3', '4', '5', '6']) && (await page.locator('main.form .timepoint .tp-icon').count()) === 0);
+  check('Alle zes tijdstippen met schildje (safety check)', (await page.locator('main.form .timepoint:not(.plain) .tp-icon svg').count()) === 6);
   const tpField = await page.locator('#sdispatch .timepoint').first().evaluate((e) => {
     const head = e.querySelector('.tp-head').getBoundingClientRect();
     const tf = e.querySelector('.tf').getBoundingClientRect();
@@ -708,7 +708,7 @@ for (const [w, h] of [
     const rep = document.querySelector('.report-side').getBoundingClientRect();
     const save = document.querySelector('.save-status');
     const sb = save.getBoundingClientRect();
-    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && !!document.querySelector('.sidenav > .report-side') && !!(document.querySelector('.sidenav > ul').compareDocumentPosition(document.querySelector('.sidenav > .report-side')) & Node.DOCUMENT_POSITION_FOLLOWING), saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60, evenGaps: (() => { const a = [...document.querySelectorAll('.sidenav li a')].map((x) => x.getBoundingClientRect()); const first = (document.querySelector('.sidenav .nav-phase') ?? document.querySelector('.sidenav li a')).getBoundingClientRect(); return first.top > top.bottom && !!document.querySelector('.flow-panel') && document.querySelector('.flow-panel').getBoundingClientRect().bottom <= first.top + 1 && getComputedStyle(document.querySelector('.sidenav li:last-child a')).borderBottomWidth === '0px'; })() };
+    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && rep.top >= document.querySelector('.sidenav ul').getBoundingClientRect().bottom - 1, saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60, evenGaps: (() => { const a = [...document.querySelectorAll('.sidenav li a')].map((x) => x.getBoundingClientRect()); const first = (document.querySelector('.sidenav .nav-phase') ?? document.querySelector('.sidenav li a')).getBoundingClientRect(); return Math.abs((first.top - top.bottom) - (rep.top - a[a.length - 1].bottom)) < 1.5 && getComputedStyle(document.querySelector('.sidenav li:last-child a')).borderBottomWidth === '0px'; })() };
   });
   check(`${w}px: kop (Neo.Cab, kind) ${w >= 1000 ? 'links boven het sectiemenu, Verslag & export eronder, opslagicoon zwevend links onder' : 'als balk bovenaan'}, één keer in beeld`, side.headers === 1 && (w >= 1000 ? side.left && side.navVisible && side.reportUnderMenu && side.saveFloating && side.evenGaps : !side.navVisible && !side.reportUnderMenu), JSON.stringify(side));
   // Herkomst en bestemming: direct invulbaar, verwijzer boven ontvanger, twee kolommen
@@ -834,38 +834,6 @@ for (const [w, h] of [
   await ctxP.close();
 }
 
-// Transportverloop: balk onderaan (telefoon) en paneel in de zijbalk (pc)
-{
-  const ctxF = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
-  const pg = await ctxF.newPage();
-  await pg.goto(BASE);
-  await pg.getByRole('button', { name: /Nieuw transport/ }).click();
-  await pg.waitForSelector('#s1');
-  const bar = pg.locator('.flow-bar');
-  const barText = async () => (await bar.textContent()) ?? '';
-  check('Balk onderaan (telefoon): 1/6 en volgende stap Ambulance gebeld', (await barText()).includes('1/6') && (await barText()).includes('Ambulance gebeld') && (await bar.locator('.flow-nu').count()) === 1);
-  await bar.getByRole('button', { name: 'Overzicht: Ambulance gebeld op nu zetten' }).click();
-  check('Nu legt de volgende stap vast (ook op zijn plek in het formulier); balk springt naar Vertrek team', (await barText()).includes('2/6') && (await barText()).includes('Vertrek team') && /T\d\d:\d\d/.test((await pg.locator('.timepoint[data-label="Ambulance gebeld"]').getAttribute('data-value')) ?? ''));
-  await bar.getByRole('button', { name: 'Transportverloop uitklappen' }).click();
-  const sheet = pg.locator('.flow-sheet');
-  check('Uitklappen: blauwe lijst met zes stappen; Nu staat nu in zijn eigen rij, niet meer in de balk', (await sheet.locator('.flow-row').count()) === 6 && (await sheet.locator('.flow-row.cur .flow-nu').count()) === 1 && (await bar.locator('.flow-nu').count()) === 0 && (await sheet.evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(27, 53, 82)');
-  await sheet.getByLabel('Overzicht: Vertrek team, tijd', { exact: true }).fill('2310');
-  await sheet.getByLabel('Overzicht: Vertrek team, tijd', { exact: true }).blur();
-  check('Tijd invullen in de lijst werkt door op de plek in het formulier', ((await pg.locator('.timepoint[data-label="Vertrek team"]').getAttribute('data-value')) ?? '').endsWith('T23:10'));
-  await bar.getByRole('button', { name: 'Transportverloop inklappen' }).click();
-  check('Inklappen: Nu staat weer in de balk', (await sheet.count()) === 0 && (await bar.locator('.flow-nu').count()) === 1);
-  check('Balk: geen horizontaal scrollen', await noHorizontalScroll(pg));
-  await ctxF.close();
-  const ctxD = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
-  const pd = await ctxD.newPage();
-  await pd.goto(BASE);
-  await pd.getByRole('button', { name: /Nieuw transport/ }).click();
-  await pd.waitForSelector('#s1');
-  check('Pc: Transportverloop altijd open in de zijbalk, balk onderaan verborgen', (await pd.locator('.flow-panel .flow-row').count()) === 6 && !(await pd.locator('.flow-bar-wrap').isVisible()));
-  await pd.locator('.flow-panel').getByRole('button', { name: 'Overzicht: Ambulance gebeld op nu zetten' }).click();
-  check('Pc: Nu in het paneel zet de volgende stap, het paneel springt door', (await pd.locator('.flow-panel .flow-row.cur .flow-label').textContent()) === 'Vertrek team' && /T\d\d:\d\d/.test((await pd.locator('.timepoint[data-label="Ambulance gebeld"]').getAttribute('data-value')) ?? ''));
-  await ctxD.close();
-}
 await browser.close();
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} controles geslaagd`);

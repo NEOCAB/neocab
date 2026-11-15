@@ -1,4 +1,3 @@
-import calendarIconSvg from '@material-symbols/svg-700/outlined/calendar_today.svg?raw';
 import menuIconSvg from '@material-symbols/svg-700/outlined/menu.svg?raw';
 import closeIconSvg from '@material-symbols/svg-700/outlined/close.svg?raw';
 import editIconSvg from '@material-symbols/svg-700/outlined/edit.svg?raw';
@@ -154,7 +153,3 @@ export function CloseIcon() {
   return <span className="action-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CLOSE }} />;
 }
 
-const CALENDAR = prep(calendarIconSvg);
-export function CalendarIcon() {
-  return <span className="action-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CALENDAR }} />;
-}
