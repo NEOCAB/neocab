@@ -24,6 +24,9 @@ async function openReport(pg) {
   } else await pg.getByRole('button', { name: 'Verslag & export', exact: true }).click();
 }
 
+async function showAllAbcd(pg, id) {
+  while ((await pg.locator(`#${id} .abcd-chip`).count()) > 0) await pg.locator(`#${id} .abcd-chip`).first().click();
+}
 async function noHorizontalScroll(page) {
   return page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 }
@@ -246,6 +249,10 @@ async function basisLayout(page) {
   await page.locator('#letter-senderRole').fill('Kinderarts');
   await page.getByRole('button', { name: 'Hervatten' }).first().click();
   await page.waitForSelector('#s3');
+  check('ABCD: een leeg blok toont alleen knoppen om letters toe te voegen', (await page.locator('#s3 .abcd textarea').count()) === 0 && (await page.locator('#s3 .abcd-chip').count()) === 9);
+  await page.getByRole('button', { name: 'Disability toevoegen' }).first().click();
+  check('ABCD: knop voegt het veld toe en zet de cursor erin', (await page.locator('#s3 .abcd textarea').count()) === 1 && (await page.locator('#s3 .abcd-chip').count()) === 8 && (await page.evaluate(() => document.activeElement?.tagName)) === 'TEXTAREA');
+  await showAllAbcd(page, 's3');
   const compact = await page.evaluate(() => {
     const f = document.querySelector('#s3 .abcd-compact');
     const letter = f?.querySelector('.abcd-letter')?.getBoundingClientRect();
@@ -259,6 +266,8 @@ async function basisLayout(page) {
   await page.getByLabel(/alleen de letter tonen/).uncheck();
   await page.getByRole('button', { name: 'Hervatten' }).first().click();
   await page.waitForSelector('#s3');
+  await showAllAbcd(page, 's3');
+  await showAllAbcd(page, 's5');
   const airway = page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true });
   const h1 = await airway.evaluate((e) => e.getBoundingClientRect().height);
   await airway.fill('Regel 1\nRegel 2\nRegel 3');

@@ -66,7 +66,7 @@ export function TextField({ label, value, onChange, type = 'text', list, hint, p
   );
 }
 
-export function TextArea({ label, value, onChange, hint, rows = 3, className, placeholder }: { label: ReactNode; value: string; onChange: (v: string) => void; hint?: ReactNode; rows?: number; className?: string; placeholder?: string }) {
+export function TextArea({ label, value, onChange, hint, rows = 3, className, placeholder, autoFocus }: { label: ReactNode; value: string; onChange: (v: string) => void; hint?: ReactNode; rows?: number; className?: string; placeholder?: string; autoFocus?: boolean }) {
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
   // Groeit mee met de tekst; ook opnieuw bij een andere breedte (bijv. draaien van het scherm).
@@ -83,7 +83,7 @@ export function TextArea({ label, value, onChange, hint, rows = 3, className, pl
   }, [value]);
   return (
     <FieldShell id={id} label={label} hint={hint} className={className}>
-      <textarea id={id} ref={ref} rows={rows} value={value} placeholder={placeholder} aria-describedby={describedBy(id, hint)} onChange={(e) => onChange(e.target.value)} />
+      <textarea id={id} ref={ref} rows={rows} autoFocus={autoFocus} value={value} placeholder={placeholder} aria-describedby={describedBy(id, hint)} onChange={(e) => onChange(e.target.value)} />
     </FieldShell>
   );
 }

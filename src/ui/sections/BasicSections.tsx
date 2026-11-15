@@ -187,21 +187,28 @@ function BirthFields({ t, update }: SectionProps) {
 function AbcdFields({ notes, onChange, after }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void; after?: Partial<Record<AbcdKey, ReactNode>> }) {
   // Instelling: alleen de letter (links van het veld) in plaats van letter + woord erboven.
   const lettersOnly = useSettings().abcdLettersOnly;
+  // Alleen letters met inhoud (of met extra onderdeel, zoals laatste voeding) zijn een veld; de rest staat als knop om toe te voegen.
+  const [added, setAdded] = useState<AbcdKey[]>([]);
+  const [focusKey, setFocusKey] = useState<AbcdKey | null>(null);
+  const isShown = (k: AbcdKey) => notes[k].trim() !== '' || !!after?.[k] || added.includes(k);
+  const hidden = ABCD_KEYS.filter((k) => !isShown(k));
+  const label = (k: AbcdKey) => (
+    <>
+      {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
+      <span className="abcd-letter" aria-hidden="true" title={lettersOnly ? ABCD_LABELS[k] : undefined}>
+        {ABCD_LABELS[k][0]}
+      </span>
+      {lettersOnly ? <span className="sr-only">{ABCD_LABELS[k]}</span> : ABCD_LABELS[k]}
+    </>
+  );
   return (
     <div className={`abcd ${lettersOnly ? 'letters-only' : ''}`}>
-      {ABCD_KEYS.map((k) => (
+      {ABCD_KEYS.filter(isShown).map((k) => (
         <Fragment key={k}>
           <TextArea
             className={lettersOnly ? 'abcd-compact' : undefined}
-            label={
-              <>
-                {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
-                <span className="abcd-letter" aria-hidden="true" title={lettersOnly ? ABCD_LABELS[k] : undefined}>
-                  {ABCD_LABELS[k][0]}
-                </span>
-                {lettersOnly ? <span className="sr-only">{ABCD_LABELS[k]}</span> : ABCD_LABELS[k]}
-              </>
-            }
+            label={label(k)}
+            autoFocus={focusKey === k}
             value={notes[k]}
             onChange={(v) => onChange({ ...notes, [k]: v })}
             rows={1}
@@ -209,6 +216,24 @@ function AbcdFields({ notes, onChange, after }: { notes: AbcdNotes; onChange: (n
           {after?.[k] && <div className="abcd-extra">{after[k]}</div>}
         </Fragment>
       ))}
+      {hidden.length > 0 && (
+        <div className="abcd-add" role="group" aria-label="Letters toevoegen">
+          {hidden.map((k) => (
+            <button
+              key={k}
+              type="button"
+              className="abcd-chip"
+              aria-label={`${ABCD_LABELS[k]} toevoegen`}
+              onClick={() => {
+                setAdded((a) => [...a, k]);
+                setFocusKey(k);
+              }}
+            >
+              <span aria-hidden="true">＋ {lettersOnly ? ABCD_LABELS[k][0] : `${ABCD_LABELS[k][0]} ${ABCD_LABELS[k]}`}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

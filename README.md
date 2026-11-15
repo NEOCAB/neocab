@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 82 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 234 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 236 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -267,3 +267,7 @@ Maat = niveau, in formulier én verslag:
 - **K6** 13 px, 600, grijs: veldlabel (ook Arterieel en Veneus, modaliteitsgroep).
 
 Metatekst (intro, hint, eenheid) is 13 px, 400, grijs. Drie tekstkleuren: waarden `#1a1a1a`, koppen `#2b3138`, labels en meta `#56606b`. Uitzondering: de sleutels in het verslag ("Naam kind") blijven 15 px, omdat het een document is.
+
+## ABCD-blok (compact)
+
+In *Toestand bij verwijzing* en in *Stabilisatie* staan alleen de letters met inhoud als veld (en letters met een extra onderdeel: Disability met het hypothermiepaneel bij verwijzing, Gastro-intestinal met *Laatste voeding* bij stabilisatie). De overige letters staan als gestippelde knoppen ("＋ D Disability"); een tik voegt het veld toe en zet de cursor erin. Een leeg blok toont dus alleen negen knoppen.
