@@ -62,9 +62,10 @@ export function DataTable({
             {cols.map((c, i) => (
               <th key={i} scope="col" className={cls(i, c.keyColumn ? 'key' : '')} title={c.fullLabel}>
                 {/* Alleen de tekst wordt gedraaid (niet de cel), zodat randen links/rechts goed blijven. */}
-                <span className={c.keyColumn || table.simple ? 'th-text' : 'th-text th-rot'}>
+                {/* Horizontale kop: naam boven, eenheid eronder (eenvoudige tabellen: eenheid achter de naam). */}
+                <span className={c.keyColumn || table.simple ? 'th-text' : 'th-text th-stack'}>
                   <span className="th-label">{chem(c.header)}</span>
-                  {c.unit && <span className="th-unit"> ({chem(c.unit)})</span>}
+                  {c.unit && (table.simple ? <span className="th-unit"> ({chem(c.unit)})</span> : <span className="th-unit">{chem(c.unit)}</span>)}
                 </span>
               </th>
             ))}

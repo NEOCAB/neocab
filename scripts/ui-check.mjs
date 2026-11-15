@@ -463,7 +463,7 @@ async function basisLayout(page) {
   const checkTexts = await page.locator('#s13 .check-text').allTextContents();
   check(
     'Checklist bevat overplaatsingsbrieven, route ouders, neurodevelopment en monitoring',
-    ['Medische overplaatsingsbrief', 'Verpleegkundige overplaatsingsbrief', 'Directions and contact details of the receiving hospital for parent(s)', 'Neurodevelopment (positioning, lighting and noise reduction)', 'Continuous monitoring (minimaal SpO₂-monitoring)'].every((x) => checkTexts.includes(x)),
+    ['Medische overplaatsingsbrief', 'Verpleegkundige overplaatsingsbrief', 'Route en contactgegevens van het ontvangend ziekenhuis meegegeven aan ouders', 'Neuro-ontwikkeling (houding, licht en geluidsreductie)', 'Continue monitoring (minimaal SpO₂)'].every((x) => checkTexts.includes(x)),
     checkTexts.join(' | '),
   );
   check('Geen toelichting bij lopende infusen', (await page.locator('#s9 .section-intro').count()) === 0);
@@ -729,7 +729,7 @@ for (const [w, h] of [
     const g = document.querySelectorAll('#s6 .data-table .group-row th');
     return [getComputedStyle(g[0]).borderRightWidth, getComputedStyle(g[1]).borderLeftWidth];
   });
-  check(`${w}px: geen dubbele lijn tussen Meetmoment en Ademhalingsondersteuning`, doubleLine[0] === '3px' && doubleLine[1] === '0px', doubleLine.join(' / '));
+  check(`${w}px: geen dubbele lijn tussen Meetmoment en Ademhalingsondersteuning`, doubleLine[0] === '2px' && doubleLine[1] === '0px', doubleLine.join(' / '));
   check(`${w}px: OI als laatste groep, achter Bloedgas`, JSON.stringify(groups) === JSON.stringify(['Meetmoment', 'Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas', 'Berekend']), groups.join(' | '));
   check(`${w}px: OI-kolom is de laatste kolom`, headers[headers.length - 1]?.trim() === 'OI' && headers[1]?.trim() === 'Modaliteit', headers.slice(-2).join(' | '));
   check(`${w}px: OI 29,5 in tabel, zonder alert-markering`, (await page.locator('#s6 .data-table td.alert').count()) === 0 && (await page.locator('#s6 .data-table td', { hasText: '29,5' }).count()) === 1);

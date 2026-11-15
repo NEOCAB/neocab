@@ -3940,3 +3940,38 @@ fieldset.segmented,
 .form-section h2.section-title {
   font-size: var(--fs-xl);
 }
+
+/* Tabel (designreview): horizontale koppen op twee regels, één lijndikte, geen zebra */
+.data-table .head-row th:not(.key) {
+  text-align: right;
+  padding: 0.5rem 0.55rem;
+  min-width: 3.2rem;
+}
+.th-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+.th-stack .th-unit {
+  font-size: 12px;
+  color: var(--label);
+}
+.data-table .gstart {
+  border-left: 2px solid var(--primary-20);
+}
+.data-table .head-row th {
+  border-bottom: 2px solid var(--primary-20);
+}
+.data-table .col-0,
+.data-table .sticky-group {
+  border-right: 2px solid var(--primary-20);
+}
+.data-table tbody tr.alt td,
+.data-table tbody tr.alt th {
+  background: var(--surface);
+}
+.data-table tbody tr:hover td,
+.data-table tbody tr:hover th {
+  background: var(--primary-10);
+}

@@ -315,7 +315,7 @@ function MeasurementList({ measurements, onPick, editingId }: { measurements: Me
                 {(m.policyChanges ?? '').trim() && <span className="m-sub m-note">{m.policyChanges.trim()}</span>}
               </span>
               <span className="m-edit" aria-hidden="true">
-                Wijzig
+                Bewerken
               </span>
             </button>
           </li>
