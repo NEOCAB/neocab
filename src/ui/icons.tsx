@@ -1,3 +1,4 @@
+import contrastIcon from '@material-symbols/svg-700/outlined/contrast.svg?raw';
 import listIcon from '@material-symbols/svg-700/outlined/format_list_bulleted.svg?raw';
 import idCard from '@material-symbols/svg-700/outlined/id_card.svg?raw';
 import route from '@material-symbols/svg-700/outlined/route.svg?raw';
@@ -120,4 +121,10 @@ const REPORT = prep(iosShare);
 /** Icoon bij Verslag & export (ios_share, delen). */
 export function ReportIcon() {
   return <span className="report-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: REPORT }} />;
+}
+
+const CONTRAST = prep(contrastIcon);
+/** Weergave-icoon (licht/donker). */
+export function ThemeIcon() {
+  return <span className="theme-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CONTRAST }} />;
 }

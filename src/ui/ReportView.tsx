@@ -1,3 +1,4 @@
+import { ThemeButton } from './ThemeButton';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
@@ -217,6 +218,10 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
             <span className="active-label">Verslag van</span>
             <strong>{childLabel(transport.child.name, anonymous)}</strong>
           </div>
+        </div>
+
+        <div className="panel-theme">
+          <ThemeButton showLabel />
         </div>
 
         <section className="panel-group" aria-label="Naar het EPD">

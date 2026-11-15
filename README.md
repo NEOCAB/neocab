@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 82 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 224 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 229 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -238,3 +238,8 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 - **E-mailtekst en rtf:** gewone cijfers in plaats van subscripttekens (FiO2, HCO3-, cmH2O) en gewone spaties, omdat HiX subscripttekens niet goed toont.
 - **Word-brief:** echte subscript en superscript (FiO₂, HCO₃⁻) via opmaak in Word; lettertype blijft Calibri.
 - **Pdf:** lettertype IBM Plex Sans (echte ₂- en ₃-tekens), gelijk aan het scherm.
+
+## Weergave (stap 7)
+
+- **Donkere modus** volgt standaard de instelling van het apparaat (`prefers-color-scheme`). Met de knop met het halve-maan-icoon (in de zijbalk of kop van het formulier, op het startscherm en bij het verslag) wissel je tussen *automatisch*, *licht* en *donker*; onder *Instellingen* staat dezelfde keuze. Alle kleuren zijn variabelen in `styles.css` (`:root[data-theme='dark']`); `src/ui/theme.ts` bewaart de keuze alleen in de browser van het apparaat. Het verslag in pdf, brief en afdruk blijft licht.
+- **Grotere tekst** (Instellingen): de hele typeschaal wordt een stap groter (15 / 17 / 19 / 23 / 28 px).

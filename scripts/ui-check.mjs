@@ -180,6 +180,26 @@ async function basisLayout(page) {
   const comboArrow = await page.locator('#s2 .combo').first().evaluate((c) => { const i = c.querySelector('input').getBoundingClientRect(); const b = c.querySelector('.combo-toggle').getBoundingClientRect(); return b.left >= i.left && b.right <= i.right + 1; });
   check('Keuzelijst ziekenhuis: blauwe pijl in het veld zelf', comboArrow);
 
+  // Weergave: donkere modus volgt het apparaat of wordt zelf gekozen; grotere tekst
+  const bodyBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const lightBg = await bodyBg();
+  await page.emulateMedia({ colorScheme: 'dark' });
+  const autoDark = await bodyBg();
+  check('Donkere modus: automatisch volgens het apparaat', autoDark !== lightBg, `${lightBg} → ${autoDark}`);
+  await page.emulateMedia({ colorScheme: 'light' });
+  const themeBtn = page.locator('.editor-side .theme-button');
+  await themeBtn.click();
+  check('Weergaveknop: eerste tik = licht', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'light');
+  await themeBtn.click();
+  check('Weergaveknop: tweede tik = donker, ook bij een lichte apparaatinstelling', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'dark' && (await bodyBg()) === autoDark);
+  await themeBtn.click();
+  check('Weergaveknop: derde tik = weer automatisch', (await page.evaluate(() => document.documentElement.dataset.theme)) === undefined && (await bodyBg()) === lightBg);
+  const labelPx = () => page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('#s1 .field-label')).fontSize));
+  const normalPx = await labelPx();
+  await page.evaluate(() => { document.documentElement.dataset.text = 'groot'; });
+  const bigPx = await labelPx();
+  check('Grotere tekst: labels groter', bigPx > normalPx, `${normalPx} → ${bigPx}`);
+  await page.evaluate(() => { delete document.documentElement.dataset.text; });
   check('Kop toont naam, patiëntnummer en opslagregel, niet de verwijstijd', /opgeslagen|opslaan/i.test(await page.locator('.active-transport').first().textContent()) && !(await page.locator('.active-transport').first().textContent()).toLowerCase().includes('verwijzing'));
   check('Formulier maximaal 900 px breed', (await page.locator('main.form').evaluate((e) => e.getBoundingClientRect().width)) <= 900.5);
   // Material Symbols bij alle 12 sectiekoppen

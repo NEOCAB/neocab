@@ -1,3 +1,4 @@
+import { ThemeButton } from './ThemeButton';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import type { TransportRepository } from '../storage/repository';
@@ -201,6 +202,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                 </select>
               </div>
               {/* Opslagstatus links van Verslag & export; op een smal scherm alleen icoon en tijd. */}
+              <ThemeButton />
               <span className={`save-status ${level}`} role="status" title={saveText}>
                 <SaveIcon clock={level !== 'ok'} />
                 <span className="sr-only">{saveText}</span>

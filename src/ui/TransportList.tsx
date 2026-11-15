@@ -1,3 +1,5 @@
+import { ThemeButton } from './ThemeButton';
+import { setTextSize, setTheme, THEME_LABELS, useTextSize, useTheme, type Theme } from './theme';
 import { useState } from 'react';
 import { formatInstant, formatLocalDate } from '../domain/time';
 import type { TransportSummary } from '../storage/repository';
@@ -117,12 +119,39 @@ function LetterSettingsEditor({ settings, onChange }: { settings: AppSettings; o
   );
 }
 
+/** Weergave: donkere modus en grotere tekst (per apparaat). */
+function DisplaySettings() {
+  const theme = useTheme();
+  const size = useTextSize();
+  return (
+    <div className="display-settings">
+      <fieldset>
+        <legend className="field-label">Weergave</legend>
+        <div className="segmented-options">
+          {(['auto', 'licht', 'donker'] as Theme[]).map((t) => (
+            <label key={t} className={`seg ${theme === t ? 'checked' : ''}`}>
+              <input type="radio" name="theme" checked={theme === t} onChange={() => setTheme(t)} />
+              <span>{THEME_LABELS[t]}</span>
+            </label>
+          ))}
+        </div>
+        <div className="field-hint">Automatisch volgt de instelling van dit apparaat.</div>
+      </fieldset>
+      <label className="check-setting">
+        <input type="checkbox" checked={size === 'groot'} onChange={(e) => setTextSize(e.target.checked ? 'groot' : 'normaal')} />
+        <span>Grotere tekst</span>
+      </label>
+    </div>
+  );
+}
+
 function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange: (s: AppSettings) => void }) {
   const [routesText, setRoutesText] = useState(settings.medicationRoutes.join('\n'));
   const [saved, setSaved] = useState(false);
   return (
     <details className="card settings">
       <summary>Instellingen</summary>
+      <DisplaySettings />
       <div className="field">
         <label className="field-label" htmlFor="tz">
           Tijdzone voor weergave en invoer
@@ -335,6 +364,9 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
               Transport importeren
             </button>
           )}
+        </div>
+        <div className="home-side-foot">
+          <ThemeButton showLabel />
         </div>
       </aside>
       <main>
