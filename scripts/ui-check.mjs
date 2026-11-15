@@ -47,7 +47,7 @@ async function basisLayout(page) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(BASE);
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('neocab:tijdlijn-weergave', 'tabel'); });
   await page.reload();
   await page.screenshot({ path: `${OUT}/390-start.png`, fullPage: true });
   const homeLogo = await page.locator('.home-header img.brand-logo').evaluate((img) => ({ ok: img.complete && img.naturalWidth > 0, alt: img.alt, w: Math.round(img.getBoundingClientRect().width) }));
@@ -87,6 +87,7 @@ async function basisLayout(page) {
   await page.getByLabel('Huidig gewicht', { exact: true }).fill('1890');
 
   // Amenorroeduur als weken+dagen in één veld, gecorrigeerde leeftijd
+  const tab = (ed, name) => ed.getByRole('tab', { name: new RegExp(`^${name}`) }).click();
   const nlDate = (d) => `${d.slice(8, 10)}-${d.slice(5, 7)}-${d.slice(0, 4)}`;
   await page.getByLabel('Geboortedatum', { exact: true }).fill(nlDate(referred.slice(0, 10)));
   const ga = page.getByLabel('Amenorroeduur', { exact: true });
@@ -324,41 +325,39 @@ async function basisLayout(page) {
   await page.keyboard.press('Alt+KeyM');
   check('Sneltoets Alt+M opent een nieuw meetmoment', (await page.getByRole('form', { name: 'Nieuw meetmoment' }).count()) === 1);
   await page.getByRole('form', { name: 'Nieuw meetmoment' }).getByRole('button', { name: 'Annuleren' }).click();
-  await page.locator('#s6').getByRole('button', { name: 'Nieuw meetmoment' }).first().click();
+  await page.locator('#s6').getByRole('button', { name: 'Meetmoment nu' }).first().click();
   const editor = page.getByRole('form', { name: 'Nieuw meetmoment' });
-  const folds = editor.locator('.fold-toggle');
   check('Meetmoment: geen veld Fase', (await editor.getByLabel('Fase', { exact: true }).count()) === 0);
-  check(
-    'Meetmoment: Ademhalingsondersteuning, Monitorgegevens en Bloedgas ingeklapt',
-    JSON.stringify(await folds.allTextContents()) === JSON.stringify(['Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas']) &&
-      (await folds.evaluateAll((bs) => bs.every((b) => b.getAttribute('aria-expanded') === 'false'))) &&
-      (await editor.getByRole('radio', { name: 'CPAP', exact: true }).count()) === 0,
-  );
-  check('Meetmoment: geen toelichting bij monitorgegevens', (await editor.locator('.small-print').count()) === 0 && (await editor.locator('.fold-summary').count()) === 1);
+  const tabNames = await editor.getByRole('tab').allTextContents();
+  check('Meetmoment: tabbladen Ademhaling, Monitor, Bloedgas, Beleid; Ademhaling eerst', JSON.stringify(tabNames.map((x) => x.replace(/\s*\(ingevuld\)$/, ''))) === JSON.stringify(['Ademhaling', 'Monitor', 'Bloedgas', 'Beleid']) && (await editor.getByRole('tab', { name: /^Ademhaling/ }).getAttribute('aria-selected')) === 'true' && (await editor.getByRole('radio', { name: 'CPAP', exact: true }).count()) === 1);
+  check('Meetmoment: alleen het gekozen tabblad is zichtbaar', (await editor.getByLabel('HF Hartfrequentie', { exact: true }).isVisible()) === false);
   await page.screenshot({ path: `${OUT}/390-meetmoment-ingeklapt.png`, fullPage: false });
-  for (const name of ['Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas']) await editor.getByRole('button', { name, exact: true }).click();
-  check('Uitgeklapt: geen samenvatting meer', (await editor.locator('.fold-summary').count()) === 0);
   await editor.getByRole('radio', { name: 'CPAP', exact: true }).check();
   check('CPAP: geen iNO', (await editor.getByLabel('iNO (optioneel)', { exact: true }).count()) === 0);
   check('CPAP: geen VG', (await editor.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 0);
   check('CPAP: invoerveld heet PEEP, geen CPAP-druk', (await editor.getByLabel('CPAP-druk', { exact: true }).count()) === 0 && (await editor.getByLabel('PEEP', { exact: true }).count()) === 1);
   await editor.getByLabel('PEEP', { exact: true }).fill('7');
   await editor.getByLabel('FiO2', { exact: true }).fill('30,5');
+  await tab(editor, 'Monitor');
   await editor.getByLabel('HF Hartfrequentie', { exact: true }).fill('160');
+  await tab(editor, 'Bloedgas');
   await editor.getByLabel('BE', { exact: true }).fill('-5,2');
   await page.screenshot({ path: `${OUT}/390-meetmoment-editor.png`, fullPage: false });
   await editor.getByRole('button', { name: 'Meetmoment opslaan' }).click();
 
   // Meetmoment 2: voorstel modaliteit, geen monitorwaarden
-  await page.locator('#s6').getByRole('button', { name: 'Nieuw meetmoment' }).first().click();
+  await page.locator('#s6').getByRole('button', { name: 'Meetmoment nu' }).first().click();
   const ed2 = page.getByRole('form', { name: 'Nieuw meetmoment' });
-  const summary2 = await ed2.locator('.fold-summary').first().textContent();
-  check('Ingeklapt: laatst ingevulde ademhalingsondersteuning als toelichting', summary2?.startsWith('Laatst ingevuld: CPAP · PEEP 7') && summary2.includes('30,5'), summary2);
-  for (const name of ['Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas']) await ed2.getByRole('button', { name, exact: true }).click();
+  check('Voorstel: CPAP gekozen en als voorstel gemeld', (await ed2.getByRole('radio', { name: 'CPAP', exact: true }).isChecked()) && (await ed2.getByText(/als voorstel overgenomen/).count()) === 1);
+  check('Vorige waarde als hint bij het veld (vorige 7)', (await ed2.locator('.prev-value', { hasText: 'vorige 7' }).count()) >= 1);
+  await tab(ed2, 'Beleid');
   await ed2.getByLabel('Beleidsaanpassingen', { exact: true }).fill('Surfactant gegeven');
-  check('Voorstel: PEEP van CPAP overgenomen', (await ed2.getByLabel('PEEP', { exact: true }).inputValue()) === '7');
+  check('Voorstel: PEEP van CPAP overgenomen', (await (async () => { await tab(ed2, 'Ademhaling'); return ed2.getByLabel('PEEP', { exact: true }).inputValue(); })()) === '7');
+  await tab(ed2, 'Monitor');
   check('Geen oude hartfrequentie overgenomen', (await ed2.getByLabel('HF Hartfrequentie', { exact: true }).inputValue()) === '');
+  await tab(ed2, 'Bloedgas');
   check('Geen oude BE overgenomen', (await ed2.getByLabel('BE', { exact: true }).inputValue()) === '');
+  await tab(ed2, 'Ademhaling');
   await ed2.getByRole('radio', { name: 'PTV', exact: true }).check();
   check('PTV: VG zichtbaar', (await ed2.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 1);
   check('PTV: iNO zichtbaar', (await ed2.getByLabel('iNO (optioneel)', { exact: true }).count()) === 1);
@@ -621,6 +620,7 @@ for (const [w, h] of [
 ]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL', acceptDownloads: true, hasTouch: true });
   const page = await ctx.newPage();
+  await ctx.addInitScript(() => { try { if (!localStorage.getItem('neocab:tijdlijn-weergave')) localStorage.setItem('neocab:tijdlijn-weergave', 'tabel'); } catch {} });
   page.on('dialog', (d) => d.accept());
   await page.goto(BASE);
   await page.getByRole('button', { name: 'Fictief voorbeeldtransport laden' }).click();
@@ -681,6 +681,16 @@ for (const [w, h] of [
   await page.screenshot({ path: `${OUT}/${w}-tijdlijn.png` });
   const rowCount = await page.locator('#s6 .data-table tbody tr:not(.note-row)').count();
   check(`${w}px: tijdlijn is één tabel met één rij per meetmoment`, (await page.locator('#s6 .data-table').count()) === 1 && rowCount === 4, `${rowCount} rijen`);
+  await page.locator('#s6').getByRole('radio', { name: 'Lijst' }).click();
+  const listRows = await page.locator('#s6 .m-row').count();
+  check(`${w}px: lijst met ${rowCount} meetmomenten, geen tabel`, listRows === rowCount && (await page.locator('#s6 .data-table').count()) === 0, `${listRows} rijen`);
+  await page.locator('#s6 .m-row').first().click();
+  const fs = await page.evaluate(() => { const f = document.querySelector('#s6 form.editor'); const r = f.getBoundingClientRect(); return { pos: getComputedStyle(f).position, w: Math.round(r.width), h: Math.round(r.height), iw: innerWidth, ih: innerHeight }; });
+  check(`${w}px: lijstrij opent het meetmoment${w <= 700 ? ' schermvullend' : ' in het formulier'}`, (await page.getByRole('form', { name: 'Meetmoment bewerken' }).count()) === 1 && (w <= 700 ? fs.pos === 'fixed' && fs.w === fs.iw && fs.h === fs.ih : fs.pos !== 'fixed'), JSON.stringify(fs));
+  const saveBox = await page.getByRole('button', { name: 'Meetmoment opslaan' }).boundingBox();
+  check(`${w}px: Opslaan zichtbaar in beeld`, !!saveBox && saveBox.y + saveBox.height <= fs.ih + 1 && saveBox.y >= 0, JSON.stringify(saveBox));
+  await page.locator('#s6 form').getByRole('button', { name: 'Annuleren' }).click();
+  await page.locator('#s6').getByRole('radio', { name: 'Tabel' }).click();
   const headers = await page.locator('#s6 .data-table thead tr:not(.group-row) th').allTextContents();
   check(`${w}px: geen kolommen #, Fase of Tube`, !headers.some((h) => ['#', 'Fase', 'Tube'].includes(h.trim())), headers.join(' | '));
   check(`${w}px: geen aparte CPAP-kolom`, !headers.some((h) => h.startsWith('CPAP')));
@@ -690,7 +700,6 @@ for (const [w, h] of [
   const types = await page.locator('#s6 .data-table tbody tr:not(.note-row)').evaluateAll((trs, idx) => trs.map((tr) => tr.children[idx]?.textContent), headers.findIndex((h) => h.startsWith('Type')));
   check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '', 'A']), JSON.stringify(types));
   await page.locator('#s6 .row-edit').nth(1).click();
-  await page.locator('#s6 form').getByRole('button', { name: 'Ademhalingsondersteuning', exact: true }).click();
   check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.replace(/\u00a0/g, ' ').includes('tandenrij 8 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   const groups = await page.locator('#s6 .data-table thead tr.group-row th').allTextContents();
@@ -710,7 +719,7 @@ for (const [w, h] of [
     return v ? { sameRow: Math.abs(v.top + v.height / 2 - (h.top + h.height / 2)) < 12, right: sec.right - v.right < 40, icons: document.querySelectorAll('#s6 .view-switch .view-icon svg').length } : null;
   });
   const addButtons = await page.evaluate(() =>
-    ['s6', 's8', 's9', 's10'].map((id) => {
+    ['s8', 's9', 's10'].map((id) => {
       const sec = document.getElementById(id);
       const h = sec.querySelector('.section-title').getBoundingClientRect();
       const btn = sec.querySelector('.section-actions .add-button');
@@ -719,8 +728,8 @@ for (const [w, h] of [
       return Math.abs(b.top + b.height / 2 - (h.top + h.height / 2)) < 14 && b.left > h.right && sec.getBoundingClientRect().right - actions.right < 40 && !!btn.querySelector('.add-icon svg');
     }),
   );
-  check(`${w}px: toevoegknoppen (icoon add circle) rechtsboven naast de kop bij Tijdlijn, Ingebrachte materialen, Medicatie en Infusen`, addButtons.every(Boolean), JSON.stringify(addButtons));
-  check(`${w}px: weergavekeuze rechtsboven naast de kop Tijdlijn, met iconen`, !!sw && sw.sameRow && sw.right && sw.icons === 2, JSON.stringify(sw));
+  check(`${w}px: toevoegknoppen (icoon add circle) rechtsboven naast de kop bij Ingebrachte materialen, Medicatie en Infusen`, addButtons.every(Boolean), JSON.stringify(addButtons));
+  check(`${w}px: weergavekeuze rechtsboven naast de kop Tijdlijn, met iconen`, !!sw && sw.sameRow && sw.right && sw.icons === 3, JSON.stringify(sw));
   await page.locator('#s6').getByRole('radio', { name: 'Grafiek' }).check();
   const charts = page.locator('#s6 .chart-card:not(.chart-band)');
   const nCharts = await charts.count();
@@ -735,6 +744,7 @@ for (const [w, h] of [
   });
   check(`${w}px: grafieken in één kolom met dezelfde y-as-positie`, layout.oneColumn && layout.sameAxis, JSON.stringify(layout));
   check(`${w}px: grafieken geen horizontaal scrollen`, await noHorizontalScroll(page));
+  await charts.first().locator('svg.chart-svg').scrollIntoViewIfNeeded();
   const firstSvg = await charts.first().locator('svg.chart-svg').boundingBox();
   await page.mouse.move(firstSvg.x + firstSvg.width - 12, firstSvg.y + firstSvg.height / 2);
   check(`${w}px: aanwijzen toont in alle grafieken hetzelfde meetmoment`, (await page.locator('#s6 .chart-crosshair').count()) === nCharts);
@@ -747,7 +757,6 @@ for (const [w, h] of [
   check(`${w}px: bewerkformulier toont OI zonder alert`, (await page.locator('#s6 .oi-line').textContent())?.includes('29,5') && (await page.locator('#s6 .oi-line.alert').count()) === 0);
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.locator('#s6 .row-edit').nth(2).click();
-  await page.locator('#s6 form').getByRole('button', { name: 'Ademhalingsondersteuning', exact: true }).click();
   check(`${w}px: bewerken toont tube na aanpassing (7,5 cm)`, (await page.locator('#s6 .tube-line').textContent())?.replace(/\u00a0/g, ' ').includes('tandenrij 7,5 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();

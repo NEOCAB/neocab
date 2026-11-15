@@ -1,3 +1,4 @@
+import listIcon from '@material-symbols/svg-700/outlined/format_list_bulleted.svg?raw';
 import idCard from '@material-symbols/svg-700/outlined/id_card.svg?raw';
 import route from '@material-symbols/svg-700/outlined/route.svg?raw';
 import stethoscope from '@material-symbols/svg-700/outlined/stethoscope.svg?raw';
@@ -85,7 +86,7 @@ export function Logo({ className }: { className?: string }) {
 
 export { logoUrl };
 
-const VIEW_ICONS = { tabel: prep(tableChart), grafiek: prep(showChart) };
+const VIEW_ICONS = { lijst: prep(listIcon), tabel: prep(tableChart), grafiek: prep(showChart) };
 
 /** Icoon bij de weergavekeuze van de tijdlijn. */
 export function ViewIcon({ view }: { view: keyof typeof VIEW_ICONS }) {
