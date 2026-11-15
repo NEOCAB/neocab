@@ -15,6 +15,7 @@ import { ComboField, DateField, DateTimeField, GestationField, NumberField, Sect
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
 import { CallIcon } from '../icons';
 import { useAnonymous, useSettings, useTimeZone } from '../context';
+import { formatLocalDate, instantToWall } from '../../domain/time';
 
 export type Update = (fn: (t: Transport) => Transport) => void;
 export interface SectionProps {
@@ -101,9 +102,6 @@ export function ReferralSection({ t, update }: SectionProps) {
   const tel = r.referrerPhone.replace(/[^\d+]/g, '');
   return (
     <Section id="s2" title="Herkomst en bestemming">
-      <div className="grid">
-        <TimepointField label="Tijdstip verwijzing" value={r.referredAt} onChange={(v) => set('referredAt', v)} />
-      </div>
       {/* Verwijzer boven ontvanger, direct in te vullen; twee kolommen op een breed scherm. */}
       <div className="party-rows">
         <div className="party-row">
@@ -342,17 +340,23 @@ export function ReferralInfoSection(props: SectionProps) {
 export function DispatchSection({ t, update }: SectionProps) {
   const d = t.dispatch;
   const set = <K extends keyof Transport['dispatch']>(k: K, v: Transport['dispatch'][K]) => update((x) => ({ ...x, dispatch: { ...x.dispatch, [k]: v } }));
+  const tz = useTimeZone();
+  // Basisdatum: de dag van het eerste ingevulde tijdstip; later tijdstippen op een andere dag tonen "+1 dag".
+  const first = [t.referral.referredAt, d.ambulanceCalledAt, d.departedWithAmbulanceAt, t.teamAssessment.arrivedAt, t.closure.departedCotsideAt, t.closure.arrivedReceivingAt].find((i) => i);
+  const base = first ? instantToWall(first, tz).slice(0, 10) : '';
+  const weekday = base ? new Date(`${base}T12:00:00Z`).toLocaleDateString('nl-NL', { weekday: 'long', timeZone: 'UTC' }) : '';
+  const flowDate = base ? `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${formatLocalDate(base)}` : '';
   return (
     <Section id="sdispatch" title="Dispatch">
-      {/* Drie tijden naast elkaar op het grid (elk 4 kolommen); op een telefoon onder elkaar. */}
-      <div className="grid">
-        <TimepointField label="Ambulance gebeld" value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
-        <TimepointField label="Vertrek team" value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
-        <TimepointField
-          label="Aankomst bij kind"
-          value={t.teamAssessment.arrivedAt}
-          onChange={(v) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, arrivedAt: v } }))}
-        />
+      {/* Het hele verloop van het transport op één plek: zes tijdstippen in volgorde, de datum één keer erboven. */}
+      <p className="flow-date">{flowDate ? flowDate : 'Verloop van het transport'}</p>
+      <div className="tp-flow">
+        <TimepointField step={1} label="Verwijzing" baseDate={base} value={t.referral.referredAt} onChange={(v) => update((x) => ({ ...x, referral: { ...x.referral, referredAt: v } }))} />
+        <TimepointField step={2} label="Ambulance gebeld" baseDate={base} value={d.ambulanceCalledAt} onChange={(v) => set('ambulanceCalledAt', v)} />
+        <TimepointField step={3} label="Vertrek team" baseDate={base} value={d.departedWithAmbulanceAt} onChange={(v) => set('departedWithAmbulanceAt', v)} />
+        <TimepointField step={4} label="Aankomst bij kind" baseDate={base} value={t.teamAssessment.arrivedAt} onChange={(v) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, arrivedAt: v } }))} />
+        <TimepointField step={5} label="Vertrek met kind" baseDate={base} value={t.closure.departedCotsideAt} onChange={(v) => update((x) => ({ ...x, closure: { ...x.closure, departedCotsideAt: v } }))} />
+        <TimepointField step={6} label="Aankomst" baseDate={base} value={t.closure.arrivedReceivingAt} onChange={(v) => update((x) => ({ ...x, closure: { ...x.closure, arrivedReceivingAt: v } }))} />
       </div>
     </Section>
   );
@@ -418,13 +422,7 @@ export function ClosureSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['closure']>(k: K, v: Transport['closure'][K]) => update((x) => ({ ...x, closure: { ...x.closure, [k]: v } }));
   return (
     <Section id="s14" title="Transport">
-      <div className="grid">
-        <TimepointField label="Vertrek met kind" value={c.departedCotsideAt} onChange={(v) => set('departedCotsideAt', v)} />
-      </div>
       <TextArea label="Gebeurtenissen tijdens transport" value={c.eventsDuringTransport} onChange={(v) => set('eventsDuringTransport', v)} rows={4} />
-      <div className="grid">
-        <TimepointField label="Aankomst" value={c.arrivedReceivingAt} onChange={(v) => set('arrivedReceivingAt', v)} />
-      </div>
     </Section>
   );
 }

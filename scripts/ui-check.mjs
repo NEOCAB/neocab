@@ -65,7 +65,7 @@ async function basisLayout(page) {
   await page.getByLabel('Naam kind', { exact: true }).fill('Testbaby UI');
   await page.getByLabel('Patiëntnummer', { exact: true }).fill('0007788');
   const tpVal = (label) => page.locator(`.timepoint[data-label="${label}"]`).getAttribute('data-value');
-  const referred = await tpVal('Tijdstip verwijzing');
+  const referred = await tpVal('Verwijzing');
   // Keuzelijst ziekenhuizen (combobox): hele lijst via het pijltje, filteren door te typen, kiezen met muis of toetsenbord
   const refHosp = page.locator('#s2').getByRole('combobox', { name: 'Verwijzend ziekenhuis' });
   await page.locator('#s2').getByRole('button', { name: /Lijst verwijzend ziekenhuis openen/ }).click();
@@ -155,10 +155,10 @@ async function basisLayout(page) {
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
   const tps = await page.locator('.timepoint:not(.plain)').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(36, 82, 127)'), e.querySelectorAll('button').length]));
-  const expected = [['s2', 'Tijdstip verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
-  check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
+  const expected = [['sdispatch', 'Verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['sdispatch', 'Vertrek met kind'], ['sdispatch', 'Aankomst']];
+  check('Zes tijdstippen in één verloop in de sectie Dispatch', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (gewoon veld met blauwe streep erin, kop erboven)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
-  check('Alle zes tijdstippen met icoon safety check', (await page.locator('.timepoint .tp-icon svg').count()) === 6);
+  check('Zes genummerde stappen (1–6) in het verloop, zonder schildje', JSON.stringify(await page.locator('.tp-flow .tp-step').allTextContents()) === JSON.stringify(['1', '2', '3', '4', '5', '6']) && (await page.locator('.tp-flow .tp-icon').count()) === 0);
   const tpField = await page.locator('#sdispatch .timepoint').first().evaluate((e) => {
     const head = e.querySelector('.tp-head').getBoundingClientRect();
     const tf = e.querySelector('.tf').getBoundingClientRect();
@@ -319,7 +319,7 @@ async function basisLayout(page) {
   // Datum aanpassen via de dagknop.
   await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen/ }).click();
   await calledBox.getByLabel('Datum van Ambulance gebeld', { exact: true }).fill('09-10-2026');
-  check('Dagknop: datum aanpasbaar zonder de tijd te verliezen', (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20' && (await calledBox.locator('.tf .tp-date').textContent()) === '09-10-2026', await tpVal('Ambulance gebeld'));
+  check('Dagknop: datum aanpasbaar zonder de tijd te verliezen', (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20' && (await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen \(09-10-2026\)/ }).count()) === 1, await tpVal('Ambulance gebeld'));
   // Leegmaken wist de tijd, met Ongedaan maken.
   await calledInput.fill('');
   await calledInput.press('Enter');
@@ -336,7 +336,7 @@ async function basisLayout(page) {
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
-  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Tijdstip verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling']), s2.join(' | '));
+  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 6)) === JSON.stringify(['Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling'].slice(0, 6)), s2.join(' | '));
   check('Herkomst en bestemming: verwijzer en ontvanger, subkop Reden van overplaatsing', (await page.locator('#s2 .party-row').count()) === 2 && (await page.locator('#s2 h3.subsection-title', { hasText: 'Reden van overplaatsing' }).count()) === 1 && (await page.locator('#s2').getByRole('textbox', { name: 'Reden van overplaatsing' }).count()) === 1);
   await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('071 123 4567');
   check('Belknop bij telefoonnummer verwijzer', (await page.locator('#s2 a.call-button').getAttribute('href')) === 'tel:0711234567');
@@ -514,7 +514,7 @@ async function basisLayout(page) {
   check('Na herladen: checkliststatus behouden', (await page.locator('#s13 .check-row').nth(1).locator('.check-box.gedaan').count()) === 1 && (await page.locator('#s13 .check-row').nth(2).locator('.check-box.nvt').count()) === 1);
   check('Na herladen: naam behouden', (await page.getByLabel('Naam kind', { exact: true }).inputValue()) === 'Testbaby UI');
   check('Na herladen: patiëntnummer met voorloopnullen', (await page.getByLabel('Patiëntnummer', { exact: true }).inputValue()) === '0007788');
-  check('Na herladen: verwijstijd ongewijzigd', (await page.locator('.timepoint[data-label="Tijdstip verwijzing"]').getAttribute('data-value')) === referred);
+  check('Na herladen: verwijstijd ongewijzigd', (await page.locator('.timepoint[data-label="Verwijzing"]').getAttribute('data-value')) === referred);
   const timesAfter = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   check('Na herladen: meetmomenttijden ongewijzigd', JSON.stringify(timesBefore) === JSON.stringify(timesAfter), timesAfter.join(' | '));
   // Toetsenbord: Tab-volgorde begint bij de navigatie en bereikt de velden
@@ -706,7 +706,7 @@ for (const [w, h] of [
     const labels = [...document.querySelectorAll('#s2 .party-row .field-label')].map((l) => l.textContent);
     return { rows: rows.length, labels, twoCols: getComputedStyle(rows[0]).gridTemplateColumns.split(' ').length === 12, belowFirst: rows[1].getBoundingClientRect().top >= rows[0].getBoundingClientRect().bottom - 1 };
   });
-  check(`${w}px: verwijzer boven ontvanger, direct invulbaar op het 12-koloms grid, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 1, JSON.stringify(partyLayout));
+  check(`${w}px: verwijzer boven ontvanger, direct invulbaar op het 12-koloms grid, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 0, JSON.stringify(partyLayout));
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });

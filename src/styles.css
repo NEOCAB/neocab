@@ -4230,3 +4230,64 @@ article.card > .card-head {
   }
 }
 .menu-sheet-foot .primary{gap:.5rem}
+
+/* Transportverloop: zes tijdstippen op één plek, genummerd, de datum één keer erboven */
+.flow-date {
+  margin: 0 0 0.75rem;
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--label);
+}
+.tp-flow {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0 12px;
+}
+.tp-flow > * {
+  grid-column: span 4; /* drie naast elkaar, twee rijen */
+}
+@media (min-width: 1000px) {
+  .tp-flow > * {
+    grid-column: span 2; /* zes naast elkaar op een breed scherm */
+  }
+}
+.tp-flow .timepoint {
+  margin-bottom: 12px;
+}
+.tp-step {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+.timepoint .tf .tp-date.rel {
+  min-width: 40px;
+  padding: 0 0.5rem;
+  font-size: var(--fs-xs);
+  color: var(--label);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.timepoint .tf .tp-date.rel .action-icon,
+.timepoint .tf .tp-date.rel svg {
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 699px) {
+  .tp-flow > * {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 700px) {
+  .tp-flow .timepoint .tp-head {
+    min-height: 3.2em;
+    align-items: flex-start;
+  }
+}

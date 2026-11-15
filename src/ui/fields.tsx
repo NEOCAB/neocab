@@ -2,10 +2,10 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent
 import type { Instant, LocalDate, Num } from '../domain/types';
 import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
-import { formatLocalDate, instantToWall, isValidLocalDate, localDateOfMs, nowInstant, parseClockTime, parseDateText, todayLocalDate, wallToInstant } from '../domain/time';
+import { calendarDaysBetween, formatLocalDate, instantToWall, isValidLocalDate, localDateOfMs, nowInstant, parseClockTime, parseDateText, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
 import { chem } from './chem';
-import { DeleteIcon, EditIcon } from './icons';
+import { CalendarIcon, DeleteIcon, EditIcon } from './icons';
 import { AddIcon, ExpandIcon, SectionIcon, TimepointIcon } from './icons';
 
 function FieldShell({ id, label, hint, error, notice, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; notice?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
@@ -410,7 +410,7 @@ const UNDO_MS = 10_000;
  * - ingevuld: de tijd staat in het veld, met de dag als klein knopje erachter (tik = datum aanpassen);
  * - wijzigen: tik in het veld en typ eroverheen; leegmaken wist de tijd, met Ongedaan maken.
  */
-export function TimepointField({ label, value, onChange, shield = true }: { label: string; value: Instant; onChange: (v: Instant) => void; shield?: boolean }) {
+export function TimepointField({ label, value, onChange, shield = true, step, baseDate }: { label: string; value: Instant; onChange: (v: Instant) => void; shield?: boolean; step?: number; baseDate?: LocalDate }) {
   const id = useId();
   const labelId = `${id}-label`;
   const tz = useTimeZone();
@@ -456,11 +456,13 @@ export function TimepointField({ label, value, onChange, shield = true }: { labe
   };
 
   const shownTime = editing ? text : wall.slice(11, 16);
+  // In een verloop (met basisdatum) staat de datum één keer boven de kaart; hier alleen "+1 dag" bij een andere dag.
+  const rel = baseDate && wall ? calendarDaysBetween(baseDate, wall.slice(0, 10)) : null;
 
   return (
     <div className={`field timepoint ${shield ? '' : 'plain'} ${error ? 'has-error' : ''}`} data-label={label} data-value={wall}>
       <div className="tp-head">
-        {shield && <TimepointIcon />}
+        {step ? <span className="tp-step" aria-hidden="true">{step}</span> : shield && <TimepointIcon />}
         <span id={labelId} className="field-label">
           {label}
         </span>
@@ -524,8 +526,8 @@ export function TimepointField({ label, value, onChange, shield = true }: { labe
               onBlurDone={() => setDateOpen(false)}
             />
           ) : (
-            <button type="button" className="tp-date" title="Datum wijzigen" aria-label={`Datum van ${label} wijzigen (${formatLocalDate(wall.slice(0, 10))})`} onClick={() => setDateOpen(true)}>
-              {formatLocalDate(wall.slice(0, 10))}
+            <button type="button" className={`tp-date ${rel !== null ? 'rel' : ''}`} title="Datum wijzigen" aria-label={`Datum van ${label} wijzigen (${formatLocalDate(wall.slice(0, 10))})`} onClick={() => setDateOpen(true)}>
+              {rel === null ? formatLocalDate(wall.slice(0, 10)) : rel === 0 ? <CalendarIcon /> : `${rel > 0 ? '+' : '−'}${Math.abs(rel)} dag${Math.abs(rel) === 1 ? '' : 'en'}`}
             </button>
           ))}
       </div>
