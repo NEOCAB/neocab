@@ -297,7 +297,7 @@ function DateTextInput({ value, onChange, id, label, autoFocus, className, onInv
 }
 
 /** Tijd als tekst (uu:mm, 24-uurs); typen als 2235 of 22:35. Waarde: `HH:MM` of leeg. */
-function TimeTextInput({ value, onChange, id, label, className, onInvalid }: { value: string; onChange: (v: string) => void; id?: string; label?: string; className?: string; onInvalid?: (message: string | null) => void }) {
+export function TimeTextInput({ value, onChange, id, label, className, onInvalid }: { value: string; onChange: (v: string) => void; id?: string; label?: string; className?: string; onInvalid?: (message: string | null) => void }) {
   const [text, setText] = useState(value);
   useEffect(() => {
     if (!(parseClockTime(text) === value || (text.trim() === '' && value === ''))) setText(value);

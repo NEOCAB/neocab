@@ -158,10 +158,10 @@ async function basisLayout(page) {
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
   const tps = await page.locator('.timepoint:not(.plain)').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(36, 82, 127)'), e.querySelectorAll('button').length]));
-  const expected = [['sdispatch', 'Verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['sdispatch', 'Vertrek met kind'], ['sdispatch', 'Aankomst']];
-  check('Zes tijdstippen in één verloop in de sectie Dispatch', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
+  const expected = [['s2', 'Verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['s5', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
+  check('Zes tijdstippen op hun logische plek (Herkomst, Dispatch, Stabilisatie, Transport)', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (gewoon veld met blauwe streep erin, kop erboven)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
-  check('Zes genummerde stappen (1–6) in het verloop, zonder schildje', JSON.stringify(await page.locator('.tp-flow .tp-step').allTextContents()) === JSON.stringify(['1', '2', '3', '4', '5', '6']) && (await page.locator('.tp-flow .tp-icon').count()) === 0);
+  check('Zes genummerde stappen (1–6) op hun plek, zonder schildje', JSON.stringify(await page.locator('main.form .timepoint .tp-step').allTextContents()) === JSON.stringify(['1', '2', '3', '4', '5', '6']) && (await page.locator('main.form .timepoint .tp-icon').count()) === 0);
   const tpField = await page.locator('#sdispatch .timepoint').first().evaluate((e) => {
     const head = e.querySelector('.tp-head').getBoundingClientRect();
     const tf = e.querySelector('.tf').getBoundingClientRect();
@@ -316,7 +316,7 @@ async function basisLayout(page) {
   const calledBox = page.locator('.timepoint[data-label="Ambulance gebeld"]');
   const calledInput = calledBox.getByRole('textbox', { name: 'Ambulance gebeld' });
   check('Leeg tijdstip: inline veld uu:mm met knop Nu erin, geen Wissen', (await calledInput.getAttribute('placeholder')) === 'uu:mm' && (await calledBox.locator('.tf .nu').count()) === 1 && (await calledBox.getByRole('button', { name: /wissen/ }).count()) === 0);
-  await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
+  await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten', exact: true }).click();
   const calledVal = await tpVal('Ambulance gebeld');
   check('Ambulance gebeld: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(calledVal), calledVal);
   check('Ingevuld tijdstip: tijd in het veld, dagknop met datum, geen potlood of Nu meer', (await calledInput.inputValue()) === calledVal.slice(11, 16) && (await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen \(\d{2}-\d{2}-\d{4}\)/ }).count()) === 1 && (await calledBox.locator('.tf .nu').count()) === 0 && (await calledBox.getByRole('button', { name: /wijzigen$/ }).count()) === 0);
@@ -341,11 +341,11 @@ async function basisLayout(page) {
   check('Ongeldige tijd geeft een melding en wist niets', (await calledBox.locator('.field-error').count()) === 1 && (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20');
   await calledInput.fill('');
   await calledInput.press('Enter');
-  await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
+  await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten', exact: true }).click();
 
   // Volgorde sectie 2: datum/tijd, verwijzer, ontvangende afdeling en ziekenhuis
   const s2 = await page.locator('#s2 .field-label').allTextContents();
-  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 6)) === JSON.stringify(['Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling'].slice(0, 6)), s2.join(' | '));
+  check('Sectie 2 in gevraagde volgorde (Van en Naar: eerst ziekenhuis, dan afdeling)', JSON.stringify(s2.slice(0, 7)) === JSON.stringify(['Verwijzing', 'Verwijzend ziekenhuis', 'Verwijzende afdeling', 'Naam verwijzer', 'Telefoonnummer verwijzer', 'Ontvangend ziekenhuis', 'Ontvangende afdeling']), s2.join(' | '));
   check('Herkomst en bestemming: verwijzer en ontvanger, subkop Reden van overplaatsing', (await page.locator('#s2 .party-row').count()) === 2 && (await page.locator('#s2 h3.subsection-title', { hasText: 'Reden van overplaatsing' }).count()) === 1 && (await page.locator('#s2').getByRole('textbox', { name: 'Reden van overplaatsing' }).count()) === 1);
   await page.locator('#s2').getByLabel('Telefoonnummer verwijzer').fill('071 123 4567');
   check('Belknop bij telefoonnummer verwijzer', (await page.locator('#s2 a.call-button').getAttribute('href')) === 'tel:0711234567');
@@ -708,7 +708,7 @@ for (const [w, h] of [
     const rep = document.querySelector('.report-side').getBoundingClientRect();
     const save = document.querySelector('.save-status');
     const sb = save.getBoundingClientRect();
-    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && rep.top >= document.querySelector('.sidenav ul').getBoundingClientRect().bottom - 1, saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60, evenGaps: (() => { const a = [...document.querySelectorAll('.sidenav li a')].map((x) => x.getBoundingClientRect()); const first = (document.querySelector('.sidenav .nav-phase') ?? document.querySelector('.sidenav li a')).getBoundingClientRect(); return Math.abs((first.top - top.bottom) - (rep.top - a[a.length - 1].bottom)) < 1.5 && getComputedStyle(document.querySelector('.sidenav li:last-child a')).borderBottomWidth === '0px'; })() };
+    return { headers: document.querySelectorAll('.editor-layout .topbar').length, left: Math.abs(top.left - nav.left) < 2 && top.right < 320 && top.bottom <= nav.top + 1, navVisible: nav.width > 0, reportUnderMenu: rep.height > 0 && !!document.querySelector('.sidenav > .report-side') && !!(document.querySelector('.sidenav > ul').compareDocumentPosition(document.querySelector('.sidenav > .report-side')) & Node.DOCUMENT_POSITION_FOLLOWING), saveFloating: getComputedStyle(save).position === 'fixed' && sb.left < 60 && sb.bottom > innerHeight - 60, evenGaps: (() => { const a = [...document.querySelectorAll('.sidenav li a')].map((x) => x.getBoundingClientRect()); const first = (document.querySelector('.sidenav .nav-phase') ?? document.querySelector('.sidenav li a')).getBoundingClientRect(); return first.top > top.bottom && !!document.querySelector('.flow-panel') && document.querySelector('.flow-panel').getBoundingClientRect().bottom <= first.top + 1 && getComputedStyle(document.querySelector('.sidenav li:last-child a')).borderBottomWidth === '0px'; })() };
   });
   check(`${w}px: kop (Neo.Cab, kind) ${w >= 1000 ? 'links boven het sectiemenu, Verslag & export eronder, opslagicoon zwevend links onder' : 'als balk bovenaan'}, één keer in beeld`, side.headers === 1 && (w >= 1000 ? side.left && side.navVisible && side.reportUnderMenu && side.saveFloating && side.evenGaps : !side.navVisible && !side.reportUnderMenu), JSON.stringify(side));
   // Herkomst en bestemming: direct invulbaar, verwijzer boven ontvanger, twee kolommen
@@ -717,7 +717,7 @@ for (const [w, h] of [
     const labels = [...document.querySelectorAll('#s2 .party-row .field-label')].map((l) => l.textContent);
     return { rows: rows.length, labels, twoCols: getComputedStyle(rows[0]).gridTemplateColumns.split(' ').length === 12, belowFirst: rows[1].getBoundingClientRect().top >= rows[0].getBoundingClientRect().bottom - 1 };
   });
-  check(`${w}px: verwijzer boven ontvanger, direct invulbaar op het 12-koloms grid, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 0, JSON.stringify(partyLayout));
+  check(`${w}px: verwijzer boven ontvanger, direct invulbaar op het 12-koloms grid, zonder Van/Naar of Wijzigen`, partyLayout.rows === 2 && partyLayout.twoCols && partyLayout.belowFirst && (await page.locator('#s2 .party-summary, #s2 legend').count()) === 0 && (await page.locator('#s2').getByRole('button', { name: /wijzigen/ }).count()) === 1, JSON.stringify(partyLayout));
   const blw = await basisLayout(page);
   check(`Basisgegevens op ${w} px: 4 kolommen × 2 rijen`, blw.n === 8 && blw.cols === 4 && blw.rows === 2, JSON.stringify(blw));
   await page.screenshot({ path: `${OUT}/${w}-formulier-top.png` });
@@ -832,6 +832,39 @@ for (const [w, h] of [
   check('Grafieken op telefoon: tikken op een rij toont de grafiek', (await pg.locator('#s6 .spark-item .chart-card').count()) === 1);
   check('Grafieken op telefoon: geen horizontaal scrollen', await noHorizontalScroll(pg));
   await ctxP.close();
+}
+
+// Transportverloop: balk onderaan (telefoon) en paneel in de zijbalk (pc)
+{
+  const ctxF = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+  const pg = await ctxF.newPage();
+  await pg.goto(BASE);
+  await pg.getByRole('button', { name: /Nieuw transport/ }).click();
+  await pg.waitForSelector('#s1');
+  const bar = pg.locator('.flow-bar');
+  const barText = async () => (await bar.textContent()) ?? '';
+  check('Balk onderaan (telefoon): 1/6 en volgende stap Ambulance gebeld', (await barText()).includes('1/6') && (await barText()).includes('Ambulance gebeld') && (await bar.locator('.flow-nu').count()) === 1);
+  await bar.getByRole('button', { name: 'Overzicht: Ambulance gebeld op nu zetten' }).click();
+  check('Nu legt de volgende stap vast (ook op zijn plek in het formulier); balk springt naar Vertrek team', (await barText()).includes('2/6') && (await barText()).includes('Vertrek team') && /T\d\d:\d\d/.test((await pg.locator('.timepoint[data-label="Ambulance gebeld"]').getAttribute('data-value')) ?? ''));
+  await bar.getByRole('button', { name: 'Transportverloop uitklappen' }).click();
+  const sheet = pg.locator('.flow-sheet');
+  check('Uitklappen: blauwe lijst met zes stappen; Nu staat nu in zijn eigen rij, niet meer in de balk', (await sheet.locator('.flow-row').count()) === 6 && (await sheet.locator('.flow-row.cur .flow-nu').count()) === 1 && (await bar.locator('.flow-nu').count()) === 0 && (await sheet.evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(27, 53, 82)');
+  await sheet.getByLabel('Overzicht: Vertrek team, tijd', { exact: true }).fill('2310');
+  await sheet.getByLabel('Overzicht: Vertrek team, tijd', { exact: true }).blur();
+  check('Tijd invullen in de lijst werkt door op de plek in het formulier', ((await pg.locator('.timepoint[data-label="Vertrek team"]').getAttribute('data-value')) ?? '').endsWith('T23:10'));
+  await bar.getByRole('button', { name: 'Transportverloop inklappen' }).click();
+  check('Inklappen: Nu staat weer in de balk', (await sheet.count()) === 0 && (await bar.locator('.flow-nu').count()) === 1);
+  check('Balk: geen horizontaal scrollen', await noHorizontalScroll(pg));
+  await ctxF.close();
+  const ctxD = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+  const pd = await ctxD.newPage();
+  await pd.goto(BASE);
+  await pd.getByRole('button', { name: /Nieuw transport/ }).click();
+  await pd.waitForSelector('#s1');
+  check('Pc: Transportverloop altijd open in de zijbalk, balk onderaan verborgen', (await pd.locator('.flow-panel .flow-row').count()) === 6 && !(await pd.locator('.flow-bar-wrap').isVisible()));
+  await pd.locator('.flow-panel').getByRole('button', { name: 'Overzicht: Ambulance gebeld op nu zetten' }).click();
+  check('Pc: Nu in het paneel zet de volgende stap, het paneel springt door', (await pd.locator('.flow-panel .flow-row.cur .flow-label').textContent()) === 'Vertrek team' && /T\d\d:\d\d/.test((await pd.locator('.timepoint[data-label="Ambulance gebeld"]').getAttribute('data-value')) ?? ''));
+  await ctxD.close();
 }
 await browser.close();
 const failed = results.filter((r) => !r.ok);

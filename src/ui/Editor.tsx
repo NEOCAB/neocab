@@ -1,4 +1,5 @@
 import { ThemeButton } from './ThemeButton';
+import { FlowBar, FlowPanel } from './Flow';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import type { TransportRepository } from '../storage/repository';
@@ -275,6 +276,8 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
               </div>
             </div>
           )}
+          {/* Breed scherm: het Transportverloop altijd open en bovenaan in de zijbalk, boven het sectiemenu. */}
+          <FlowPanel {...props} />
           <nav className="sidenav" aria-label="Secties">
             <ul>
               {PHASES.map((p) => (
@@ -337,6 +340,7 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
             </button>
           </div>
         </main>
+        <FlowBar {...props} />
       </div>
     </div>
   );
