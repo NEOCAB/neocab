@@ -18,6 +18,8 @@ export interface AppSettings {
    * patiëntnummer (geboortedatum wel). Standaard: werkapparaat.
    */
   device: DeviceKind;
+  /** De apparaatkeuze is één keer gemaakt; daarna staat ze als één regel met Wijzigen op het startscherm. */
+  deviceChosen: boolean;
   /** Afzendergegevens voor de overplaatsingsbrief (Word); per apparaat in te vullen. */
   letter: LetterSettings;
 }
@@ -60,7 +62,7 @@ export type DeviceKind = 'werk' | 'persoonlijk';
 
 const KEY = 'neonataal-transport:v1:instellingen';
 
-export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, hospitals: DEFAULT_HOSPITAL_LINES, abcdLettersOnly: false, device: 'werk', letter: EMPTY_LETTER };
+export const DEFAULT_SETTINGS: AppSettings = { timeZone: DEFAULT_TIME_ZONE, medicationRoutes: DEFAULT_MEDICATION_ROUTES, hospitals: DEFAULT_HOSPITAL_LINES, abcdLettersOnly: false, device: 'werk', deviceChosen: false, letter: EMPTY_LETTER };
 
 export function loadSettings(storage: KeyValueStorage): AppSettings {
   try {
@@ -73,6 +75,7 @@ export function loadSettings(storage: KeyValueStorage): AppSettings {
       hospitalsCustom: v.hospitalsCustom === true && Array.isArray(v.hospitals),
       abcdLettersOnly: v.abcdLettersOnly === true,
       device: v.device === 'persoonlijk' ? 'persoonlijk' : 'werk',
+      deviceChosen: v.deviceChosen === true,
       letter: loadLetter(v.letter),
     };
   } catch {

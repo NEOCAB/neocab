@@ -325,7 +325,7 @@ async function basisLayout(page) {
   await page.keyboard.press('Alt+KeyM');
   check('Sneltoets Alt+M opent een nieuw meetmoment', (await page.getByRole('form', { name: 'Nieuw meetmoment' }).count()) === 1);
   await page.getByRole('form', { name: 'Nieuw meetmoment' }).getByRole('button', { name: 'Annuleren' }).click();
-  await page.locator('#s6').getByRole('button', { name: 'Meetmoment nu' }).first().click();
+  await page.locator('#s6').getByRole('button', { name: 'Meetmoment', exact: true }).first().click();
   const editor = page.getByRole('form', { name: 'Nieuw meetmoment' });
   check('Meetmoment: geen veld Fase', (await editor.getByLabel('Fase', { exact: true }).count()) === 0);
   const tabNames = await editor.getByRole('tab').allTextContents();
@@ -346,7 +346,7 @@ async function basisLayout(page) {
   await editor.getByRole('button', { name: 'Meetmoment opslaan' }).click();
 
   // Meetmoment 2: voorstel modaliteit, geen monitorwaarden
-  await page.locator('#s6').getByRole('button', { name: 'Meetmoment nu' }).first().click();
+  await page.locator('#s6').getByRole('button', { name: 'Meetmoment', exact: true }).first().click();
   const ed2 = page.getByRole('form', { name: 'Nieuw meetmoment' });
   check('Voorstel: CPAP gekozen en als voorstel gemeld', (await ed2.getByRole('radio', { name: 'CPAP', exact: true }).isChecked()) && (await ed2.getByText(/als voorstel overgenomen/).count()) === 1);
   check('Vorige waarde als hint bij het veld (vorige 7)', (await ed2.locator('.prev-value', { hasText: 'vorige 7' }).count()) >= 1);
@@ -513,6 +513,7 @@ async function basisLayout(page) {
   await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
   await page.waitForSelector('.report');
   check('Geen horizontaal scrollen op 390 px (verslag)', await noHorizontalScroll(page));
+  check('Verslagscherm: acties gegroepeerd (Naar het EPD, Bewaren en mailen, Overdragen aan een collega)', JSON.stringify(await page.locator('.report-panel .panel-group h2').allTextContents()) === JSON.stringify(['Naar het EPD', 'Bewaren en mailen', 'Overdragen aan een collega']) && (await page.locator('.report-panel .help summary').count()) === 3);
   const reportText = await page.locator('#email-text').inputValue();
   check('E-mailtekst als platte tekst: koppen niet in hoofdletters en zonder streep eronder', reportText.includes('\n\nBasisgegevens kind\n') && !reportText.includes('BASISGEGEVENS') && !/\n[-=]{5,}/.test(reportText) && !reportText.includes('<'));
   check('Logo Neo.Cab bovenaan het verslag', await page.locator('.report .report-head img.brand-logo').isVisible());
@@ -578,6 +579,7 @@ async function basisLayout(page) {
   check('Overstap naar persoonlijk apparaat vraagt om bestaande concepten anoniem te maken', askedAnon);
   await own.getByRole('alertdialog').getByRole('button', { name: 'Anoniem maken' }).click();
   await own.locator('.concept').first().waitFor();
+  check('Apparaatkeuze: na kiezen één regel met Wijzigen', (await own.locator('.device-line').textContent())?.includes('Persoonlijk apparaat') && (await own.getByRole('button', { name: 'Wijzigen' }).count()) === 1 && (await own.getByRole('radio', { name: /Persoonlijk apparaat/ }).count()) === 0);
   const conceptText = await own.locator('.concept').first().textContent();
   check('Concept daarna anoniem in de lijst, met geboortedatum', conceptText.includes('Anoniem transport') && !conceptText.includes('Baby Voorbeeld') && !conceptText.includes('0012345') && conceptText.includes('Geboren'), conceptText);
   await own.getByRole('button', { name: 'Hervatten' }).first().click();

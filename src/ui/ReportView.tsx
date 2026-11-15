@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Transport } from '../domain/types';
 import { buildReport, type ReportRow } from '../report/buildReport';
 import { emailSubject, reportToRtf, reportToText } from '../report/text';
@@ -71,6 +71,16 @@ function Row({ row }: { row: ReportRow }) {
     case 'note':
       return <p className="muted">{row.text}</p>;
   }
+}
+
+/** Korte uitleg achter een vraagteken, zodat de knoppen rustig blijven. */
+function Help({ children }: { children: ReactNode }) {
+  return (
+    <details className="help">
+      <summary aria-label="Uitleg">?</summary>
+      <p>{children}</p>
+    </details>
+  );
 }
 
 export function ReportView({ transport, onBack }: { transport: Transport; onBack: () => void }) {
@@ -197,71 +207,70 @@ export function ReportView({ transport, onBack }: { transport: Transport; onBack
 
   return (
     <div className="report-layout">
-      <header className="topbar no-print">
-        <div className="topbar-row">
-          <button type="button" className="ghost" onClick={onBack}>
+      {/* Acties links (pc) of bovenaan (telefoon), gegroepeerd naar doel; het verslag zelf staat als een vel papier ernaast. */}
+      <aside className="report-panel no-print" aria-label="Exporteren en overdragen">
+        <div className="report-panel-head">
+          <button type="button" className="panel-back" onClick={onBack}>
             ← Terug naar formulier
           </button>
-          <div className="active-transport">
+          <div className="report-panel-name">
             <span className="active-label">Verslag van</span>
             <strong>{childLabel(transport.child.name, anonymous)}</strong>
           </div>
         </div>
-      </header>
-      <main className="report-main">
-        <section className="export-actions no-print" aria-label="Exporteren">
-          <h2>Exporteren</h2>
-          <div className="button-row">
-            <button type="button" className="primary" onClick={downloadPdf} disabled={busy}>
-              Pdf downloaden
+
+        <section className="panel-group" aria-label="Naar het EPD">
+          <h2>Naar het EPD</h2>
+          <button type="button" className="panel-main" onClick={downloadLetter} disabled={busy}>
+            Brief downloaden (Word)
+          </button>
+          <button type="button" onClick={downloadRtf}>
+            Rtf downloaden
+          </button>
+          <button type="button" onClick={copy}>
+            E-mailtekst kopiëren
+          </button>
+          <Help>Met opmaak (vet, cursief) in het EPD: download het rtf-bestand, open het in Word of WordPad en kopieer het van daaruit. Bij een lang verslag gaat de volledige tekst via het klembord, zodat er niets wegvalt.</Help>
+        </section>
+
+        <section className="panel-group" aria-label="Bewaren en mailen">
+          <h2>Bewaren en mailen</h2>
+          <button type="button" onClick={downloadPdf} disabled={busy}>
+            Pdf downloaden
+          </button>
+          {canPrint() && (
+            <button type="button" onClick={() => window.print()}>
+              Afdrukken
             </button>
-            <button type="button" className="primary" onClick={copy}>
-              E-mailtekst kopiëren
-            </button>
-            <button type="button" className="primary" onClick={downloadLetter} disabled={busy}>
-              Brief downloaden (Word)
-            </button>
-            <button type="button" className="secondary" onClick={downloadRtf}>
-              Rtf downloaden
-            </button>
-            <button type="button" className="secondary" onClick={openMail}>
-              Concept openen in mailprogramma
-            </button>
-            {canPrint() && (
-              <button type="button" className="secondary" onClick={() => window.print()}>
-                Afdrukken
-              </button>
-            )}
-          </div>
-          <p className="muted small-print">
-            Er wordt nooit automatisch een e-mail verzonden. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe. Bij een lang verslag gaat de volledige tekst via het klembord, zodat er niets wegvalt. Met opmaak (vet, cursief) in het EPD: download het rtf-bestand, open het in Word of WordPad en kopieer het van daaruit.
+          )}
+          <button type="button" onClick={openMail}>
+            Concept openen in mailprogramma
+          </button>
+          <Help>Er wordt nooit automatisch een e-mail verzonden. Een concept via het mailprogramma bevat géén pdf-bijlage: download de pdf en voeg die zelf toe.</Help>
+        </section>
+        {status && (
+          <p className="notice" role="status">
+            {status}
           </p>
-          {status && (
-            <p className="notice" role="status">
-              {status}
-            </p>
-          )}
-        </section>
+        )}
 
-        <section className="export-actions handover no-print" aria-label="Overdragen aan een collega">
+        <section className="panel-group handover" aria-label="Overdragen aan een collega">
           <h2>Overdragen aan een collega</h2>
-          <p>Stuur de volledige registratie door, zodat een collega die op een ander apparaat verder kan invullen via “Transport importeren” op de startpagina.</p>
-          <div className="button-row">
-            <button type="button" className="primary" onClick={handoverMail}>
-              Overdracht per e-mail
-            </button>
-            <button type="button" className="secondary" onClick={handoverFile}>
-              Overdrachtsbestand downloaden
-            </button>
-          </div>
-          <p className="muted small-print">Het bericht bevat alle ingevulde gegevens, inclusief patiëntgegevens. Er wordt niets automatisch verzonden.</p>
-          {handoverStatus && (
-            <p className="notice" role="status">
-              {handoverStatus}
-            </p>
-          )}
+          <button type="button" onClick={handoverMail}>
+            Overdracht per e-mail
+          </button>
+          <button type="button" onClick={handoverFile}>
+            Overdrachtsbestand downloaden
+          </button>
+          <Help>Stuur de volledige registratie door, zodat een collega die op een ander apparaat verder kan invullen via “Transport importeren” op de startpagina. Het bericht bevat alle ingevulde gegevens, inclusief patiëntgegevens. Er wordt niets automatisch verzonden.</Help>
         </section>
-
+        {handoverStatus && (
+          <p className="notice" role="status">
+            {handoverStatus}
+          </p>
+        )}
+      </aside>
+      <main className="report-main">
         <article className="report" aria-label="Transportverslag">
           <div className="report-head">
             <h1>{report.title}</h1>

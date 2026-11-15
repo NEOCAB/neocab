@@ -183,8 +183,13 @@ function SettingsPanel({ settings, onChange }: { settings: AppSettings; onChange
  */
 function DeviceChoice({ items, settings, onSettings, onAnonymizeAll }: { items: TransportSummary[]; settings: AppSettings; onSettings: (s: AppSettings) => void; onAnonymizeAll: () => void }) {
   const confirm = useConfirm();
+  const [open, setOpen] = useState(!settings.deviceChosen);
   const choose = async (device: DeviceKind) => {
-    if (device === settings.device) return;
+    if (device === settings.device) {
+      onSettings({ ...settings, deviceChosen: true });
+      setOpen(false);
+      return;
+    }
     if (device === 'persoonlijk') {
       const n = items.filter((i) => i.childName.trim() || i.patientNumber.trim()).length;
       if (n > 0) {
@@ -196,12 +201,25 @@ function DeviceChoice({ items, settings, onSettings, onAnonymizeAll }: { items: 
         onAnonymizeAll();
       }
     }
-    onSettings({ ...settings, device });
+    onSettings({ ...settings, device, deviceChosen: true });
+    setOpen(false);
   };
   const options: { value: DeviceKind; title: string; text: string }[] = [
     { value: 'werk', title: 'Werkapparaat', text: 'Computer, tablet of telefoon van de instelling. Naam en patiëntnummer kunnen worden ingevuld.' },
     { value: 'persoonlijk', title: 'Persoonlijk apparaat', text: 'Eigen telefoon of tablet. Transporten worden anoniem vastgelegd: geen naam en geen patiëntnummer (geboortedatum wel).' },
   ];
+  const current = options.find((o) => o.value === settings.device) ?? options[0];
+  if (!open)
+    return (
+      <div className="device-line">
+        <span>
+          <strong>{current.title}</strong> · {current.value === 'werk' ? 'naam en patiëntnummer mogen worden ingevuld; alles blijft op dit apparaat.' : 'transporten zijn anoniem; alles blijft op dit apparaat.'}
+        </span>
+        <button type="button" className="link-button" onClick={() => setOpen(true)}>
+          Wijzigen
+        </button>
+      </div>
+    );
   return (
     <fieldset className="card device-choice">
       <legend>Op welk apparaat werk je?</legend>
@@ -300,13 +318,12 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
   const [importing, setImporting] = useState(false);
   return (
     <div className="home">
-      <header className="home-header">
-        <Logo className="home-logo" />
-        <h1>Neo.Cab</h1>
-      </header>
-      <main>
-        <DeviceChoice items={items} settings={settings} onSettings={onSettings} onAnonymizeAll={onAnonymizeAll} />
-        <div className="button-row">
+      <aside className="home-side">
+        <header className="home-header">
+          <Logo className="home-logo" />
+          <h1>Neo.Cab</h1>
+        </header>
+        <div className="home-actions">
           <button type="button" className="primary large" onClick={onNew}>
             + Nieuw transport
           </button>
@@ -319,8 +336,11 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
             </button>
           )}
         </div>
+      </aside>
+      <main>
+        <DeviceChoice items={items} settings={settings} onSettings={onSettings} onAnonymizeAll={onAnonymizeAll} />
         {importing && <ImportPanel items={items} onImport={onImport} onClose={() => setImporting(false)} />}
-        <h2>Opgeslagen concepten</h2>
+        <h2>Transporten op dit apparaat</h2>
         <p className="muted small-print">Concepten worden een week na aankomst (of na de laatste wijziging) automatisch van dit apparaat verwijderd.</p>
         {items.length === 0 ? (
           <p className="muted">Er zijn nog geen concepten op dit apparaat.</p>

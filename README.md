@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 81 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 222 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 224 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -223,6 +223,12 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 
 ## Tijdlijn: invoer eerst (stap 4)
 
-- **Bovenaan** staat de grote knop *Meetmoment nu* (neemt de huidige tijd; sneltoets Alt+M), daaronder een **compacte lijst** met de nieuwste bovenaan: tijd en datum, modaliteit met hooguit drie instellingen, een regel met waarden (HF, SpO₂, MAP, temperatuur, pH) en de beleidsaanpassing. Tikken op een rij opent het meetmoment. *Tabel* en *Grafiek* blijven beschikbaar via de weergavekeuze rechtsboven (de lijst is de standaard; de keuze wordt per apparaat onthouden).
+- **Bovenaan** staat de grote knop *Meetmoment* (neemt de huidige tijd; sneltoets Alt+M), daaronder een **compacte lijst** met de nieuwste bovenaan: tijd en datum, modaliteit met hooguit drie instellingen, een regel met waarden (HF, SpO₂, MAP, temperatuur, pH) en de beleidsaanpassing. Tikken op een rij opent het meetmoment. *Tabel* en *Grafiek* blijven beschikbaar via de weergavekeuze rechtsboven (de lijst is de standaard; de keuze wordt per apparaat onthouden).
 - **Meetmoment met tabbladen** Ademhaling / Monitor / Bloedgas / Beleid in plaats van uitklapblokken; een blauw puntje geeft aan dat er iets is ingevuld. Onder een veld staat de **vorige waarde** als hint ("vorige 35"). De OI staat onder Bloedgas.
 - **Op een telefoon vult het meetmoment het scherm**; Opslaan staat onderin binnen bereik van de duim. Het toetsenbord opent niet vanzelf. Getalvelden staan twee naast elkaar (op pc drie).
+
+## Startscherm en verslagscherm (stap 5)
+
+- **Startscherm:** blauwe zijbalk (pc) of balk (telefoon) met logo en de acties *Nieuw transport*, *Fictief voorbeeldtransport laden* en *Transport importeren*. De apparaatkeuze (werk- of persoonlijk apparaat) maak je één keer; daarna staat ze als één regel met *Wijzigen* (`deviceChosen` in de instellingen). *Transporten op dit apparaat* toont per transport wanneer het automatisch wordt verwijderd als dat binnen een dag is.
+- **Verslagscherm:** de acties staan links (pc) of bovenaan (telefoon), gegroepeerd naar doel: *Naar het EPD* (Word-brief, rtf, e-mailtekst kopiëren), *Bewaren en mailen* (pdf, afdrukken, concept in mailprogramma) en *Overdragen aan een collega*. Uitleg staat achter een vraagteken. Het verslag zelf staat ernaast als een vel papier.
+- Knop *Meetmoment* (zonder "nu") bovenaan de tijdlijn.

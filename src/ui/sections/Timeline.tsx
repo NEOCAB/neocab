@@ -439,7 +439,7 @@ export function TimelineSection({ t, update }: SectionProps) {
       {!draft && (
         <button type="button" className="primary timeline-now" onClick={startNew} title="Nieuw meetmoment met de huidige tijd (Alt+M)" aria-keyshortcuts="Alt+M">
           <AddIcon />
-          Meetmoment nu
+          Meetmoment
         </button>
       )}
       {draft && (

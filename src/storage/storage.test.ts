@@ -135,7 +135,7 @@ describe('lokale conceptopslag', () => {
 
   it('bewaart configureerbare toedieningsroutes', () => {
     const storage = memoryStorage();
-    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], hospitals: [], abcdLettersOnly: false, device: 'werk', letter: EMPTY_LETTER });
+    saveSettings(storage, { timeZone: 'Europe/Amsterdam', medicationRoutes: ['IV', 'Oraal'], hospitals: [], abcdLettersOnly: false, device: 'werk', deviceChosen: false, letter: EMPTY_LETTER });
     expect(loadSettings(storage).medicationRoutes).toEqual(['IV', 'Oraal']);
   });
 
