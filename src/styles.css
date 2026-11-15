@@ -4359,3 +4359,54 @@ article.card > .card-head {
 .spark-value {
   text-align: right;
 }
+
+/* ===== Kopniveaus K1–K6: maat = niveau =====
+   K1 28/700 blauw (verslagtitel) · K2 24/700 blauw (sectietitel) · K3 20/700 blauw (subkop, blokkop verslag)
+   K4 17/700 blauw (kaart- of paneelkop) · K5 15/600 donkergrijs (groeps- of vraagkop) · K6 13/600 grijs (veldlabel). */
+:root {
+  --fs-2xl: 28px;
+  --muted: #56606b;
+}
+:root[data-text='groot'] {
+  --fs-2xl: 32px;
+}
+.report h1 {
+  font-size: var(--fs-2xl);
+}
+.report h3,
+.r-block > h3,
+.r-card > h3 {
+  font-size: var(--fs-l);
+}
+legend.field-label,
+fieldset.segmented > legend.field-label,
+fieldset.group > legend,
+.hypothermia-panel fieldset.group > legend {
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--heading);
+}
+fieldset.subgroup > legend {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--label);
+}
+h4.hypothermia-subtitle,
+.hypothermia-panel .hypothermia-subtitle,
+article.card > .card-head strong,
+.card.tube .time,
+.device-choice legend {
+  font-size: var(--fs-m);
+  font-weight: 700;
+  color: var(--primary);
+}
+.flow-date,
+.mode-group-title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--label);
+}
+.th-label {
+  font-weight: 600;
+  color: var(--heading);
+}

@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 82 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 233 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 234 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -255,3 +255,15 @@ Na een kritische designreview zijn doorgevoerd (het ABCD-blok blijft voorlopig z
 - **Telefoon:** kop van 56 px (logo, naam, pt.nr., opslagstatus, menuknop); het menu (secties, verslag en export, weergave, tekstgrootte) opent als een vel. Grafieken staan als rijen met laatste waarde, minilijn en bereik; tikken toont de grote grafiek.
 - **Transportverloop:** de zes tijdstippen (verwijzing, ambulance gebeld, vertrek team, aankomst bij kind, vertrek met kind, aankomst) staan genummerd bij elkaar in de sectie *Dispatch*, de datum één keer erboven en "+1 dag" bij een volgende dag. *Herkomst en bestemming* en *Transport* houden alleen hun eigen velden.
 - **Startscherm:** *Fictief voorbeeldtransport laden* is een kleine link onderin de zijbalk; de thema-knop is een vierkant pictogram.
+
+## Kopniveaus (K1–K6)
+
+Maat = niveau, in formulier én verslag:
+- **K1** 28 px, 700, blauw: titel van het verslag.
+- **K2** 24 px, 700, blauw: sectietitel.
+- **K3** 20 px, 700, blauw: subkop (ook de blokkop in het verslag).
+- **K4** 17 px, 700, blauw: kaart- of paneelkop (meetmoment bewerken, materialen en tube, Perinatale asfyxie en Thompson Score, apparaatkeuze).
+- **K5** 15 px, 600, donkergrijs: groeps- of vraagkop (vraag met keuzebalk, Apgarscores, Navelstrengbloedgas, Criteria, stappen van het transportverloop).
+- **K6** 13 px, 600, grijs: veldlabel (ook Arterieel en Veneus, modaliteitsgroep).
+
+Metatekst (intro, hint, eenheid) is 13 px, 400, grijs. Drie tekstkleuren: waarden `#1a1a1a`, koppen `#2b3138`, labels en meta `#56606b`. Uitzondering: de sleutels in het verslag ("Naam kind") blijven 15 px, omdat het een document is.

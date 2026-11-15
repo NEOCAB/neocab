@@ -278,11 +278,11 @@ async function basisLayout(page) {
   const panelPlace = await page.evaluate(() => {
     const panel = document.querySelector('#s3 .hypothermia-panel');
     const prev = panel?.closest('.abcd-extra')?.previousElementSibling;
-    const sizes = [...(panel?.querySelectorAll('h4, legend') ?? [])].map((h) => parseFloat(getComputedStyle(h).fontSize));
+    const sizes = [...(panel?.querySelectorAll('h4') ?? [])].map((h) => parseFloat(getComputedStyle(h).fontSize));
     const labelSize = parseFloat(getComputedStyle(prev.querySelector('.field-label')).fontSize);
-    return { underDisability: !!prev && prev.textContent.includes('Disability'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent), noTitle: !panel.querySelector('h3, .hypothermia-note'), notBigger: sizes.every((x) => x <= labelSize) };
+    return { underDisability: !!prev && prev.textContent.includes('Disability'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent), noTitle: !panel.querySelector('h3, .hypothermia-note'), notBigger: sizes.every((x) => x === 17) };
   });
-  check('Na kiezen: blauw vlak onder Disability (zonder eigen kop of toelichting) met Perinatale asfyxie en Thompson Score (9 onderdelen), kopjes niet groter dan Disability', panelPlace.underDisability && panelPlace.noTitle && panelPlace.notBigger && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
+  check('Na kiezen: blauw vlak onder Disability (zonder eigen kop of toelichting) met Perinatale asfyxie en Thompson Score (9 onderdelen), kopjes als kaartkop (K4, 17 px)', panelPlace.underDisability && panelPlace.noTitle && panelPlace.notBigger && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
   await page.locator('#s3 .asphyxia-criteria').getByRole('checkbox', { name: /Apgarscore op 5 minuten/ }).check();
   check('Perinatale asfyxie: zes criteria direct zichtbaar (geen aparte ja/nee-keuze), aan te vinken', (await page.locator('#s3 fieldset.segmented', { hasText: /perinatale asfyxie/i }).count()) === 0 && (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
   check('Thompson Score als tabel met ronde keuzerondjes; Therapeutische hypothermie als vierkant vinkje', (await page.locator('#s3 .thompson-table input[type=radio]').count()) === 31 && (await page.locator('#s2 .reason-options .seg').count()) === 0);
@@ -544,6 +544,8 @@ async function basisLayout(page) {
   await openReport(page);
   await page.waitForSelector('.report');
   check('Geen horizontaal scrollen op 390 px (verslag)', await noHorizontalScroll(page));
+  const kLevels = await page.evaluate(() => { const px = (q) => parseFloat(getComputedStyle(document.querySelector(q)).fontSize); return [px('.report h1'), px('.report .r-section h2'), px('.report h3')]; });
+  check('Verslag: titel 28 > sectietitel 24 > blokkop 20 px (K1 > K2 > K3)', kLevels.join('/') === '28/24/20', kLevels.join('/'));
   check('Verslagscherm: acties gegroepeerd (Naar het EPD, Bewaren en mailen, Overdragen aan een collega)', JSON.stringify(await page.locator('.report-panel .panel-group h2').allTextContents()) === JSON.stringify(['Naar het EPD', 'Bewaren en mailen', 'Overdragen aan een collega']) && (await page.locator('.report-panel .help summary').count()) === 3);
   const reportText = await page.locator('#email-text').inputValue();
   check('E-mailtekst als platte tekst: koppen niet in hoofdletters en zonder streep eronder', reportText.includes('\n\nBasisgegevens kind\n') && !reportText.includes('BASISGEGEVENS') && !/\n[-=]{5,}/.test(reportText) && !reportText.includes('<'));
@@ -675,14 +677,14 @@ for (const [w, h] of [
     const groups = [...document.querySelectorAll('#s3 fieldset.group')].map((f) => getComputedStyle(f).borderTopStyle);
     return {
       oneSize: new Set(sizes).size === 1,
-      levels: px('.form-section .section-title') > px('.subsection-title') && px('.subsection-title') > px('#s3 fieldset.group > legend') && px('#s3 fieldset.group > legend') === px('#s1 .field-label'),
+      levels: px('.form-section .section-title') > px('.subsection-title') && px('.subsection-title') > px('#s3 fieldset.group > legend') && px('#s3 fieldset.group > legend') > px('#s1 .field-label'),
       phases: phases.join(','),
       dotsOk: dots.includes('#s1') && document.querySelectorAll('.sidenav .nav-dot').length === dots.length,
       noGroupBorders: groups.every((b) => b === 'none'),
       cord: [...document.querySelectorAll('#s3 fieldset.group > legend')].some((l) => l.textContent === 'Navelstrengbloedgas'),
     };
   });
-  check(`${w}px: vaste kopniveaus (sectie > subkop > groeps- en veldlabel in één stijl), één sectiekopmaat, groepen zonder kader`, calm.oneSize && calm.levels && calm.noGroupBorders && calm.cord, JSON.stringify(calm));
+  check(`${w}px: vaste kopniveaus (sectie > subkop > groepskop > veldlabel), één sectiekopmaat, groepen zonder kader`, calm.oneSize && calm.levels && calm.noGroupBorders && calm.cord, JSON.stringify(calm));
   const grid12 = await page.evaluate(() => {
     const tracks = (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length;
     const body = document.querySelector('.editor-body');
