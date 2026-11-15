@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
-import { formatInstant } from '../domain/time';
 import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
 import { Logo, ReportIcon, SaveIcon, SectionIcon } from './icons';
@@ -93,6 +92,10 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
     saveError ??
     (level === 'error' ? 'Wijzigingen zijn al langer dan een minuut niet opgeslagen' : level === 'waiting' ? 'Wijzigingen wachten op opslag' : dirty ? 'Opslaan…' : savedLabel ? `Concept lokaal opgeslagen om ${savedLabel}` : 'Nog niet opgeslagen');
 
+  // Korte regel die altijd in beeld staat (kop of zijbalk): het opslaan zelf gebeurt vanzelf.
+  const saveTime = savedAt ? new Date(savedAt).toLocaleTimeString('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }) : null;
+  const saveLine = saveError ? 'Niet opgeslagen' : level === 'error' ? 'Niet opgeslagen' : level === 'waiting' ? 'Wacht op opslag…' : dirty ? 'Opslaan…' : saveTime ? `Opgeslagen ${saveTime}` : 'Nog niet opgeslagen';
+
   // Automatische conceptopslag kort na elke wijziging.
   useEffect(() => {
     if (!dirty) return;
@@ -167,8 +170,10 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
             </button>
             <div className="active-transport">
               <strong>{childLabel(t.child.name, anonymous)}</strong>
-              <span className="muted">
-                {t.child.patientNumber ? `Pt.nr. ${t.child.patientNumber} · ` : ''}verwijzing {formatInstant(t.referral.referredAt, tz) || '—'}
+              {t.child.patientNumber && <span className="muted">Pt.nr. {t.child.patientNumber}</span>}
+              {/* Altijd in beeld: wanneer het concept voor het laatst is opgeslagen. */}
+              <span className={`save-line ${level}`} role="status">
+                {saveLine}
               </span>
             </div>
             <div className="topbar-actions">

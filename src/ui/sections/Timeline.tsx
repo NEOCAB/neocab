@@ -319,6 +319,21 @@ export function TimelineSection({ t, update }: SectionProps) {
     setDraft(newMeasurement(t.measurements, tz));
     setIsNew(true);
   };
+  // Sneltoets Alt+M: nieuw meetmoment (toetsenbord, bijv. op een laptop).
+  const shortcutRef = useRef<() => void>(() => {});
+  shortcutRef.current = () => {
+    if (!draft) startNew();
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyM') {
+        e.preventDefault();
+        shortcutRef.current();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const save = () => {
     if (!draft) return;
     update((x) => ({
@@ -345,7 +360,7 @@ export function TimelineSection({ t, update }: SectionProps) {
       actions={
         <>
           {!draft && (
-            <AddButton label="Nieuw meetmoment" onClick={startNew} />
+            <AddButton label="Nieuw meetmoment" onClick={startNew} shortcut="Alt+M" />
           )}
           {t.measurements.length > 0 && <ViewSwitch view={view} onChange={setView} />}
         </>

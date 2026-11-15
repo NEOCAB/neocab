@@ -179,6 +179,8 @@ async function basisLayout(page) {
   const comboArrow = await page.locator('#s2 .combo').first().evaluate((c) => { const i = c.querySelector('input').getBoundingClientRect(); const b = c.querySelector('.combo-toggle').getBoundingClientRect(); return b.left >= i.left && b.right <= i.right + 1; });
   check('Keuzelijst ziekenhuis: blauwe pijl in het veld zelf', comboArrow);
 
+  check('Kop toont naam, patiëntnummer en opslagregel, niet de verwijstijd', /opgeslagen|opslaan/i.test(await page.locator('.active-transport').first().textContent()) && !(await page.locator('.active-transport').first().textContent()).toLowerCase().includes('verwijzing'));
+  check('Formulier maximaal 900 px breed', (await page.locator('main.form').evaluate((e) => e.getBoundingClientRect().width)) <= 900.5);
   // Material Symbols bij alle 12 sectiekoppen
   const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
   check('Icoon bij alle 12 sectiekoppen', iconCount === 12, String(iconCount));
@@ -319,6 +321,9 @@ async function basisLayout(page) {
   check('Geen extra tekst boven de tijdlijntabel', (await page.locator('#s6 .table-hint').count()) === 0);
 
   // Tijdlijn: meetmoment 1 met CPAP
+  await page.keyboard.press('Alt+KeyM');
+  check('Sneltoets Alt+M opent een nieuw meetmoment', (await page.getByRole('form', { name: 'Nieuw meetmoment' }).count()) === 1);
+  await page.getByRole('form', { name: 'Nieuw meetmoment' }).getByRole('button', { name: 'Annuleren' }).click();
   await page.locator('#s6').getByRole('button', { name: 'Nieuw meetmoment' }).first().click();
   const editor = page.getByRole('form', { name: 'Nieuw meetmoment' });
   const folds = editor.locator('.fold-toggle');

@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 81 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 213 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 216 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -211,3 +211,12 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 - **Ongebruikelijke waarden** (bijv. SpO₂ 120, gewicht 12400 g) geven een rustige grijze melding onder het veld; de waarde wordt wel vastgelegd. Alleen iets dat geen getal is geeft een (rode) foutmelding. Tekstvakken groeien mee met de tekst.
 - **Laatste voeding** werkt als de tijdstippen, maar zonder schildje en streep.
 - Tussenkoppen (fasen in het menu, modaliteitsgroepen) staan in gewone schrijfwijze.
+
+## Kop, menu en bediening (stap 3)
+
+- **Kop:** logo, naam, patiëntnummer en een korte regel "Opgeslagen 08:20" (zijbalk op pc, balk op telefoon met het export-icoon). De verwijstijd staat niet meer in de kop. Het zwevende opslagicoon blijft.
+- **Menu:** geen groepskoppen meer, alleen een dunne lijn onder de groep Verwijzing; de koppen blijven voor schermlezers. Het stipje bij ingevulde secties is blauw.
+- **Breedte:** het formulier is maximaal 900 px breed, met rustige witruimte ernaast.
+- **Tikvlakken** minstens 44 px (menu in de zijbalk: 44 px bij aanraking, 36 px met muis); de datumchip bij tijdstippen is groter (40 px).
+- **Telefoon:** getalvelden staan twee naast elkaar, tekstvelden over de volle breedte.
+- **Toetsenbord:** Tab loopt door de velden, Enter in een meetmoment slaat het op, en **Alt+M** opent een nieuw meetmoment.

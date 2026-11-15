@@ -3131,3 +3131,104 @@ fieldset.group > legend {
   font-size: var(--fs-xs);
   color: var(--label);
 }
+
+/* Stap 3: kop, menu en breedte */
+/* Kop: logo, naam, patiëntnummer en een korte opslagregel (altijd in beeld). */
+.save-line {
+  font-size: var(--fs-xs);
+  opacity: 0.85;
+}
+.save-line.error,
+.save-line.waiting {
+  opacity: 1;
+  font-weight: 600;
+}
+.save-line.error {
+  color: var(--danger);
+}
+@media (min-width: 1000px) {
+  .editor-side .save-line.error {
+    color: #ffd0d8;
+  }
+}
+/* Menu zonder groepskoppen: één dunne lijn onder de groep Verwijzing. De koppen blijven voor schermlezers. */
+.nav-phase {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.sidenav > ul > li:first-child {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+@media (min-width: 1000px) {
+  .editor-side .sidenav > ul > li:first-child {
+    border-bottom-color: rgba(255, 255, 255, 0.22);
+  }
+  .editor-side .nav-dot {
+    background: #8fbbe6;
+  }
+}
+/* Ingevuld-stipje blauw: blauw is "dit is aangeklikt of ingevuld", groen en oranje hebben geen betekenis meer in het menu. */
+.nav-dot {
+  background: var(--accent);
+}
+/* Formulier: rustig, maximaal ongeveer 900 px breed */
+.form {
+  max-width: 900px;
+}
+@media (min-width: 1000px) {
+  .editor-body > .form {
+    width: 100%;
+    max-width: 900px;
+    justify-self: center;
+  }
+}
+/* Telefoon: getalvelden twee naast elkaar, tekstvelden over de hele breedte */
+@media (max-width: 600px) {
+  .grid.compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tikvlakken minstens 44 px hoog (menu in de zijbalk: 44 px bij aanraking, 36 px met muis) */
+select,
+.topbar-actions button,
+.report-top,
+.timepoint .tf,
+.timepoint .tf input,
+.combo-toggle,
+.check-setting {
+  min-height: var(--tap);
+}
+.timepoint .tf .tp-date {
+  min-height: 36px;
+  padding: 0.3rem 0.8rem;
+  font-size: var(--fs-s);
+}
+.check-setting {
+  display: flex;
+  align-items: center;
+}
+.sidenav a {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+@media (pointer: coarse) {
+  .sidenav a {
+    min-height: var(--tap);
+  }
+}
+.topbar-actions .section-jump select,
+.editor-side .section-jump select {
+  min-height: var(--tap);
+}
+.timepoint .tf .tp-date {
+  min-height: 40px;
+}

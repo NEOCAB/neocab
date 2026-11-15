@@ -606,9 +606,9 @@ export function Section({ id, title, children, intro, actions }: { id: string; t
 }
 
 /** Toevoegknop rechtsboven in een sectie: icoon "add circle" met tekst (op een smal scherm alleen het icoon). */
-export function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
+export function AddButton({ label, onClick, shortcut }: { label: string; onClick: () => void; shortcut?: string }) {
   return (
-    <button type="button" className="primary add-button" onClick={onClick} title={label}>
+    <button type="button" className="primary add-button" onClick={onClick} title={shortcut ? `${label} (${shortcut})` : label} aria-keyshortcuts={shortcut?.replace('Alt+', 'Alt+')}>
       <AddIcon />
       <span className="add-label">{label}</span>
     </button>
