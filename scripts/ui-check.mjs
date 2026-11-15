@@ -140,13 +140,13 @@ async function basisLayout(page) {
     primary: getComputedStyle(document.querySelector('#main button.primary')).backgroundColor,
   }));
   check('Huisstijl: IBM Plex Sans geladen', style.font.includes('IBM Plex Sans') && style.loaded, JSON.stringify(style));
-  check('Huisstijl: koppen en primaire knop donkerblauw #003c7d', style.h2 === 'rgb(0, 60, 125)' && style.primary === 'rgb(0, 60, 125)', `${style.h2} / ${style.primary}`);
+  check('Kleur: koppen en primaire knop in het primaire blauw #24527f', style.h2 === 'rgb(36, 82, 127)' && style.primary === 'rgb(36, 82, 127)', `${style.h2} / ${style.primary}`);
   check('Formulier: logo en naam Neo.Cab in de bovenbalk', (await page.locator('.topbar .topbar-brand img.brand-logo').isVisible()) && (await page.locator('.topbar .topbar-name').textContent()) === 'Neo.Cab');
   // Geen LUMC-huisstijl of -logo (LUMC staat wél als gewone keuze in de ziekenhuislijst).
   check('Geen LUMC-logo of -naam in titel, kop en bovenbalk', !(await page.title()).includes('LUMC') && !(await page.locator('.topbar').textContent()).includes('LUMC') && (await page.locator('img[alt*="LUMC" i]').count()) === 0);
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
-  const tps = await page.locator('.timepoint:not(.plain)').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(0, 60, 125)'), e.querySelectorAll('button').length]));
+  const tps = await page.locator('.timepoint:not(.plain)').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(36, 82, 127)'), e.querySelectorAll('button').length]));
   const expected = [['s2', 'Tijdstip verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (gewoon veld met blauwe streep erin, kop erboven)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
@@ -628,7 +628,7 @@ async function basisLayout(page) {
   await own.getByLabel('Geboortegewicht', { exact: true }).fill('2010');
   await own.locator('.save-status.error').waitFor();
   const redIcon = await own.locator('.save-status.error .save-icon').evaluate((e) => [getComputedStyle(e).color, e.innerHTML.length]);
-  check('Opslagstatus: groen met diskette na opslaan, rood met klokje bij mislukte opslag', greenIcon[0] === 'rgb(30, 123, 52)' && redIcon[0] === 'rgb(237, 24, 70)' && greenIcon[1] !== redIcon[1], JSON.stringify([greenIcon, redIcon]));
+  check('Opslagstatus: groen met diskette na opslaan, rood met klokje bij mislukte opslag', greenIcon[0] === 'rgb(30, 123, 52)' && redIcon[0] === 'rgb(180, 35, 24)' && greenIcon[1] !== redIcon[1], JSON.stringify([greenIcon, redIcon]));
   await ctx3.close();
   check('Geen JavaScript-fouten', errors.length === 0, errors.join('; '));
   await ctx.close();
@@ -653,7 +653,7 @@ for (const [w, h] of [
     await page.evaluate(() => document.getElementById('s5').scrollIntoView({ block: 'start' }));
     await page.waitForTimeout(300);
     const dark = await page.evaluate(() => ({ bg: getComputedStyle(document.querySelector('.editor-side')).backgroundColor, active: document.querySelector('.sidenav a.active')?.getAttribute('href'), current: document.querySelector('.sidenav a[aria-current="location"]')?.getAttribute('href') }));
-    check(`${w}px: donkerblauwe zijbalk; sectie in beeld gemarkeerd in het menu`, dark.bg === 'rgb(38, 61, 87)' && dark.active === '#s5' && dark.current === '#s5', JSON.stringify(dark));
+    check(`${w}px: donkerblauwe zijbalk; sectie in beeld gemarkeerd in het menu`, dark.bg === 'rgb(27, 53, 82)' && dark.active === '#s5' && dark.current === '#s5', JSON.stringify(dark));
     await page.evaluate(() => scrollTo(0, 0));
   }
   const calm = await page.evaluate(() => {
@@ -664,14 +664,14 @@ for (const [w, h] of [
     const groups = [...document.querySelectorAll('#s3 fieldset.group')].map((f) => getComputedStyle(f).borderTopStyle);
     return {
       oneSize: new Set(sizes).size === 1,
-      levels: px('.form-section .section-title') > px('.subsection-title') && px('.subsection-title') > px('#s3 fieldset.group > legend') && px('#s3 fieldset.group > legend') > px('#s1 .field-label'),
+      levels: px('.form-section .section-title') > px('.subsection-title') && px('.subsection-title') > px('#s3 fieldset.group > legend') && px('#s3 fieldset.group > legend') === px('#s1 .field-label'),
       phases: phases.join(','),
       dotsOk: dots.includes('#s1') && document.querySelectorAll('.sidenav .nav-dot').length === dots.length,
       noGroupBorders: groups.every((b) => b === 'none'),
       cord: [...document.querySelectorAll('#s3 fieldset.group > legend')].some((l) => l.textContent === 'Navelstrengbloedgas'),
     };
   });
-  check(`${w}px: vaste kopniveaus (sectie > subkop > groep > veldlabel), één sectiekopmaat, groepen zonder kader`, calm.oneSize && calm.levels && calm.noGroupBorders && calm.cord, JSON.stringify(calm));
+  check(`${w}px: vaste kopniveaus (sectie > subkop > groeps- en veldlabel in één stijl), één sectiekopmaat, groepen zonder kader`, calm.oneSize && calm.levels && calm.noGroupBorders && calm.cord, JSON.stringify(calm));
   const grid12 = await page.evaluate(() => {
     const tracks = (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length;
     const body = document.querySelector('.editor-body');

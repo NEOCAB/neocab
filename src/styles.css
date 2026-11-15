@@ -1,9 +1,9 @@
 :root {
   /* Huisstijl: donkerblauw is de kernkleur, kobaltblauw aanvullend; tinten 80/60/40/20%. Rood alleen spaarzaam als highlight. */
-  --primary: #003c7d; /* donkerblauw 100% */
-  --primary-80: #336397;
-  --primary-20: #ccd8e5;
-  --primary-10: #e6ecf2;
+  --primary: #24527f; /* één blauwfamilie: primair #24527f, zijbalk #1b3552, vlak #e6eef6 */
+  --primary-80: #3b6a9a;
+  --primary-20: #c9d9ea;
+  --primary-10: #e6eef6;
   --tint: #f2f5f9;
   --accent: #007cc2; /* kobaltblauw 100% */
   --accent-20: #cce5f3;
@@ -12,7 +12,7 @@
   --sand-line: #d9c5ae;
   --green: #b9debc; /* extra kleur groen */
   --green-line: #7fb985;
-  --danger: #ed1846; /* rood: highlight, spaarzaam */
+  --danger: #b42318; /* rood: verwijderen en fouten */
   --alert-bg: #ffe0b8;
   --alert-border: #e07b00;
   --alert-text: #7a3c00;
@@ -3639,7 +3639,7 @@ select,
 
 /* Eén zijbalkblauw voor formulier, startscherm en verslag */
 :root {
-  --side: #263d57;
+  --side: #1b3552;
   --side-btn: #d5e0ec;
   --side-btn-hover: #c6d4e3;
   --side-btn-text: #1d3349;
@@ -3822,4 +3822,121 @@ select,
 }
 .editor-side .topbar-actions .theme-button {
   flex: none;
+}
+
+/* ===== Designreview, fase 1: kleur, raster, koppen en ritme ===== */
+/* Kleur: één hoofdactie gevuld, toevoegen tonaal, verwijderen stil rood, leesbare grijzen */
+:root {
+  --placeholder: #6b7680;
+  --label-faint: #5f6b77;
+}
+button.primary.add-button {
+  background: var(--primary-10);
+  color: var(--primary);
+  border: 1px solid var(--primary-20);
+}
+button.primary.add-button:hover {
+  background: var(--primary-20);
+}
+.link-button.danger {
+  color: var(--danger);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius);
+}
+.link-button.danger:hover {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+/* Checklist: klaar = zacht groen, niet van toepassing = rode omlijning, leeg = neutrale rand */
+.check-box {
+  border: 1.5px solid #9aa3ad;
+  background: var(--surface);
+}
+.check-box.gedaan {
+  background: #e3f2e6;
+  border-color: #8fc39a;
+  color: #1e6b32;
+}
+.check-box.nvt {
+  background: var(--surface);
+  border: 2px solid var(--danger);
+  color: var(--danger);
+}
+:root[data-theme='dark'] .check-box.gedaan {
+  background: #1f3a28;
+  border-color: #3d7a4d;
+  color: #8fd1a0;
+}
+
+/* Raster: kort getal = smal, tekst = breed; keuzebalken en getalgroepen op dezelfde linkerrand */
+.cord-pair {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.cord-pair > fieldset.subgroup {
+  grid-column: span 6;
+}
+.cord-pair .grid.three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cord-pair .grid.three > * {
+  grid-column: auto;
+}
+fieldset.group > .grid.three {
+  max-width: calc(50% - 8px);
+}
+@media (max-width: 699px) {
+  .cord-pair > fieldset.subgroup {
+    grid-column: 1 / -1;
+  }
+  fieldset.group > .grid.three {
+    max-width: none;
+  }
+}
+
+/* Koppen: sectie 24 > subkop 20 (met lijn) > groeps- en veldlabels in één stijl (13 px, halfvet, grijs) */
+.section-title {
+  font-size: 24px;
+}
+.subsection-title {
+  font-size: var(--fs-l);
+  margin: 36px 0 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.section-title + .subsection-title,
+.subsection-title:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 8px;
+}
+fieldset.group > legend,
+fieldset.subgroup > legend,
+fieldset.segmented > legend,
+.field-label,
+legend.field-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--label);
+}
+
+/* Ritme: 16 px tussen velden, 24 px tussen groepen, 32 px voor een subkop */
+.field {
+  margin: 0 0 16px;
+}
+fieldset.group,
+fieldset.segmented,
+.segmented-pair {
+  margin: 0 0 24px;
+}
+.subsection-title {
+  margin: 32px 0 12px;
+}
+.section-title + .subsection-title,
+.subsection-title:first-of-type {
+  margin-top: 8px;
+}
+.form-section h2.section-title {
+  font-size: var(--fs-xl);
 }
