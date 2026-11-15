@@ -4291,3 +4291,71 @@ article.card > .card-head {
     align-items: flex-start;
   }
 }
+
+/* Grafieken op een telefoon: rijen met laatste waarde, minilijn en bereik */
+.spark-list {
+  display: block;
+}
+.spark-item {
+  border-bottom: 1px solid var(--line);
+}
+.spark-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 90px auto;
+  gap: 0 0.75rem;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.35rem 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.spark-row:disabled {
+  cursor: default;
+  opacity: 1;
+  color: var(--text);
+}
+.spark-row.open {
+  background: var(--primary-10);
+}
+.spark-name {
+  font-size: var(--fs-xs);
+  color: var(--label);
+  font-weight: 600;
+}
+.spark-unit {
+  font-weight: 400;
+}
+.spark-value {
+  font-size: var(--fs-m);
+}
+.spark-line {
+  width: 90px;
+  height: 28px;
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+}
+.spark-line circle {
+  fill: var(--primary);
+  stroke: none;
+}
+.spark-range {
+  font-size: 12px;
+  color: var(--label);
+  white-space: nowrap;
+}
+.spark-once {
+  grid-column: 3 / 5;
+}
+.spark-row {
+  grid-template-columns: minmax(0, 1fr) 4.4rem 90px 5.6rem;
+}
+.spark-value {
+  text-align: right;
+}

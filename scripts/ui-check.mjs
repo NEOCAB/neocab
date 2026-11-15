@@ -806,6 +806,22 @@ for (const [w, h] of [
   await ctx.close();
 }
 
+
+// Grafieken op een telefoon: rijen met laatste waarde en minilijn; tikken klapt de grote grafiek open
+{
+  const ctxP = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+  const pg = await ctxP.newPage();
+  await pg.addInitScript(() => { try { localStorage.setItem('neocab:tijdlijn-weergave', 'grafiek'); } catch {} });
+  await pg.goto(BASE);
+  await pg.getByRole('button', { name: /voorbeeld/i }).first().click();
+  await pg.waitForSelector('#s6 .spark-row');
+  const sparkRows = await pg.locator('#s6 .spark-row').count();
+  check('Grafieken op telefoon: rijen met minilijn in plaats van grote grafieken', sparkRows >= 8 && (await pg.locator('#s6 .chart-combined').count()) === 0 && (await pg.locator('#s6 .spark-line').count()) >= 5, String(sparkRows));
+  await pg.locator('#s6 .spark-row:not([disabled])').first().click();
+  check('Grafieken op telefoon: tikken op een rij toont de grafiek', (await pg.locator('#s6 .spark-item .chart-card').count()) === 1);
+  check('Grafieken op telefoon: geen horizontaal scrollen', await noHorizontalScroll(pg));
+  await ctxP.close();
+}
 await browser.close();
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} controles geslaagd`);

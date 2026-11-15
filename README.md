@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 82 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 229 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 233 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -243,3 +243,15 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 
 - **Donkere modus** volgt standaard de instelling van het apparaat (`prefers-color-scheme`). Met de knop met het halve-maan-icoon (in de zijbalk of kop van het formulier, op het startscherm en bij het verslag) wissel je tussen *automatisch*, *licht* en *donker*; onder *Instellingen* staat dezelfde keuze. Alle kleuren zijn variabelen in `styles.css` (`:root[data-theme='dark']`); `src/ui/theme.ts` bewaart de keuze alleen in de browser van het apparaat. Het verslag in pdf, brief en afdruk blijft licht.
 - **Grotere tekst** (Instellingen): de hele typeschaal wordt een stap groter (15 / 17 / 19 / 23 / 28 px).
+
+## Designreview (fase 1–3)
+
+Na een kritische designreview zijn doorgevoerd (het ABCD-blok blijft voorlopig zoals het was):
+- **Kleur:** één blauwfamilie (primair #24527f, zijbalk #1b3552, vlak #e6eef6); alleen de hoofdactie is gevuld, *Toevoegen* is tonaal; verwijderen is rood (#b42318) zonder onderstreping; checklist: klaar = zacht groen, niet van toepassing = rode omlijning, leeg = neutrale rand; plaatshouder- en volledige-naamgrijs donkerder (≥ 4,5 : 1).
+- **Raster en ritme:** getalvelden smal (Apgar en navelstrengbloedgas op één rij), keuzebalken en groepen op dezelfde linkerrand; vaste verticale maten 16 / 24 / 32 px; koppen: sectie 24 px, subkop 20 px met lijn, groeps- en veldlabels in één stijl.
+- **Tabel:** horizontale koppen op twee regels (naam, eenheid), één lijndikte, geen zebra.
+- **Taal:** de checklist is geheel Nederlands; *Meetmoment* en *Bewerken* als vaste woorden.
+- **Acties:** bewerken en verwijderen per rij als pictogram (44 px, verwijderen rood), *Tube aanpassen* tonaal.
+- **Telefoon:** kop van 56 px (logo, naam, pt.nr., opslagstatus, menuknop); het menu (secties, verslag en export, weergave, tekstgrootte) opent als een vel. Grafieken staan als rijen met laatste waarde, minilijn en bereik; tikken toont de grote grafiek.
+- **Transportverloop:** de zes tijdstippen (verwijzing, ambulance gebeld, vertrek team, aankomst bij kind, vertrek met kind, aankomst) staan genummerd bij elkaar in de sectie *Dispatch*, de datum één keer erboven en "+1 dag" bij een volgende dag. *Herkomst en bestemming* en *Transport* houden alleen hun eigen velden.
+- **Startscherm:** *Fictief voorbeeldtransport laden* is een kleine link onderin de zijbalk; de thema-knop is een vierkant pictogram.

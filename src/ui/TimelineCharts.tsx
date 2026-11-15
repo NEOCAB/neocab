@@ -1,9 +1,10 @@
-import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from 'react';
 import type { Instant, Measurement } from '../domain/types';
 import { RESP_MODE_LABELS } from '../domain/labels';
 import { TIMELINE_GROUP_LABELS, timelineTable, type TimelineColumn, type TimelineGroup } from '../domain/timelineTable';
 import { formatInstant } from '../domain/time';
 import { formatNumber } from '../domain/num';
+import { chem } from './chem';
 
 /**
  * Tijdlijn als grafiek. Alle grafieken staan onder elkaar over de volle breedte, met dezelfde y-as-positie en
@@ -413,6 +414,57 @@ function ModeBand({ rows, axis, timeZone }: { rows: Measurement[]; axis: Axis; t
   );
 }
 
+/** Smal scherm (telefoon): rijen met laatste waarde en minilijn in plaats van grote grafieken. */
+const NARROW = '(max-width: 699px)';
+function useNarrow(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia(NARROW);
+      m.addEventListener('change', cb);
+      return () => m.removeEventListener('change', cb);
+    },
+    () => window.matchMedia(NARROW).matches,
+    () => false,
+  );
+}
+
+/** Eén rij: naam, laatste waarde, minilijn over de gedeelde tijd-as en het bereik; tikken klapt de grote grafiek open. */
+function SeriesRow({ series, axis, timeZone, open, onToggle }: { series: Series; axis: Axis; timeZone: string; open: boolean; onToggle: () => void }) {
+  const pts = present(series);
+  const last = pts[pts.length - 1];
+  const vals = pts.map((p) => p.v);
+  const lo = Math.min(...vals);
+  const hi = Math.max(...vals);
+  const W = 90;
+  const H = 28;
+  const span = axis.t1 - axis.t0 || 1;
+  const x = (i: number) => 3 + ((axis.times[i] - axis.t0) / span) * (W - 6);
+  const y = (v: number) => (hi === lo ? H / 2 : H - 4 - ((v - lo) / (hi - lo)) * (H - 8));
+  const multi = pts.length > 1;
+  return (
+    <button type="button" className={`spark-row ${open ? 'open' : ''}`} aria-expanded={multi ? open : undefined} onClick={onToggle} disabled={!multi}>
+      <span className="spark-name">
+        {chem(series.column.label)}
+        {series.column.unit && <span className="spark-unit"> {chem(series.column.unit)}</span>}
+      </span>
+      <strong className="spark-value">{fmt(last.v)}</strong>
+      {multi ? (
+        <>
+          <svg className="spark-line" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+            <polyline points={pts.map((p) => `${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ')} />
+            <circle cx={x(last.i)} cy={y(last.v)} r="3" />
+          </svg>
+          <span className="spark-range">
+            {fmt(lo)} – {fmt(hi)}
+          </span>
+        </>
+      ) : (
+        <span className="spark-range spark-once">1 meting · {hhmm(axis.ats[last.i], timeZone)}</span>
+      )}
+    </button>
+  );
+}
+
 export function TimelineCharts({ measurements, timeZone, onPick }: { measurements: Measurement[]; timeZone: string; onPick?: (m: Measurement) => void }) {
   const [active, setActive] = useState<number | null>(null);
   const { rows: all, columns } = useMemo(() => timelineTable(measurements, timeZone), [measurements, timeZone]);
@@ -432,6 +484,33 @@ export function TimelineCharts({ measurements, timeZone, onPick }: { measurement
   const inCombined = new Set(COMBINED.flatMap((c) => [...c.overlay, ...c.lanes]));
   const groups = [...new Set([...series.values()].map((s) => s.column.group))];
   const common = { axis, active, setActive, timeZone, onPick: pick };
+  const narrow = useNarrow();
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+  const toggle = (k: string) => setOpenKeys((o) => (o.includes(k) ? o.filter((x) => x !== k) : [...o, k]));
+
+  if (narrow)
+    return (
+      <div className="timeline-charts compact">
+        <p className="muted small-print">Tik op een rij voor de grafiek; tik daarin op een punt om dat meetmoment te bewerken.</p>
+        {groups.map((g) => {
+          const list = [...series.values()].filter((s) => s.column.group === g);
+          return (
+            <section key={g} className="chart-group" aria-label={TIMELINE_GROUP_LABELS[g]}>
+              <h4 className="chart-group-title">{TIMELINE_GROUP_LABELS[g]}</h4>
+              {g === 'ademhaling' && <ModeBand rows={rows} axis={axis} timeZone={timeZone} />}
+              <div className="spark-list">
+                {list.map((s) => (
+                  <div key={s.column.key} className="spark-item">
+                    <SeriesRow series={s} axis={axis} timeZone={timeZone} open={openKeys.includes(s.column.key)} onToggle={() => toggle(s.column.key)} />
+                    {openKeys.includes(s.column.key) && <SmallChart series={s} {...common} />}
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    );
 
   return (
     <div className="timeline-charts">
