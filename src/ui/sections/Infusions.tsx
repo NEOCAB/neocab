@@ -4,7 +4,8 @@ import { newId, newInfusion } from '../../domain/factory';
 import { formatNum } from '../../domain/num';
 import { formatInstant, nowInstant } from '../../domain/time';
 import { sortedRates } from '../../domain/timeline';
-import { AddButton, DateTimeField, NumberField, Section, TextField } from '../fields';
+import { EditIcon } from '../icons';
+import { AddButton, DateTimeField, IconButton, NumberField, Section, TextField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import { infusionTable } from '../../report/buildReport';
@@ -87,15 +88,13 @@ function InfusionCard({ inf, onChange, onDelete, onClose }: { inf: Infusion; onC
                   <DateTimeField label={`Wijziging ${i}: tijdstip`} value={r.at} onChange={(v) => setRate(r.id, { at: v })} clearable={false} />
                   <div className="with-action">
                     <NumberField label={`Wijziging ${i}: snelheid`} unit="mL/uur" value={r.rateMlPerHour} onChange={(v) => setRate(r.id, { rateMlPerHour: v })} rules={RATE_RULES} />
-                    <button
-                      type="button"
-                      className="link-button danger"
+                    <IconButton
+                      kind="delete"
+                      label="Wijziging verwijderen"
                       onClick={() => {
                         void confirm(`Snelheidswijziging van ${formatInstant(r.at, tz)} verwijderen?`).then((ok) => ok && onChange({ ...inf, rates: inf.rates.filter((x) => x.id !== r.id) }));
                       }}
-                    >
-                      Wijziging verwijderen
-                    </button>
+                    />
                   </div>
                 </div>
               )}
@@ -257,9 +256,7 @@ export function InfusionsSection({ t, update }: SectionProps) {
               }}
             >
               <TimeStamp value={v} />
-              <span className="edit-icon" aria-hidden="true">
-                ✎
-              </span>
+              <span className="edit-icon"><EditIcon /></span>
             </button>
           )}
         />

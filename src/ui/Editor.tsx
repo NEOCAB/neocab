@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Transport } from '../domain/types';
 import type { TransportRepository } from '../storage/repository';
 import { childLabel, useAnonymous, useTimeZone } from './context';
-import { Logo, ReportIcon, SaveIcon, SectionIcon } from './icons';
+import { CloseIcon, Logo, MenuIcon, ReportIcon, SaveIcon, SectionIcon } from './icons';
+import { setTextSize, useTextSize } from './theme';
 import { saveLevel } from './saveStatus';
 import { sectionFilled } from '../domain/progress';
 import {
@@ -121,6 +122,14 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
   const props = { t, update };
 
   // Sectie die in beeld is: de laatste sectie waarvan de kop het bovenste kwart van het scherm al voorbij is.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const textSize = useTextSize();
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
   const [activeId, setActiveId] = useState(SECTIONS[0].id);
   useEffect(() => {
     let frame = 0;
@@ -177,6 +186,10 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
                 {saveLine}
               </span>
             </div>
+            {/* Telefoon: één menuknop (secties, verslag en export, weergave); op een breed scherm staat dit in de zijbalk. */}
+            <button type="button" className="menu-button" aria-label="Menu" aria-expanded={menuOpen} aria-haspopup="dialog" onClick={() => setMenuOpen(true)}>
+              <MenuIcon />
+            </button>
             <div className="topbar-actions">
               <div className="section-jump">
                 <label htmlFor="section-jump" className="sr-only">
@@ -214,6 +227,54 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
               </button>
             </div>
           </header>
+          {menuOpen && (
+            <div className="menu-sheet" role="dialog" aria-modal="true" aria-label="Menu">
+              <div className="menu-sheet-head">
+                <strong>Ga naar</strong>
+                <button type="button" className="menu-close" aria-label="Menu sluiten" onClick={() => setMenuOpen(false)}>
+                  <CloseIcon />
+                </button>
+              </div>
+              <ul className="menu-sections">
+                {SECTIONS.map((s) => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      className={activeId === s.id ? 'active' : undefined}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        goToSection(s.id);
+                      }}
+                    >
+                      <SectionIcon id={s.id} />
+                      <span>{s.label}</span>
+                      {sectionFilled(t, s.id) && <span className="nav-dot" aria-label="ingevuld" />}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div className="menu-sheet-foot">
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => {
+                    saveNow();
+                    onReport();
+                  }}
+                >
+                  <ReportIcon />
+                  Verslag &amp; export
+                </button>
+                <div className="menu-display">
+                  <ThemeButton showLabel />
+                  <label className="check-setting">
+                    <input type="checkbox" checked={textSize === 'groot'} onChange={(e) => setTextSize(e.target.checked ? 'groot' : 'normaal')} />
+                    <span>Grotere tekst</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
           <nav className="sidenav" aria-label="Secties">
             <ul>
               {PHASES.map((p) => (

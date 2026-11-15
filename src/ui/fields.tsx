@@ -5,6 +5,7 @@ import { gestationToInput, parseGestation } from '../domain/calc';
 import { formatLocalDate, instantToWall, isValidLocalDate, localDateOfMs, nowInstant, parseClockTime, parseDateText, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
 import { chem } from './chem';
+import { DeleteIcon, EditIcon } from './icons';
 import { AddIcon, ExpandIcon, SectionIcon, TimepointIcon } from './icons';
 
 function FieldShell({ id, label, hint, error, notice, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; notice?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
@@ -795,5 +796,14 @@ export function ComboField({
         )}
       </div>
     </FieldShell>
+  );
+}
+
+/** Bewerken of verwijderen per rij of kaart: een pictogram van 44 px (verwijderen in rood). De naam blijft voor schermlezers. */
+export function IconButton({ kind, label, onClick }: { kind: 'edit' | 'delete'; label: string; onClick: () => void }) {
+  return (
+    <button type="button" className={`icon-btn ${kind === 'delete' ? 'danger' : ''}`} aria-label={label} title={label} onClick={onClick}>
+      {kind === 'delete' ? <DeleteIcon /> : <EditIcon />}
+    </button>
   );
 }

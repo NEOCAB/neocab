@@ -356,9 +356,6 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
           <button type="button" className="primary large" onClick={onNew}>
             + Nieuw transport
           </button>
-          <button type="button" className="secondary" onClick={onSample}>
-            Fictief voorbeeldtransport laden
-          </button>
           {!importing && (
             <button type="button" className="secondary" onClick={() => setImporting(true)}>
               Transport importeren
@@ -367,6 +364,9 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
         </div>
         <div className="home-side-foot">
           <ThemeButton showLabel />
+          <button type="button" className="sample-link" onClick={onSample}>
+            Fictief voorbeeldtransport laden
+          </button>
         </div>
       </aside>
       <main>

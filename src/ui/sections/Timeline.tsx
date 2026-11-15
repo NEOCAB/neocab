@@ -9,7 +9,7 @@ import { timelineReportTable, tubeSummary } from '../../report/buildReport';
 import { DataTable, TimeStamp } from '../DataTable';
 import { OI_FORMULA, formatOi, oxygenationIndex } from '../../domain/oi';
 import { DateTimeField, NumberField, Section, Segmented, TextArea } from '../fields';
-import { AddIcon, ViewIcon } from '../icons';
+import { AddIcon, EditIcon, ViewIcon } from '../icons';
 import { TimelineCharts } from '../TimelineCharts';
 import { formatNum, formatNumber } from '../../domain/num';
 import { useTimeZone } from '../context';
@@ -494,9 +494,7 @@ export function TimelineSection({ t, update }: SectionProps) {
                   }}
                 >
                   <TimeStamp value={v} />
-                  <span className="edit-icon" aria-hidden="true">
-                    ✎
-                  </span>
+                  <span className="edit-icon"><EditIcon /></span>
                 </button>
               )}
             />

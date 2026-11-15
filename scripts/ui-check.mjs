@@ -16,6 +16,14 @@ const check = (name, ok, detail = '') => {
   console.log(`${ok ? 'OK  ' : 'FOUT'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
+async function openReport(pg) {
+  const menu = pg.getByRole('button', { name: 'Menu', exact: true });
+  if (await menu.isVisible()) {
+    await menu.click();
+    await pg.locator('.menu-sheet').getByRole('button', { name: /Verslag/ }).click();
+  } else await pg.getByRole('button', { name: 'Verslag & export', exact: true }).click();
+}
+
 async function noHorizontalScroll(page) {
   return page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 }
@@ -187,13 +195,16 @@ async function basisLayout(page) {
   const autoDark = await bodyBg();
   check('Donkere modus: automatisch volgens het apparaat', autoDark !== lightBg, `${lightBg} → ${autoDark}`);
   await page.emulateMedia({ colorScheme: 'light' });
-  const themeBtn = page.locator('.editor-side .theme-button');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  check('Menu op telefoon: secties, verslag en export, weergave en tekstgrootte', (await page.locator('.menu-sheet .menu-sections button').count()) === 12 && (await page.locator('.menu-sheet').getByRole('button', { name: /Verslag/ }).count()) === 1 && (await page.locator('.menu-sheet .theme-button').count()) === 1 && (await page.locator('.menu-sheet').getByLabel('Grotere tekst').count()) === 1);
+  const themeBtn = page.locator('.menu-sheet .theme-button');
   await themeBtn.click();
   check('Weergaveknop: eerste tik = licht', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'light');
   await themeBtn.click();
   check('Weergaveknop: tweede tik = donker, ook bij een lichte apparaatinstelling', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'dark' && (await bodyBg()) === autoDark);
   await themeBtn.click();
   check('Weergaveknop: derde tik = weer automatisch', (await page.evaluate(() => document.documentElement.dataset.theme)) === undefined && (await bodyBg()) === lightBg);
+  await page.getByRole('button', { name: 'Menu sluiten' }).click();
   const labelPx = () => page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('#s1 .field-label')).fontSize));
   const normalPx = await labelPx();
   await page.evaluate(() => { document.documentElement.dataset.text = 'groot'; });
@@ -530,7 +541,7 @@ async function basisLayout(page) {
   check('Bevestigen verwijdert meetmoment', (await page.locator('#s6 .data-table tbody tr:not(.note-row)').count()) === before - 1);
 
   // Verslag
-  await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
+  await openReport(page);
   await page.waitForSelector('.report');
   check('Geen horizontaal scrollen op 390 px (verslag)', await noHorizontalScroll(page));
   check('Verslagscherm: acties gegroepeerd (Naar het EPD, Bewaren en mailen, Overdragen aan een collega)', JSON.stringify(await page.locator('.report-panel .panel-group h2').allTextContents()) === JSON.stringify(['Naar het EPD', 'Bewaren en mailen', 'Overdragen aan een collega']) && (await page.locator('.report-panel .help summary').count()) === 3);
@@ -781,7 +792,7 @@ for (const [w, h] of [
   await page.locator('#s6 .row-edit').nth(2).click();
   check(`${w}px: bewerken toont tube na aanpassing (7,5 cm)`, (await page.locator('#s6 .tube-line').textContent())?.replace(/\u00a0/g, ' ').includes('tandenrij 7,5 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
-  await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
+  await openReport(page);
   await page.waitForSelector('.report');
   check(`Geen horizontaal scrollen op ${w} px (verslag)`, await noHorizontalScroll(page));
   await page.screenshot({ path: `${OUT}/${w}-verslag.png` });

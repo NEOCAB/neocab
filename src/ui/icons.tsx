@@ -1,3 +1,7 @@
+import menuIconSvg from '@material-symbols/svg-700/outlined/menu.svg?raw';
+import closeIconSvg from '@material-symbols/svg-700/outlined/close.svg?raw';
+import editIconSvg from '@material-symbols/svg-700/outlined/edit.svg?raw';
+import deleteIconSvg from '@material-symbols/svg-700/outlined/delete.svg?raw';
 import contrastIcon from '@material-symbols/svg-700/outlined/contrast.svg?raw';
 import listIcon from '@material-symbols/svg-700/outlined/format_list_bulleted.svg?raw';
 import idCard from '@material-symbols/svg-700/outlined/id_card.svg?raw';
@@ -127,4 +131,24 @@ const CONTRAST = prep(contrastIcon);
 /** Weergave-icoon (licht/donker). */
 export function ThemeIcon() {
   return <span className="theme-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CONTRAST }} />;
+}
+
+const EDIT = prep(editIconSvg);
+const DELETE = prep(deleteIconSvg);
+/** Bewerken (potlood). */
+export function EditIcon() {
+  return <span className="action-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: EDIT }} />;
+}
+/** Verwijderen (prullenbak). */
+export function DeleteIcon() {
+  return <span className="action-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: DELETE }} />;
+}
+
+const MENU = prep(menuIconSvg);
+const CLOSE = prep(closeIconSvg);
+export function MenuIcon() {
+  return <span className="action-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: MENU }} />;
+}
+export function CloseIcon() {
+  return <span className="action-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: CLOSE }} />;
 }

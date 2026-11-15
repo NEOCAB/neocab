@@ -5,6 +5,7 @@ import { newMedication } from '../../domain/factory';
 import { formatInstant } from '../../domain/time';
 import { medicationTable } from '../../report/buildReport';
 import { DataTable, TimeStamp } from '../DataTable';
+import { EditIcon } from '../icons';
 import { AddButton, DateTimeField, NumberField, Section, SelectField, TextField } from '../fields';
 import { useSettings } from '../context';
 import { useConfirm } from '../confirm';
@@ -111,9 +112,7 @@ export function MedicationsSection({ t, update }: SectionProps) {
               }}
             >
               <TimeStamp value={v} />
-              <span className="edit-icon" aria-hidden="true">
-                ✎
-              </span>
+              <span className="edit-icon"><EditIcon /></span>
             </button>
           )}
         />

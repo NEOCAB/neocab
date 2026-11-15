@@ -5,7 +5,7 @@ import { newLine, newTube, newTubeVersion } from '../../domain/factory';
 import { formatNum } from '../../domain/num';
 import { compareInstants, formatInstant, nowInstant } from '../../domain/time';
 import { currentTube, sortedVersions, tubePlacedAt } from '../../domain/timeline';
-import { AddMenu, DateTimeField, NumberField, Section, Segmented, SelectField, TextField } from '../fields';
+import { AddMenu, DateTimeField, IconButton, NumberField, Section, Segmented, SelectField, TextField } from '../fields';
 import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
@@ -15,17 +15,19 @@ const LINE_ONLY_TYPES = LINE_TYPES.filter((x): x is Line['type'] => x !== 'endot
 function LineCard({ line, onChange, onDelete }: { line: Line; onChange: (l: Line) => void; onDelete: () => void }) {
   return (
     <article className="card" aria-label={LINE_TYPE_LABELS[line.type]}>
+      <header className="card-head">
+        <strong>
+          {LINE_TYPE_LABELS[line.type]}
+          {line.location.trim() && <span className="muted"> · {line.location.trim()}</span>}
+        </strong>
+        <IconButton kind="delete" label={`${LINE_TYPE_LABELS[line.type]} verwijderen`} onClick={onDelete} />
+      </header>
       <div className="grid">
         <SelectField label="Type" value={line.type} onChange={(v) => v && onChange({ ...line, type: v })} options={LINE_ONLY_TYPES} emptyLabel={null} />
         <NumberField label="Maat" value={line.size} onChange={(v) => onChange({ ...line, size: v })} rules={{ min: 0 }} />
         <NumberField label="Inbrengdiepte (indien van toepassing)" unit="cm" value={line.depthCm} onChange={(v) => onChange({ ...line, depthCm: v })} rules={{ min: 0 }} />
         <TextField label="Locatie" value={line.location} onChange={(v) => onChange({ ...line, location: v })} />
         <TextField label="Tippositie en controle" value={line.tipPosition} onChange={(v) => onChange({ ...line, tipPosition: v })} />
-      </div>
-      <div className="card-actions end">
-        <button type="button" className="link-button danger" onClick={onDelete}>
-          {LINE_TYPE_LABELS[line.type]} verwijderen
-        </button>
       </div>
     </article>
   );
@@ -117,19 +119,15 @@ function TubeCard({ tube, index, onChange, onDelete }: { tube: EndotrachealTube;
             </div>
             {!form && (
               <div className="card-actions">
-                <button type="button" className="link-button" onClick={() => setForm({ mode: 'correctie', version: { ...v } })}>
-                  Historische correctie
-                </button>
+                <IconButton kind="edit" label="Historische correctie" onClick={() => setForm({ mode: 'correctie', version: { ...v } })} />
                 {i > 0 && (
-                  <button
-                    type="button"
-                    className="link-button danger"
+                  <IconButton
+                    kind="delete"
+                    label={`Aanpassing van ${formatInstant(v.validFrom, tz)} verwijderen`}
                     onClick={() => {
                       void confirm(`Aanpassing van ${formatInstant(v.validFrom, tz)} verwijderen?`).then((ok) => ok && onChange({ ...tube, versions: tube.versions.filter((x) => x.id !== v.id) }));
                     }}
-                  >
-                    Verwijderen
-                  </button>
+                  />
                 )}
               </div>
             )}
@@ -151,13 +149,11 @@ function TubeCard({ tube, index, onChange, onDelete }: { tube: EndotrachealTube;
       {!form && (
         <div className="card-actions">
           {!tube.replacedAt && latest && (
-            <button type="button" className="secondary" onClick={() => setForm({ mode: 'aanpassing', version: newTubeVersion('aanpassing', { sizeMm: latest.sizeMm, route: latest.route, depthCm: latest.depthCm, tipPosition: latest.tipPosition }, tz) })}>
+            <button type="button" className="tonal" onClick={() => setForm({ mode: 'aanpassing', version: newTubeVersion('aanpassing', { sizeMm: latest.sizeMm, route: latest.route, depthCm: latest.depthCm, tipPosition: latest.tipPosition }, tz) })}>
               Tube aanpassen
             </button>
           )}
-          <button type="button" className="link-button danger" onClick={onDelete}>
-            Tube verwijderen
-          </button>
+          <IconButton kind="delete" label="Tube verwijderen" onClick={onDelete} />
         </div>
       )}
     </article>
