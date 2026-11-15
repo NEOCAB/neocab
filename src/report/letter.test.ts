@@ -70,6 +70,7 @@ describe('overplaatsingsbrief', () => {
     expect(xml).toContain('<w:tblHeader/>');
     expect(xml).toContain('w:val="btLr"');
     expect(xml).not.toContain('w:fill="FFD8A8"');
+    expect(xml).toContain('w:vertAlign w:val="subscript"');
     expect(xml).toContain('Besluit tot intubatie en surfactant (fictief).');
     // Geen toelichting onder de tijdlijn; medicatie en infusen als tabel (staand); ingebrachte materialen compact.
     expect(xml).not.toContain('Type bloedgas');

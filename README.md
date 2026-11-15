@@ -48,7 +48,7 @@ npm run ui-check     # interfacecontrole met Playwright/Chromium op 390, 768 en 
 
 De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of naam van de organisatie:
 
-- Lettertype **PT Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/pt-sans` voor het scherm en als TTF in `public/fonts` voor de pdf. Hoofdtekst 15 px volgens de richtlijn; invoervelden 16 px (voorkomt inzoomen op iOS); koppen vet.
+- Lettertype **IBM Plex Sans** (SIL Open Font License), lokaal meegeleverd via `@fontsource/ibm-plex-sans` voor het scherm en als TTF in `public/fonts` voor de pdf.
 - Logo **Neo.Cab** (`src/assets/neocab-logo.svg`): alleen het beeldmerk (taxi), zonder achtergrond en tekst, in donkerblauw `#003c7d`. Met de naam Neo.Cab links in de bovenbalk van het formulier; logo en naam leiden terug naar het overzicht van concepten (er is geen aparte knop Overzicht). Op de startpagina, bovenaan het verslag en rechtsboven op de eerste pdf-pagina (in de browser omgezet naar png; lukt dat niet, dan zonder logo). Favicon `public/favicon.svg` is hetzelfde beeldmerk.
 - Kleuren: **donkerblauw `#003c7d`** als kernkleur (koppen, knoppen, tabelkop), **kobaltblauw `#007cc2`** als aanvullende kleur (focus, hover) en tinten daarvan (20%). Extra kleuren uit het palet: lichtblauw `#cee8ef` (berekende leeftijd, badges), zand `#f0e2d2` (meldingen), groen `#b9debc` (checklist gedaan) en rood `#ed1846` spaarzaam (checklist niet van toepassing, verwijderen).
 - Lopende tekst zwart, koppen donkerblauw; witte tekst alleen op een volle kleur (knoppen, tabelgroepkop).
@@ -72,12 +72,12 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 - Reden van overplaatsing: vrije tekst plus de vaste optie *Therapeutische hypothermie* (vierkant vinkje). Is die gekozen, dan verschijnen bij *Verwijzing* de kopjes *Perinatale asfyxie* (direct de zes criteria uit het protocol om aan te vinken, met een aanduiding welke al blijken uit Apgar 5 minuten en navelstrengbloedgassen) en *Thompson Score* (protocol Therapeutische hypothermie na perinatale asfyxie): tijdstip, een tabel zoals in het protocol (per verschijnsel een rij, per score 0–3 een kolom met een rond keuzerondje), automatisch totaal (0–22, met het aantal ingevulde onderdelen als het nog onvolledig is) en de drempel uit het protocol (≥ 7 op 1 uur na de reanimatie, of afwijkend aEEG). Zet je de optie uit, dan verdwijnt de score uit formulier en verslag maar blijft hij bewaard.
 - Secties: Basisgegevens kind, *Herkomst en bestemming*, *Verwijzing* (samengevoegd uit Zwangerschap en geboorte en Toestand bij verwijzing, met subkoppen *Zwangerschap en geboorte*, *Toestand bij verwijzing* en *Advies*; het veld Advies bij verwijzing is optioneel en het blok Advies staat alleen in het verslag als het is ingevuld), Dispatch, *Stabilisatie* (voorheen Onderzoek door transportteam), Tijdlijn, *Ingebrachte materialen* (lijnen, sondes, drains en endotracheale tube; voorheen Plastic; vóór medicatie), *Medicatie* (voorheen Medicatietoedieningen), *Infusen* (voorheen Lopende infusen), *Gezin* (voorheen Ouders en gezin), Checklist voor vertrek, *Transport* (voorheen Afsluiting transport) (12 secties; Overige diagnostiek en Notities zijn vervallen en eerder ingevulde tekst daarin wordt bij het laden gewist).
 - Uitzondering: de oranje markering voor OI > 25 is op verzoek en valt buiten het palet.
-- PT Sans bevat geen `⁻` en `→`; in de pdf worden die als `-` en `naar` weergegeven.
+- IBM Plex Sans bevat geen `⁻`; in de pdf wordt die als `-` weergegeven (₂ en ₃ zijn wel echte tekens).
 
 ## Stack
 
 - Vite + React 19 + TypeScript (geen UI-framework; eigen CSS)
-- jsPDF voor het pdf-bestand, met het meegeleverde lettertype PT Sans (`public/fonts`, licentie in `PTSans-OFL.txt`); bevat subscripts (FiO₂, pCO₂), Δ en °
+- jsPDF voor het pdf-bestand, met het meegeleverde lettertype IBM Plex Sans (`public/fonts`, licentie in `IBMPlexSans-OFL.txt`); bevat subscripts (FiO₂, pCO₂), Δ en °
 - Vitest voor tests, playwright-core voor de interfacecontrole
 
 ## Opslag
@@ -127,7 +127,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 81 tests):
+Unit-tests (`npm test`, 82 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -203,7 +203,7 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 
 ## Typografie en notatie (stap 2)
 
-- **Lettertype IBM Plex Sans** (400, 600, 700), meegeleverd via `@fontsource/ibm-plex-sans`, dus ook offline. De pdf gebruikt nog PT Sans (zie Export); de brief blijft Calibri.
+- **Lettertype IBM Plex Sans** (400, 600, 700), meegeleverd via `@fontsource/ibm-plex-sans`, dus ook offline. De pdf gebruikt hetzelfde lettertype; de brief blijft Calibri.
 - **Typeschaal 13 / 15 / 17 / 20 / 24 px** (`--fs-xs` … `--fs-xl`); alle `font-size`s in `styles.css` zijn daarop afgestemd. Labels 13 px grijs (gewicht 400), ingevulde waarden 17 px donker (ook tegen inzoomen op iOS). Kopniveaus: sectie 20 > subkop 17 > groep 15 > veldlabel 13. Cijfers hebben vaste breedte (`tabular-nums`).
 - **Notatie:** datum altijd dd-mm-jjjj en tijd 24-uurs, ook bij een Engelstalige browser: datum en tijd zijn tekstvelden (`DateTextInput`, `TimeTextInput`; typen als 15112026 of 2235 kan), geen browser-datumkiezers. Bij tijdstippen staat altijd de datum, nooit "vandaag" of "gisteren". Amenorroeduur als 31+4; gewicht als 1240 g; decimalen met komma (bij invoer komma of punt). Tussen getal en eenheid staat een spatie die niet afbreekt (`formatNum`); in e-mailtekst en rtf wordt die een gewone spatie.
 - **Subscripts** (FiO₂, HCO₃⁻, cmH₂O) worden op het scherm als echte opmaak getoond (`src/ui/chem.tsx`), niet als losse tekens.
@@ -232,3 +232,9 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 - **Startscherm:** blauwe zijbalk (pc) of balk (telefoon) met logo en de acties *Nieuw transport*, *Fictief voorbeeldtransport laden* en *Transport importeren*. De apparaatkeuze (werk- of persoonlijk apparaat) maak je één keer; daarna staat ze als één regel met *Wijzigen* (`deviceChosen` in de instellingen). *Transporten op dit apparaat* toont per transport wanneer het automatisch wordt verwijderd als dat binnen een dag is.
 - **Verslagscherm:** de acties staan links (pc) of bovenaan (telefoon), gegroepeerd naar doel: *Naar het EPD* (Word-brief, rtf, e-mailtekst kopiëren), *Bewaren en mailen* (pdf, afdrukken, concept in mailprogramma) en *Overdragen aan een collega*. Uitleg staat achter een vraagteken. Het verslag zelf staat ernaast als een vel papier.
 - Knop *Meetmoment* (zonder "nu") bovenaan de tijdlijn.
+
+## Export (stap 6)
+
+- **E-mailtekst en rtf:** gewone cijfers in plaats van subscripttekens (FiO2, HCO3-, cmH2O) en gewone spaties, omdat HiX subscripttekens niet goed toont.
+- **Word-brief:** echte subscript en superscript (FiO₂, HCO₃⁻) via opmaak in Word; lettertype blijft Calibri.
+- **Pdf:** lettertype IBM Plex Sans (echte ₂- en ₃-tekens), gelijk aan het scherm.

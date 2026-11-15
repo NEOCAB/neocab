@@ -3,7 +3,7 @@ import logoUrl from '../assets/neocab-logo.svg';
 import type { Report, ReportBlock, ReportRow, ReportTable, ReportTableColumn } from './buildReport';
 
 export interface PdfFonts {
-  /** Base64 van PTSans-Regular.ttf (huisstijllettertype; bevat o.a. ₂, ₃, Δ, °). */
+  /** Base64 van IBMPlexSans-Regular.ttf (bevat o.a. ₂, ₃, Δ, °). */
   regular: string;
   bold: string;
   /** Logo als PNG-data-URL (optioneel); rechtsboven op de eerste pagina. */
@@ -16,7 +16,7 @@ const M = { left: 12, right: 12, top: 18, bottom: 16 };
 const LABEL_W = 62;
 /** Hoogte/breedte van het logo (viewBox 21 × 17). */
 const LOGO_RATIO = 17 / 21;
-const FONT = 'PTSans';
+const FONT = 'IBMPlexSans';
 
 /** Huisstijlkleuren (RGB). */
 const C = {
@@ -28,7 +28,7 @@ const C = {
   muted: [92, 102, 112] as [number, number, number],
 };
 
-/** Tekens die PT Sans niet bevat, vervangen door een gelijkwaardige weergave. */
+/** Tekens die IBM Plex Sans niet bevat, vervangen door een gelijkwaardige weergave. */
 function pdfText(s: string): string {
   return s.replace(/⁻/g, '-').replace(/→/g, 'naar').replace(/▲/g, '');
 }
@@ -43,10 +43,10 @@ const LINE = (pt: number) => pt * 0.3528 * 1.32; // regelhoogte in mm
  */
 export function reportToPdf(report: Report, fonts: PdfFonts): jsPDF {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
-  doc.addFileToVFS('PTSans-Regular.ttf', fonts.regular);
-  doc.addFont('PTSans-Regular.ttf', FONT, 'normal');
-  doc.addFileToVFS('PTSans-Bold.ttf', fonts.bold);
-  doc.addFont('PTSans-Bold.ttf', FONT, 'bold');
+  doc.addFileToVFS('IBMPlexSans-Regular.ttf', fonts.regular);
+  doc.addFont('IBMPlexSans-Regular.ttf', FONT, 'normal');
+  doc.addFileToVFS('IBMPlexSans-Bold.ttf', fonts.bold);
+  doc.addFont('IBMPlexSans-Bold.ttf', FONT, 'bold');
   doc.setFont(FONT, 'normal');
   doc.setProperties({ title: report.title, subject: report.meta[0] ?? '', creator: 'Neo.Cab' });
 
@@ -523,7 +523,7 @@ export function loadPdfFonts(baseUrl = import.meta.env?.BASE_URL ?? './'): Promi
       if (!res.ok) throw new Error(`Lettertype ${file} kon niet worden geladen.`);
       return arrayBufferToBase64(await res.arrayBuffer());
     };
-    fontCache = Promise.all([get('PTSans-Regular.ttf'), get('PTSans-Bold.ttf')]).then(([regular, bold]) => ({ regular, bold }));
+    fontCache = Promise.all([get('IBMPlexSans-Regular.ttf'), get('IBMPlexSans-Bold.ttf')]).then(([regular, bold]) => ({ regular, bold }));
     fontCache.catch(() => {
       fontCache = null;
     });

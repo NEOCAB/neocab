@@ -3636,3 +3636,25 @@ select,
     flex: 1 1 100%;
   }
 }
+
+/* Eén zijbalkblauw voor formulier, startscherm en verslag */
+:root {
+  --side: #263d57;
+  --side-btn: #d5e0ec;
+  --side-btn-hover: #c6d4e3;
+  --side-btn-text: #1d3349;
+}
+.home-side,
+.report-panel {
+  background: var(--side);
+}
+.home-side button.primary,
+.report-panel button.panel-main {
+  background: var(--side-btn);
+  border-color: var(--side-btn);
+  color: var(--side-btn-text);
+}
+.home-side button.primary:hover,
+.report-panel button.panel-main:hover:not(:disabled) {
+  background: var(--side-btn-hover);
+}

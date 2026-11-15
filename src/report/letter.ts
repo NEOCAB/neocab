@@ -95,9 +95,23 @@ function dataUrlBytes(url: string): Uint8Array | null {
   return out;
 }
 
+const SUB_DIGITS: Record<string, string> = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
+
+/** Eén regel tekst als runs; subscript- en superscripttekens (FiO₂, HCO₃⁻) worden echt subscript/superscript in Word. */
+function chemRuns(line: string, opts: ConstructorParameters<typeof TextRun>[0] & object, breakBefore = false): TextRun[] {
+  const parts = line.split(/([₀-₉]+|⁻|⁺)/).filter((p) => p !== '');
+  if (parts.length === 0) return [new TextRun({ ...(opts as object), text: '', break: breakBefore ? 1 : undefined })];
+  return parts.map((part, i) => {
+    const brk = i === 0 && breakBefore ? { break: 1 } : {};
+    if (part === '⁻' || part === '⁺') return new TextRun({ ...(opts as object), ...brk, text: part === '⁻' ? '\u2212' : '+', superScript: true });
+    if (/^[₀-₉]+$/.test(part)) return new TextRun({ ...(opts as object), ...brk, text: [...part].map((c) => SUB_DIGITS[c]).join(''), subScript: true });
+    return new TextRun({ ...(opts as object), ...brk, text: part });
+  });
+}
+
 /** Tekst met regelafbrekingen als losse runs. */
 function runs(span: Span, extra: { size?: number } = {}): TextRun[] {
-  return span.text.split('\n').map((text, i) => new TextRun({ text, break: i > 0 ? 1 : undefined, bold: span.b, italics: span.i, underline: span.u ? {} : undefined, font: FONT, ...extra }));
+  return span.text.split('\n').flatMap((text, i) => chemRuns(text, { bold: span.b, italics: span.i, underline: span.u ? {} : undefined, font: FONT, ...extra }, i > 0));
 }
 
 const PARA_STYLE: Record<ParaKind, { before: number; after: number; size?: number; indent?: number; keepNext?: boolean }> = {
@@ -177,7 +191,7 @@ const CELL_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '9AA3AD' };
 const CELL_BORDERS = { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER };
 const HEAD_FILL = 'E6ECF3';
 const small = (t: string, opts: { bold?: boolean; italics?: boolean; size?: number } = {}) =>
-  t.split('\n').map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size ?? 14, bold: opts.bold, italics: opts.italics }));
+  t.split('\n').flatMap((line, i) => chemRuns(line, { font: FONT, size: opts.size ?? 14, bold: opts.bold, italics: opts.italics }, i > 0));
 
 /**
  * Tijdlijn als tabel (liggende A4): kopregel met kolomgroepen, kolomkoppen verticaal met eenheid, één rij per meetmoment;
@@ -265,7 +279,7 @@ export function simpleDocxTable(table: ReportTable, width: number): Table {
               cell(
                 // Geschiedenis (eerdere pompsnelheden) kleiner en grijs onder de actuele waarde.
                 table.columns[i].historyLines
-                  ? v.split('\n').map((line, li) => new TextRun({ text: line, break: li > 0 ? 1 : undefined, font: FONT, size: li > 0 ? 15 : 18, color: li > 0 ? '5C6670' : undefined }))
+                  ? v.split('\n').flatMap((line, li) => chemRuns(line, { font: FONT, size: li > 0 ? 15 : 18, color: li > 0 ? '5C6670' : undefined }, li > 0))
                   : small(v, { size: 18 }),
                 widths[i],
               ),

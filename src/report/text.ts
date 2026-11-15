@@ -40,8 +40,17 @@ function indent(text: string, prefix: string): string {
 }
 
 /** Volledige platte e-mailtekst van het verslag. */
-/** Voor e-mail en EPD: een spatie die niet afbreekt wordt een gewone spatie, zodat plakken overal goed gaat. */
-const plain = (s: string) => s.replace(/\u00a0/g, ' ');
+const SUB: Record<string, string> = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
+/**
+ * Voor e-mail, rtf en EPD (bijv. HiX, dat subscripttekens niet goed toont): gewone cijfers (FiO2, HCO3-, cmH2O)
+ * en een spatie die niet afbreekt wordt een gewone spatie, zodat plakken overal goed gaat.
+ */
+const plain = (s: string) =>
+  s
+    .replace(/\u00a0/g, ' ')
+    .replace(/[₀-₉]/g, (c) => SUB[c])
+    .replace(/⁻/g, '-')
+    .replace(/⁺/g, '+');
 
 export function reportToText(report: Report): string {
   const out: string[] = [];

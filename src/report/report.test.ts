@@ -11,8 +11,8 @@ import { reportToRtf, reportToText } from './text';
 
 const TZ = 'Europe/Amsterdam';
 const fonts = {
-  regular: readFileSync(resolve(__dirname, '../../public/fonts/PTSans-Regular.ttf')).toString('base64'),
-  bold: readFileSync(resolve(__dirname, '../../public/fonts/PTSans-Bold.ttf')).toString('base64'),
+  regular: readFileSync(resolve(__dirname, '../../public/fonts/IBMPlexSans-Regular.ttf')).toString('base64'),
+  bold: readFileSync(resolve(__dirname, '../../public/fonts/IBMPlexSans-Bold.ttf')).toString('base64'),
 };
 
 function bigTransport(): Transport {
@@ -33,6 +33,17 @@ function bigTransport(): Transport {
 }
 
 describe('verslag', () => {
+  it('e-mailtekst en rtf: gewone cijfers in plaats van subscripttekens (HiX)', () => {
+    const report = buildReport(sampleTransport(TZ), TZ);
+    const text = reportToText(report);
+    expect(text).not.toMatch(/[₀-₉⁻]/);
+    expect(text).toContain('FiO2');
+    expect(text).toContain('HCO3-');
+    const rtf = reportToRtf(report);
+    expect(rtf).not.toMatch(/\\u832[0-9]/); // geen subscripttekens (U+2080–2089)
+    expect(rtf).toContain('FiO2');
+  });
+
   it('laatste voeding staat direct onder Gastro-intestinal (Stabilisatie)', () => {
     const text = reportToText(buildReport(sampleTransport(TZ), TZ));
     const s5 = text.slice(text.indexOf('\n\nStabilisatie\n'), text.indexOf('\n\nTijdlijn\n'));
@@ -110,7 +121,7 @@ describe('verslag', () => {
     expect(text).toContain('Toediening 1 · 23:22\n    Medicament: Voorbeeldmedicament; Dosis: 0,5 mg; Toedieningsroute: Intraveneus');
     expect(text).toContain('BE: -3,1 mmol/L');
     expect(text).toContain('Gemiddelde bloeddruk (MAP): 40 mmHg');
-    expect(text).toContain('PIP: 20 cmH₂O');
+    expect(text).toContain('PIP: 20 cmH2O');
     expect(text).toContain('Tubediepte bij tandenrij: 7,5 cm');
   });
 
