@@ -1,3 +1,4 @@
+import { chem } from '../chem';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { EndotrachealTube, Measurement, RespMode } from '../../domain/types';
 import { GAS_FIELDS, GAS_TYPE_OPTIONS, INVASIVE_MODES, MONITOR_FIELDS, NON_INVASIVE_MODES, RESP_MODE_LABELS, isInvasive, respFieldsFor, type NumFieldDef } from '../../domain/labels';
@@ -15,6 +16,8 @@ import { useTimeZone } from '../context';
 import { useConfirm } from '../confirm';
 import type { SectionProps } from './BasicSections';
 
+/** Label met eventueel de volledige naam klein en grijs erachter ("MAP Gem. bloeddruk"). */
+const labelOf = (d: NumFieldDef) => (d.full ? <>{d.label}{' '}<span className="label-full">{d.full}</span></> : d.label);
 const rulesOf = (d: NumFieldDef) => ({ min: d.min, max: d.max, integer: d.integer });
 
 /** Oxygenatie-index van het meetmoment in bewerking (alleen berekend, zonder beoordeling). */
@@ -151,7 +154,7 @@ function MeasurementEditor({
         summary={
           respSummary(draft) ? (
             <>
-              <span className="fold-summary-label">{isNew ? 'Laatst ingevuld:' : 'Ingevuld:'}</span> {respSummary(draft)}
+              <span className="fold-summary-label">{isNew ? 'Laatst ingevuld:' : 'Ingevuld:'}</span> {chem(respSummary(draft))}
             </>
           ) : (
             'Nog niets ingevuld.'
@@ -184,7 +187,7 @@ function MeasurementEditor({
           {MONITOR_FIELDS.map((f) => (
             <NumberField
               key={f.key}
-              label={f.label}
+              label={labelOf(f)}
               unit={f.unit}
               value={draft.monitor[f.key]}
               onChange={(v) =>

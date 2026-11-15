@@ -75,8 +75,8 @@ export function ChildSection({ t, update }: SectionProps) {
             )}
           </output>
         </div>
-        <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0 }} />
-        <NumberField label="Huidig gewicht" value={c.currentWeightGram} onChange={(v) => set('currentWeightGram', v)} unit="g" rules={{ min: 0 }} />
+        <NumberField label="Geboortegewicht" value={c.birthWeightGram} onChange={(v) => set('birthWeightGram', v)} unit="g" rules={{ min: 0, max: 7000 }} />
+        <NumberField label="Huidig gewicht" value={c.currentWeightGram} onChange={(v) => set('currentWeightGram', v)} unit="g" rules={{ min: 0, max: 7000 }} />
       </div>
     </Section>
   );
@@ -363,7 +363,7 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
   const set = <K extends keyof Transport['teamAssessment']>(k: K, v: Transport['teamAssessment'][K]) => update((x) => ({ ...x, teamAssessment: { ...x.teamAssessment, [k]: v } }));
   return (
     <Section id="s5" title="Stabilisatie">
-      <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} after={{ gastrointestinal: <DateTimeField label="Laatste voeding" value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} /> }} />
+      <AbcdFields notes={a.notes} onChange={(n) => set('notes', n)} after={{ gastrointestinal: <TimepointField label="Laatste voeding" shield={false} value={a.lastFeedAt} onChange={(v) => set('lastFeedAt', v)} /> }} />
       <hr className="subsection-rule" />
       <TextField label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
       <TextArea label="Stabilisatieplan" value={a.stabilisationPlan} onChange={(v) => set('stabilisationPlan', v)} />

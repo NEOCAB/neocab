@@ -285,3 +285,30 @@ describe('Getypte kloktijd', () => {
     expect(parseClockTime('12345')).toBeNull();
   });
 });
+
+describe('datum typen en getallen', () => {
+  it('parseDateText: dd-mm-jjjj in verschillende schrijfwijzen; ongeldig geeft null', async () => {
+    const { parseDateText } = await import('./time');
+    expect(parseDateText('15-11-2026')).toBe('2026-11-15');
+    expect(parseDateText('15/11/2026')).toBe('2026-11-15');
+    expect(parseDateText('15.11.26')).toBe('2026-11-15');
+    expect(parseDateText('15112026')).toBe('2026-11-15');
+    expect(parseDateText('5-1-2026')).toBe('2026-01-05');
+    expect(parseDateText('31-02-2026')).toBeNull();
+    expect(parseDateText('2026-11-15')).toBeNull();
+    expect(parseDateText('')).toBeNull();
+  });
+  it('waarden buiten het bereik zijn een rustige melding (waarde blijft), geen blokkade', async () => {
+    const { parseNum } = await import('./num');
+    const r = parseNum('12400', { min: 0, max: 7000 });
+    expect(r).toMatchObject({ ok: false, soft: true, value: 12400 });
+    expect(parseNum('abc', { min: 0 })).toMatchObject({ ok: false });
+    expect((parseNum('abc', { min: 0 }) as { soft?: boolean }).soft).toBeUndefined();
+    expect(parseNum('0', { positive: true })).toMatchObject({ ok: false });
+  });
+  it('getal en eenheid: spatie die niet afbreekt; komma als decimaalteken; gewicht zonder duizendtalscheiding', async () => {
+    const { formatNum } = await import('./num');
+    expect(formatNum(1240, 'g')).toBe('1240\u00a0g');
+    expect(formatNum(7.28, '')).toBe('7,28');
+  });
+});

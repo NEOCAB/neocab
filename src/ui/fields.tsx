@@ -2,21 +2,27 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent
 import type { Instant, LocalDate, Num } from '../domain/types';
 import { numToInput, parseNum, type NumRules } from '../domain/num';
 import { gestationToInput, parseGestation } from '../domain/calc';
-import { instantToWall, isValidLocalDate, localDateOfMs, nowInstant, parseClockTime, todayLocalDate, wallToInstant } from '../domain/time';
+import { formatLocalDate, instantToWall, isValidLocalDate, localDateOfMs, nowInstant, parseClockTime, parseDateText, todayLocalDate, wallToInstant } from '../domain/time';
 import { useTimeZone } from './context';
+import { chem } from './chem';
 import { AddIcon, ExpandIcon, SectionIcon, TimepointIcon } from './icons';
 
-function FieldShell({ id, label, hint, error, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
+function FieldShell({ id, label, hint, error, notice, children, className, labelSuffix }: { id: string; label: ReactNode; hint?: ReactNode; error?: string | null; notice?: string | null; children: ReactNode; className?: string; labelSuffix?: ReactNode }) {
   return (
     <div className={`field ${className ?? ''} ${error ? 'has-error' : ''}`}>
       <label htmlFor={id} className="field-label">
-        {label}
+        {chem(label)}
         {labelSuffix}
       </label>
       {children}
       {hint && (
         <div className="field-hint" id={`${id}-hint`}>
           {hint}
+        </div>
+      )}
+      {notice && !error && (
+        <div className="field-notice" id={`${id}-error`} role="status">
+          {notice}
         </div>
       )}
       {error && (
@@ -99,20 +105,23 @@ export function NumberField({ label, value, onChange, unit, rules, hint, classNa
   const id = useId();
   const [text, setText] = useState(numToInput(value));
   const [error, setError] = useState<string | null>(null);
+  /** Rustige grijze melding bij een ongebruikelijke waarde; de waarde wordt wel vastgelegd. */
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     // Synchroniseer bij externe wijziging (bijv. ander record), niet tijdens typen van gelijke waarde.
     const parsed = parseNum(text, rules);
-    if (!(parsed.ok && parsed.value === value)) {
+    if (!((parsed.ok && parsed.value === value) || (!parsed.ok && parsed.soft && parsed.value === value))) {
       setText(numToInput(value));
       setError(null);
+      setNotice(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const allowNegative = rules?.min === undefined && !rules?.positive;
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} className={`num-field ${className ?? ''}`}>
+    <FieldShell id={id} label={label} hint={hint} error={error} notice={notice} className={`num-field ${className ?? ''}`}>
       <div className="num-input-wrap">
         <input
           id={id}
@@ -124,19 +133,27 @@ export function NumberField({ label, value, onChange, unit, rules, hint, classNa
           // Oudere concepten kunnen nog "onbekend" bevatten.
           placeholder={value === 'onbekend' ? 'onbekend' : ''}
           aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy(id, hint, error)}
+          aria-describedby={describedBy(id, hint, error || notice)}
           onChange={(e) => {
             setText(e.target.value);
             const r = parseNum(e.target.value, rules);
             if (r.ok) {
               setError(null);
+              setNotice(null);
               onChange(r.value);
-            } else setError(r.error);
+            } else if (r.soft) {
+              setError(null);
+              setNotice(r.error);
+              onChange(r.value ?? null);
+            } else {
+              setNotice(null);
+              setError(r.error);
+            }
           }}
         />
         {unit && (
           <span className="unit" aria-hidden="true">
-            {unit}
+            {chem(unit)}
           </span>
         )}
       </div>
@@ -215,12 +232,12 @@ export function Segmented<T extends string>({ legend, value, onChange, options, 
   const autoName = useId();
   return (
     <fieldset className={`segmented ${className ?? ''}`}>
-      <legend className="field-label">{legend}</legend>
+      <legend className="field-label">{chem(legend)}</legend>
       <div className="segmented-options">
         {options.map((o) => (
           <label key={o.value} className={`seg ${value === o.value ? 'checked' : ''}`}>
             <input type="radio" name={name ?? autoName} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} onClick={allowClear && value === o.value ? () => onChange('') : undefined} />
-            <span>{o.label}</span>
+            <span>{chem(o.label)}</span>
           </label>
         ))}
       </div>
@@ -233,6 +250,93 @@ export function Segmented<T extends string>({ legend, value, onChange, options, 
  * Knop "Nu" vult de huidige tijd in (ook over een bestaande tijd heen); "Wissen" maakt het veld leeg.
  * Een leeg veld blijft leeg tot de gebruiker een tijd invoert of "Nu" kiest.
  */
+/** Datum als tekst (dd-mm-jjjj), onafhankelijk van de taalinstelling van de browser. Waarde: `jjjj-mm-dd` of leeg. */
+function DateTextInput({ value, onChange, id, label, autoFocus, className, onInvalid, onKeyDown, onBlurDone }: { value: LocalDate; onChange: (v: LocalDate) => void; id?: string; label?: string; autoFocus?: boolean; className?: string; onInvalid?: (message: string | null) => void; onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void; onBlurDone?: () => void }) {
+  const [text, setText] = useState(formatLocalDate(value));
+  useEffect(() => {
+    const parsed = parseDateText(text);
+    if (!(parsed === value || (text.trim() === '' && value === ''))) setText(formatLocalDate(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const bad = text.trim() !== '' && parseDateText(text) === null;
+  return (
+    <input
+      id={id}
+      className={className}
+      type="text"
+      inputMode="numeric"
+      autoComplete="off"
+      autoFocus={autoFocus}
+      placeholder="dd-mm-jjjj"
+      aria-label={label}
+      aria-invalid={bad ? true : undefined}
+      value={text}
+      onChange={(e) => {
+        setText(e.target.value);
+        const d = parseDateText(e.target.value);
+        if (d) {
+          onInvalid?.(null);
+          onChange(d);
+        } else if (e.target.value.trim() === '') {
+          onInvalid?.(null);
+          onChange('');
+        }
+      }}
+      onKeyDown={onKeyDown}
+      onBlur={() => {
+        const d = parseDateText(text);
+        if (d) {
+          setText(formatLocalDate(d));
+          onInvalid?.(null);
+        } else if (text.trim() !== '') onInvalid?.('Voer de datum in als dd-mm-jjjj, bijvoorbeeld 15-11-2026.');
+        onBlurDone?.();
+      }}
+    />
+  );
+}
+
+/** Tijd als tekst (uu:mm, 24-uurs); typen als 2235 of 22:35. Waarde: `HH:MM` of leeg. */
+function TimeTextInput({ value, onChange, id, label, className, onInvalid }: { value: string; onChange: (v: string) => void; id?: string; label?: string; className?: string; onInvalid?: (message: string | null) => void }) {
+  const [text, setText] = useState(value);
+  useEffect(() => {
+    if (!(parseClockTime(text) === value || (text.trim() === '' && value === ''))) setText(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const bad = text.trim() !== '' && parseClockTime(text) === null;
+  return (
+    <input
+      id={id}
+      className={className}
+      type="text"
+      inputMode="numeric"
+      autoComplete="off"
+      placeholder="uu:mm"
+      aria-label={label}
+      aria-invalid={bad ? true : undefined}
+      value={text}
+      onChange={(e) => {
+        setText(e.target.value);
+        const hm = parseClockTime(e.target.value);
+        if (hm && e.target.value.replace(/\D/g, '').length >= 3) {
+          onInvalid?.(null);
+          onChange(hm);
+        } else if (e.target.value.trim() === '') {
+          onInvalid?.(null);
+          onChange('');
+        }
+      }}
+      onBlur={() => {
+        const hm = parseClockTime(text);
+        if (hm) {
+          setText(hm);
+          onChange(hm);
+          onInvalid?.(null);
+        } else if (text.trim() !== '') onInvalid?.('Voer de tijd in als 22:35 (of 2235).');
+      }}
+    />
+  );
+}
+
 export function DateTimeField({ label, value, onChange, hint, className, clearable = true }: { label: ReactNode; value: Instant; onChange: (v: Instant) => void; hint?: ReactNode; className?: string; clearable?: boolean }) {
   const id = useId();
   const [error, setError] = useState<string | null>(null);
@@ -243,30 +347,29 @@ export function DateTimeField({ label, value, onChange, hint, className, clearab
   );
 }
 
-function DateTimeInputs({ id, name, value, onChange, clearable, describedBy: desc, error, setError }: { id: string; name: string; value: Instant; onChange: (v: Instant) => void; clearable: boolean; describedBy?: string; error: string | null; setError: (e: string | null) => void }) {
+function DateTimeInputs({ id, name, value, onChange, clearable, setError }: { id: string; name: string; value: Instant; onChange: (v: Instant) => void; clearable: boolean; describedBy?: string; error: string | null; setError: (e: string | null) => void }) {
   const tz = useTimeZone();
+  const wall = instantToWall(value, tz);
+  // Datum en tijd staan als twee tekstvelden (dd-mm-jjjj en uu:mm); pas als beide kloppen wordt het tijdstip vastgelegd.
+  const [date, setDate] = useState<LocalDate>(wall.slice(0, 10));
+  const [time, setTime] = useState(wall.slice(11, 16));
+  useEffect(() => {
+    setDate(wall.slice(0, 10));
+    setTime(wall.slice(11, 16));
+  }, [wall]);
+  const commit = (d: LocalDate, t: string) => {
+    if (d === '' && t === '') return onChange(null);
+    if (d !== '' && t !== '') {
+      const i = wallToInstant(`${d}T${t}`, tz);
+      if (i) return onChange(i);
+      setError('Voer een geldige datum en tijd in.');
+    }
+  };
   return (
     <div className="dt-row">
-      <input
-        id={id}
-        type="datetime-local"
-        value={instantToWall(value, tz)}
-        aria-describedby={desc}
-        aria-invalid={error ? true : undefined}
-        onChange={(e) => {
-          if (e.target.value === '') {
-            setError(null);
-            onChange(null);
-            return;
-          }
-          const i = wallToInstant(e.target.value, tz);
-          if (i) {
-            setError(null);
-            onChange(i);
-          } else setError('Voer een geldige datum en tijd in.');
-        }}
-      />
-      <button type="button" className="secondary icon-button dt-now" aria-label={`${name} op nu zetten`} title="Nu" onClick={() => onChange(nowInstant(tz))}>
+      <DateTextInput id={id} className="dt-date" value={date} onInvalid={setError} onChange={(d) => { setDate(d); commit(d, time); }} />
+      <TimeTextInput className="dt-time" label={`Tijd van ${name}`} value={time} onInvalid={setError} onChange={(t) => { setTime(t); commit(date, t); }} />
+      <button type="button" className="secondary icon-button dt-now" aria-label={`${name} op nu zetten`} title="Nu" onClick={() => { setError(null); onChange(nowInstant(tz)); }}>
         <ClockIcon />
       </button>
       {clearable && (
@@ -297,17 +400,6 @@ function ClearIcon() {
   );
 }
 
-/** Datum ten opzichte van vandaag: "vandaag", "gisteren", "morgen" of dd-mm-jjjj. */
-function relativeDay(wallDate: string, tz: string): string {
-  const today = todayLocalDate(tz);
-  const days = Math.round((Date.parse(`${wallDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
-  if (days === 0) return 'vandaag';
-  if (days === -1) return 'gisteren';
-  if (days === 1) return 'morgen';
-  const [y, m, d] = wallDate.split('-');
-  return `${d}-${m}-${y}`;
-}
-
 const UNDO_MS = 10_000;
 
 /**
@@ -317,7 +409,7 @@ const UNDO_MS = 10_000;
  * - ingevuld: de tijd staat in het veld, met de dag als klein knopje erachter (tik = datum aanpassen);
  * - wijzigen: tik in het veld en typ eroverheen; leegmaken wist de tijd, met Ongedaan maken.
  */
-export function TimepointField({ label, value, onChange }: { label: string; value: Instant; onChange: (v: Instant) => void }) {
+export function TimepointField({ label, value, onChange, shield = true }: { label: string; value: Instant; onChange: (v: Instant) => void; shield?: boolean }) {
   const id = useId();
   const labelId = `${id}-label`;
   const tz = useTimeZone();
@@ -365,9 +457,9 @@ export function TimepointField({ label, value, onChange }: { label: string; valu
   const shownTime = editing ? text : wall.slice(11, 16);
 
   return (
-    <div className={`field timepoint ${error ? 'has-error' : ''}`} data-label={label} data-value={wall}>
+    <div className={`field timepoint ${shield ? '' : 'plain'} ${error ? 'has-error' : ''}`} data-label={label} data-value={wall}>
       <div className="tp-head">
-        <TimepointIcon />
+        {shield && <TimepointIcon />}
         <span id={labelId} className="field-label">
           {label}
         </span>
@@ -415,25 +507,24 @@ export function TimepointField({ label, value, onChange }: { label: string; valu
         )}
         {value &&
           (dateOpen ? (
-            <input
+            <DateTextInput
               className="tp-date-input"
-              type="date"
+              label={`Datum van ${label}`}
               value={wall.slice(0, 10)}
-              aria-label={`Datum van ${label}`}
               autoFocus
-              onChange={(e) => {
-                if (!isValidLocalDate(e.target.value)) return;
-                onChange(wallToInstant(`${e.target.value}T${wall.slice(11, 16)}`, tz));
+              onChange={(d) => {
+                if (!isValidLocalDate(d)) return;
+                onChange(wallToInstant(`${d}T${wall.slice(11, 16)}`, tz));
                 setDateOpen(false);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Escape' || e.key === 'Enter') setDateOpen(false);
               }}
-              onBlur={() => setDateOpen(false)}
+              onBlurDone={() => setDateOpen(false)}
             />
           ) : (
-            <button type="button" className="tp-date" title="Datum wijzigen" aria-label={`Datum van ${label} wijzigen (${relativeDay(wall.slice(0, 10), tz)})`} onClick={() => setDateOpen(true)}>
-              {relativeDay(wall.slice(0, 10), tz)}
+            <button type="button" className="tp-date" title="Datum wijzigen" aria-label={`Datum van ${label} wijzigen (${formatLocalDate(wall.slice(0, 10))})`} onClick={() => setDateOpen(true)}>
+              {formatLocalDate(wall.slice(0, 10))}
             </button>
           ))}
       </div>
@@ -465,11 +556,11 @@ export function TimepointField({ label, value, onChange }: { label: string; valu
 export function DateField({ label, value, onChange, hint, todayButton, className }: { label: ReactNode; value: LocalDate; onChange: (v: LocalDate) => void; hint?: ReactNode; todayButton?: boolean; className?: string }) {
   const id = useId();
   const tz = useTimeZone();
-  const invalid = value !== '' && !isValidLocalDate(value);
+  const [error, setError] = useState<string | null>(null);
   return (
-    <FieldShell id={id} label={label} hint={hint} error={invalid ? 'Voer een geldige datum in.' : null} className={className}>
+    <FieldShell id={id} label={label} hint={hint} error={error} className={className}>
       <div className="dt-row">
-        <input id={id} type="date" value={value} aria-describedby={describedBy(id, hint)} onChange={(e) => onChange(e.target.value)} />
+        <DateTextInput id={id} value={value} onChange={onChange} onInvalid={setError} />
         {todayButton && value === '' && (
           <button type="button" className="secondary small" onClick={() => onChange(todayLocalDate(tz))}>
             Vandaag
@@ -482,9 +573,10 @@ export function DateField({ label, value, onChange, hint, todayButton, className
 
 export function TimeField({ label, value, onChange, className }: { label: ReactNode; value: string; onChange: (v: string) => void; className?: string }) {
   const id = useId();
+  const [error, setError] = useState<string | null>(null);
   return (
-    <FieldShell id={id} label={label} className={className}>
-      <input id={id} type="time" value={value} onChange={(e) => onChange(e.target.value)} />
+    <FieldShell id={id} label={label} error={error} className={className}>
+      <TimeTextInput id={id} value={value} onChange={onChange} onInvalid={setError} />
     </FieldShell>
   );
 }

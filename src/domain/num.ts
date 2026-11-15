@@ -1,6 +1,7 @@
 import type { Num } from './types';
 
-export type ParseResult = { ok: true; value: Num } | { ok: false; error: string };
+/** `soft`: de waarde is wel een getal maar ongebruikelijk (buiten het bereik); ze mag worden vastgelegd, met een rustige melding. */
+export type ParseResult = { ok: true; value: Num } | { ok: false; error: string; soft?: true; value?: number };
 
 export interface NumRules {
   min?: number;
@@ -19,17 +20,17 @@ export function parseNum(input: string, rules: NumRules = {}): ParseResult {
   if (trimmed === '') return { ok: true, value: null };
   const normalized = trimmed.replace(',', '.').replace(/^−/, '-');
   if (!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(normalized)) {
-    return { ok: false, error: 'Voer een geldig getal in (komma of punt toegestaan).' };
+    return { ok: false, error: 'Dit is geen getal. Typ bijvoorbeeld 7,5 (komma of punt).' };
   }
   const value = Number(normalized);
-  if (!Number.isFinite(value)) return { ok: false, error: 'Voer een geldig getal in.' };
-  if (rules.integer && !Number.isInteger(value)) return { ok: false, error: 'Voer een geheel getal in.' };
+  if (!Number.isFinite(value)) return { ok: false, error: 'Dit is geen getal. Typ bijvoorbeeld 7,5 (komma of punt).' };
+  if (rules.integer && !Number.isInteger(value)) return { ok: false, error: 'Hier past een geheel getal, zonder decimalen.' };
   if (rules.positive && !(value > 0)) return { ok: false, error: 'De waarde moet groter dan 0 zijn.' };
   if (rules.min !== undefined && value < rules.min) {
-    return { ok: false, error: rules.min === 0 ? 'Een negatieve waarde is hier niet mogelijk.' : `De waarde moet minimaal ${formatNumber(rules.min)} zijn.` };
+    return { ok: false, soft: true, value, error: rules.min === 0 ? 'Controleer de waarde: negatief is hier ongebruikelijk.' : `Controleer de waarde: lager dan ${formatNumber(rules.min)} is ongebruikelijk.` };
   }
   if (rules.max !== undefined && value > rules.max) {
-    return { ok: false, error: `De waarde kan niet hoger zijn dan ${formatNumber(rules.max)}.` };
+    return { ok: false, soft: true, value, error: `Controleer de waarde: hoger dan ${formatNumber(rules.max)} is ongebruikelijk.` };
   }
   return { ok: true, value };
 }
@@ -52,9 +53,9 @@ export function isFilled(v: Num): boolean {
   return v !== null;
 }
 
-/** Weergave voor verslag; `null` wanneer leeg (dan niet tonen). */
+/** Weergave van een getal met eenheid; tussen getal en eenheid staat een spatie die niet afbreekt. `null` wanneer leeg (dan niet tonen). */
 export function formatNum(v: Num, unit = ''): string | null {
   if (v === null) return null;
   if (v === 'onbekend') return 'onbekend';
-  return unit ? `${formatNumber(v)} ${unit}` : formatNumber(v);
+  return unit ? `${formatNumber(v)}\u00a0${unit}` : formatNumber(v);
 }

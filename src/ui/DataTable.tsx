@@ -1,3 +1,4 @@
+import { chem } from './chem';
 import { Fragment, type ReactNode } from 'react';
 import type { ReportTable } from '../report/buildReport';
 
@@ -62,8 +63,8 @@ export function DataTable({
               <th key={i} scope="col" className={cls(i, c.keyColumn ? 'key' : '')} title={c.fullLabel}>
                 {/* Alleen de tekst wordt gedraaid (niet de cel), zodat randen links/rechts goed blijven. */}
                 <span className={c.keyColumn || table.simple ? 'th-text' : 'th-text th-rot'}>
-                  <span className="th-label">{c.header}</span>
-                  {c.unit && <span className="th-unit"> ({c.unit})</span>}
+                  <span className="th-label">{chem(c.header)}</span>
+                  {c.unit && <span className="th-unit"> ({chem(c.unit)})</span>}
                 </span>
               </th>
             ))}

@@ -30,7 +30,8 @@
   --focus: #007cc2;
   --radius: 8px; /* afgeronde hoeken, zoals de keuzebalken */
   --tap: 44px;
-  font-family: 'PT Sans', Calibri, 'Segoe UI', Arial, sans-serif;
+  font-family: 'IBM Plex Sans', Calibri, 'Segoe UI', Arial, sans-serif;
+  font-variant-numeric: tabular-nums; /* cijfers even breed */
   font-size: 15px; /* huisstijl: hoofdtekst 15 px (invoervelden 16 px tegen inzoomen op iOS) */
   line-height: 1.45;
   color: var(--text);
@@ -58,20 +59,20 @@ legend {
   text-wrap: balance;
 }
 h1 {
-  font-size: 2rem;
+  font-size: 24px;
   font-weight: 700;
   margin: 0 0 0.25rem;
 }
 h2 {
-  font-size: 1.3rem;
+  font-size: 20px;
 }
 h3 {
-  font-size: 1.2rem; /* huisstijl H3: 18 px vet */
+  font-size: 17px; /* huisstijl H3: 18 px vet */
   font-weight: 700;
   margin: 0 0 0.5rem;
 }
 h4 {
-  font-size: 1rem;
+  font-size: 15px;
   margin: 0.25rem 0;
 }
 
@@ -93,7 +94,7 @@ h4 {
   color: var(--muted);
 }
 .small-print {
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 .pre {
   white-space: pre-wrap;
@@ -140,10 +141,10 @@ button.ghost {
 }
 button.small {
   padding: 0.35rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: 13px;
 }
 button.large {
-  font-size: 1.1rem;
+  font-size: 15px;
   padding: 0.75rem 1.4rem;
 }
 .link-button {
@@ -177,13 +178,13 @@ button.large {
 legend.field-label {
   color: var(--text);
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 13px;
 }
 input,
 select,
 textarea {
   font: inherit;
-  font-size: 16px; /* voorkomt inzoomen op iOS */
+  font-size: 17px; /* waarden 17 px: ook voorkomt inzoomen op iOS */
   width: 100%;
   min-height: var(--tap);
   padding: 0.5rem 0.65rem;
@@ -208,13 +209,19 @@ input[type='time'] {
   min-width: 0;
 }
 .field-hint {
-  font-size: 0.82rem;
+  font-size: 13px;
   color: var(--muted);
 }
+/* Foutmeldingen rustig: gewoon gewicht, kleur rood alleen voor het echt foute */
 .field-error {
-  font-size: 0.85rem;
+  font-size: 13px;
   color: var(--danger);
-  font-weight: 600;
+  font-weight: 400;
+  margin: 0.25rem 0;
+}
+.field-notice {
+  font-size: 13px;
+  color: var(--label);
   margin: 0.25rem 0;
 }
 .has-error input {
@@ -241,13 +248,13 @@ input[type='time'] {
   position: absolute;
   right: 0.6rem;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 13px;
   pointer-events: none;
   white-space: nowrap;
 }
 .unknown-toggle {
   flex: none;
-  font-size: 0.78rem;
+  font-size: 13px;
   padding: 0.2rem 0.45rem;
   background: var(--tint);
   color: var(--muted);
@@ -321,12 +328,12 @@ input[type='time'] {
 .tp-icon {
   display: inline-flex;
   flex: none;
-  font-size: 1.6rem;
+  font-size: 24px;
   color: var(--primary);
 }
 .timepoint .field-label {
   display: block;
-  font-size: 1rem;
+  font-size: 15px;
 }
 .timepoint .field-error {
   grid-column: 1 / -1;
@@ -386,7 +393,7 @@ fieldset.group > legend {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: #fff;
-  font-size: 0.95rem;
+  font-size: 15px;
 }
 .seg.checked span {
   background: var(--primary);
@@ -403,9 +410,7 @@ fieldset.group > legend {
 }
 .mode-group-title {
   display: block;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 13px;
   color: var(--muted);
   margin: 0.2rem 0;
 }
@@ -448,7 +453,7 @@ fieldset.group > legend {
 /* Naam even hoog als het beeldmerk en verticaal ermee uitgelijnd. */
 .home-header h1 {
   margin: 0;
-  font-size: 2.6rem;
+  font-size: 24px;
   line-height: 1;
 }
 .brand-logo {
@@ -524,7 +529,7 @@ fieldset.group > legend {
 }
 .badge {
   display: inline-block;
-  font-size: 0.78rem;
+  font-size: 13px;
   padding: 0.1rem 0.5rem;
   border-radius: var(--radius);
   background: var(--lightblue);
@@ -550,14 +555,14 @@ fieldset.group > legend {
   border: 1px solid var(--sand-line);
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
-  font-size: 0.92rem;
+  font-size: 13px;
 }
 .computed {
   background: var(--lightblue);
   border-radius: var(--radius);
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.75rem;
-  font-size: 0.95rem;
+  font-size: 15px;
 }
 /* Basisgegevens kind: altijd 2 kolommen × 4 rijen, of 4 kolommen × 2 rijen vanaf tabletbreedte. */
 .basis-grid {
@@ -580,7 +585,7 @@ fieldset.group > legend {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--lightblue);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--text);
   cursor: default;
@@ -653,7 +658,7 @@ fieldset.group > legend {
   width: 2rem;
 }
 .topbar-name {
-  font-size: 1.2rem;
+  font-size: 17px;
   font-weight: 700;
   color: var(--primary);
   line-height: 1;
@@ -663,7 +668,7 @@ fieldset.group > legend {
     width: 1.75rem;
   }
   .topbar-name {
-    font-size: 1.05rem;
+    font-size: 15px;
   }
 }
 .active-transport {
@@ -680,12 +685,10 @@ fieldset.group > legend {
   white-space: nowrap;
 }
 .active-transport .muted {
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 .active-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 13px;
   color: var(--muted);
 }
 .topbar-actions {
@@ -705,13 +708,13 @@ fieldset.group > legend {
   gap: 0.3rem;
   flex: none;
   margin-left: auto;
-  font-size: 0.8rem;
+  font-size: 13px;
   color: var(--muted);
   white-space: nowrap;
 }
 .save-icon {
   display: inline-flex;
-  font-size: 1.5rem;
+  font-size: 24px;
 }
 /* Groen: opgeslagen; oranje: wacht 10 s – 1 min; rood: wacht langer of mislukt. */
 .save-status.ok .save-icon {
@@ -766,13 +769,13 @@ fieldset.group > legend {
 }
 .form-section > h2 {
   color: var(--primary);
-  font-size: 1.45rem;
+  font-size: 20px;
   font-weight: 700;
   margin: 0.25rem 0 0.75rem;
 }
 .section-intro {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 13px;
   margin-top: -0.5rem;
 }
 .form-end {
@@ -808,7 +811,7 @@ fieldset.group > legend {
     border-bottom: 1px solid var(--surface);
     color: var(--primary);
     text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 15px;
   }
   .sidenav a:hover {
     color: var(--accent);
@@ -850,13 +853,13 @@ fieldset.group > legend {
   background: var(--tint);
   border-radius: var(--radius);
   padding: 0.15rem 0.45rem;
-  font-size: 0.92rem;
+  font-size: 13px;
 }
 .chip-label {
   color: var(--muted);
 }
 .tube-line {
-  font-size: 0.9rem;
+  font-size: 13px;
   background: var(--tint);
   border-radius: var(--radius);
   padding: 0.35rem 0.5rem;
@@ -894,7 +897,7 @@ fieldset.group > legend {
   width: 2rem;
   height: 2rem;
   margin: 0;
-  font-size: 1rem;
+  font-size: 15px;
 }
 .field.abcd-compact > :not(.field-label) {
   grid-column: 2;
@@ -948,7 +951,7 @@ fieldset.group > legend {
 }
 .add-icon {
   display: inline-flex;
-  font-size: 1.35rem;
+  font-size: 20px;
 }
 /* Smal scherm: alleen het icoon (de tekst blijft voor schermlezers en als tooltip). */
 @media (max-width: 559px) {
@@ -1052,13 +1055,13 @@ a.button:hover {
   border-radius: var(--radius);
   background: var(--lightblue);
   color: var(--primary);
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 700;
 }
 .combo-empty {
   padding: 0.5rem 0.75rem;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 13px;
 }
 .add-menu {
   position: relative;
@@ -1114,7 +1117,7 @@ a.button:hover {
   background: var(--surface);
   color: var(--primary);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 13px;
   cursor: pointer;
 }
 .view-switch button + button {
@@ -1127,7 +1130,7 @@ a.button:hover {
 }
 .view-icon {
   display: inline-flex;
-  font-size: 1.25rem;
+  font-size: 20px;
 }
 /* Op een smal scherm alleen de iconen (de naam blijft via title en voor schermlezers). */
 @media (max-width: 480px) {
@@ -1151,7 +1154,7 @@ a.button:hover {
 }
 .chart-group-title {
   margin: 0.5rem 0 0.4rem;
-  font-size: 0.95rem;
+  font-size: 15px;
   color: var(--primary);
 }
 /* Eén kolom: alle grafieken onder elkaar met dezelfde y-as-positie en tijd-as. */
@@ -1169,7 +1172,7 @@ a.button:hover {
   margin: 0.3rem 0 0.2rem;
   padding: 0;
   list-style: none;
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 .chart-legend li {
   display: inline-flex;
@@ -1193,7 +1196,7 @@ a.button:hover {
   stroke-width: 1;
 }
 .chart-lane-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   fill: var(--text);
 }
@@ -1202,7 +1205,7 @@ a.button:hover {
   fill: var(--muted);
 }
 .chart-lane-value {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   fill: var(--text);
   font-variant-numeric: tabular-nums;
@@ -1224,7 +1227,7 @@ a.button:hover {
   justify-content: space-between;
   align-items: baseline;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 .chart-title {
   font-weight: 700;
@@ -1244,7 +1247,7 @@ a.button:hover {
 }
 .chart-time {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 13px;
 }
 .chart-svg {
   display: block;
@@ -1256,7 +1259,7 @@ a.button:hover {
   stroke-width: 1;
 }
 .chart-tick {
-  font-size: 11px;
+  font-size: 13px;
   fill: var(--muted);
   font-variant-numeric: tabular-nums;
 }
@@ -1287,7 +1290,7 @@ a.button:hover {
   fill: var(--primary-20);
 }
 .chart-mode-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   fill: var(--primary);
 }
@@ -1310,7 +1313,7 @@ a.button:hover {
 }
 .editor-actions {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.75rem;
   position: sticky;
@@ -1336,7 +1339,7 @@ a.button:hover {
 .data-table {
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.87rem;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   width: max-content;
   min-width: 100%;
@@ -1374,7 +1377,7 @@ a.button:hover {
 .data-table .group-row th {
   background: var(--primary-10);
   color: var(--primary);
-  font-size: 0.85rem;
+  font-size: 13px;
   font-weight: 700;
   padding: 0.45rem 0.75rem;
   /* Donkerblauwe lijn onder de eerste kopregel (groepen). */
@@ -1390,11 +1393,11 @@ a.button:hover {
 }
 .th-label {
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 .th-unit {
   font-weight: 400;
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--muted);
 }
 /* Kolomkoppen in de tweede rij verticaal (van onder naar boven); de tijdkolom horizontaal. */
@@ -1469,12 +1472,12 @@ a.button:hover {
 .ts-time {
   display: block;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 15px;
   color: var(--text);
 }
 .ts-date {
   display: block;
-  font-size: 0.78rem;
+  font-size: 13px;
   font-weight: 400;
   color: var(--muted);
 }
@@ -1494,14 +1497,14 @@ a.button:hover {
 }
 .row-edit .edit-icon {
   color: var(--primary);
-  font-size: 0.9rem;
+  font-size: 13px;
 }
 
 .oi-line {
   border-radius: var(--radius);
   padding: 0.45rem 0.65rem;
   background: var(--tint);
-  font-size: 0.95rem;
+  font-size: 15px;
 }
 
 /* Infusen en tube */
@@ -1552,13 +1555,13 @@ a.button:hover {
   align-items: center;
   gap: 0.35rem;
   margin: -0.4rem 0 0.4rem;
-  font-size: 0.82rem;
+  font-size: 13px;
   color: var(--muted);
 }
 .checklist-legend .check-box {
   width: 1.15rem;
   height: 1.15rem;
-  font-size: 0.75rem;
+  font-size: 13px;
   margin-left: 0.4rem;
 }
 .checklist-legend .check-box:first-child {
@@ -1603,7 +1606,7 @@ a.button:hover {
   background: #fff;
   color: #fff;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 15px;
   line-height: 1;
 }
 .check-box.gedaan {
@@ -1646,7 +1649,7 @@ a.button:hover {
 .device-choice legend {
   padding: 0 0.25rem;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 15px;
 }
 .device-options {
   display: grid;
@@ -1681,7 +1684,7 @@ a.button:hover {
 }
 .device-text {
   display: block;
-  font-size: 0.9rem;
+  font-size: 13px;
   color: var(--muted);
   line-height: 1.35;
 }
@@ -1702,7 +1705,7 @@ a.button:hover {
 }
 .report-patient {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 15px;
   margin: 0.25rem 0;
 }
 .r-section h2 {
@@ -1719,7 +1722,7 @@ a.button:hover {
   break-inside: avoid;
 }
 .r-card h3 {
-  font-size: 1rem;
+  font-size: 15px;
 }
 .report dl {
   margin: 0;
@@ -1745,7 +1748,7 @@ a.button:hover {
 .r-sub {
   margin: 0.6rem 0 0.2rem;
   color: var(--primary);
-  font-size: 0.92rem;
+  font-size: 13px;
 }
 @media (max-width: 560px) {
   .r-kv {
@@ -1873,7 +1876,7 @@ button.danger-button {
   color: var(--primary);
 }
 .section-title .section-icon {
-  font-size: 1.85rem;
+  font-size: 24px;
 }
 .sidenav a {
   display: flex !important;
@@ -1881,7 +1884,7 @@ button.danger-button {
   gap: 0.5rem;
 }
 .sidenav .section-icon {
-  font-size: 1.3rem;
+  font-size: 20px;
 }
 
 /* In- en uitklapbare kopjes in het meetmoment */
@@ -1909,7 +1912,7 @@ button.danger-button {
 }
 .expand-icon {
   display: inline-flex;
-  font-size: 1.5rem;
+  font-size: 24px;
   transform: rotate(90deg);
   transition: transform 0.15s ease;
 }
@@ -1946,7 +1949,7 @@ button.danger-button {
 .thompson-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 13px;
   table-layout: fixed;
 }
 .thompson-table th,
@@ -2012,7 +2015,7 @@ button.danger-button {
   margin-bottom: 0.5rem;
 }
 .thompson-total strong {
-  font-size: 1.25rem;
+  font-size: 20px;
 }
 .thompson-total .link-button {
   margin-left: auto;
@@ -2027,7 +2030,7 @@ button.danger-button {
 }
 @media (max-width: 480px) {
   .thompson-table {
-    font-size: 0.78rem;
+    font-size: 13px;
   }
   .thompson-table thead th:first-child,
   .thompson-table tbody th {
@@ -2054,7 +2057,7 @@ button.danger-button {
   padding-left: 1.6rem;
 }
 .abcd-extra > .field > .field-label {
-  font-size: 0.9rem;
+  font-size: 13px;
   font-weight: 600;
 }
 /* Therapeutische hypothermie: apart blauw vlak onder Disability bij Verwijzing */
@@ -2069,12 +2072,12 @@ button.danger-button {
 .hypothermia-subtitle {
   /* Niet groter dan de koptekst van Disability (veldlabel). */
   margin: 0.75rem 0 0.4rem;
-  font-size: 0.92rem;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text);
 }
 .hypothermia-panel legend {
-  font-size: 0.92rem;
+  font-size: 13px;
 }
 .hypothermia-panel > :first-child .hypothermia-subtitle,
 .hypothermia-panel > .hypothermia-subtitle:first-child {
@@ -2181,7 +2184,7 @@ button.danger-button {
   min-width: 8rem;
   padding: 0 1.25rem;
   min-height: var(--tap);
-  font-size: 1.05rem;
+  font-size: 15px;
   font-weight: 700;
 }
 .tp-filled {
@@ -2197,21 +2200,21 @@ button.danger-button {
   gap: 0.5rem;
 }
 .tp-time {
-  font-size: 1.6rem;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
 .tp-day {
-  font-size: 0.95rem;
+  font-size: 15px;
   color: var(--muted);
 }
 .tp-clear {
   margin-left: 0.25rem;
 }
 .tp-undo {
-  font-size: 0.9rem;
+  font-size: 13px;
   color: var(--muted);
 }
 /* Wijzigweergave: niet breder dan nodig */
@@ -2383,7 +2386,7 @@ select {
 }
 .report-icon {
   display: inline-flex;
-  font-size: 1.3rem;
+  font-size: 20px;
 }
 @media (min-width: 1000px) {
   .report-side {
@@ -2402,11 +2405,11 @@ select {
 }
 /* 1. Sectiekop: overal dezelfde maat, ook naast een knop rechtsboven */
 .form-section .section-title {
-  font-size: 1.375rem;
+  font-size: 20px;
 }
 /* 2. Subkop */
 .subsection-title {
-  font-size: 1.0625rem;
+  font-size: 15px;
   border-top-color: var(--line);
 }
 /* 3. Groep: geen kaders, eigen kop */
@@ -2422,7 +2425,7 @@ fieldset.group > legend,
 .abcd-extra > .field > .field-label {
   padding: 0;
   margin-bottom: 0.4rem;
-  font-size: 0.9375rem;
+  font-size: 15px;
   font-weight: 600;
   color: var(--heading);
 }
@@ -2430,19 +2433,19 @@ fieldset.group > legend,
 fieldset.subgroup > legend {
   padding: 0;
   margin-bottom: 0.3rem;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--icon);
 }
 /* 4. Veldlabel */
 .field-label,
 legend.field-label {
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--label);
 }
 .timepoint .field-label {
-  font-size: 0.9375rem;
+  font-size: 15px;
   color: var(--heading);
 }
 /* Invulvelden: zachte rand, duidelijke focus */
@@ -2493,10 +2496,8 @@ select {
 /* Sectiemenu: fases als kleine tussenkoppen, geen lijnen, stipje bij ingevulde secties */
 .nav-phase {
   margin: 0.9rem 0 0.2rem;
-  font-size: 0.72rem;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--icon);
 }
 .sidenav > ul > li:first-child > .nav-phase {
@@ -2505,7 +2506,7 @@ select {
 /* Hypothermievlak: kopjes niet groter dan de koptekst van Disability */
 .hypothermia-panel .hypothermia-subtitle,
 .hypothermia-panel fieldset.group > legend {
-  font-size: 0.875rem;
+  font-size: 13px;
 }
 .sidenav a {
   border-bottom: none;
@@ -2809,7 +2810,7 @@ a.call-button:hover {
     padding: 0;
   }
   .editor-side .report-top .report-icon {
-    font-size: 1.45rem;
+    font-size: 20px;
   }
   .editor-side .save-status:not(.error) {
     display: none;
@@ -2911,7 +2912,7 @@ a.call-button:hover {
   border: none;
   padding: 0;
   background: transparent;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -2937,7 +2938,7 @@ a.call-button:hover {
   background: var(--primary-10);
   color: var(--primary);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
 }
 .timepoint .tf .nu:hover {
   background: var(--primary-20);
@@ -2961,7 +2962,7 @@ a.call-button:hover {
   min-height: 36px;
   height: 36px;
   padding: 0 6px;
-  font-size: 14px;
+  font-size: 15px;
 }
 .timepoint .field-error,
 .timepoint .tp-undo {
@@ -3030,7 +3031,7 @@ a.call-button:hover {
   gap: 0.35rem;
 }
 .timepoint .tp-icon {
-  font-size: 1.2rem;
+  font-size: 17px;
 }
 .timepoint .tf {
   width: 100%;
@@ -3048,5 +3049,85 @@ a.call-button:hover {
 .expiry-warning {
   margin-top: 0.25rem;
   color: var(--alert-text);
-  font-size: 0.875rem;
+  font-size: 13px;
+}
+
+/* Stap 2: typografie.
+   Typeschaal 13 / 15 / 17 / 20 / 24 px, gewichten 400 (tekst en ingevulde waarden), 600 (labels en knoppen), 700 (koppen).
+   Labels klein en grijs, ingevulde waarden groot en donker, zodat de waarde opvalt. */
+:root {
+  --fs-xs: 13px;
+  --fs-s: 15px;
+  --fs-m: 17px;
+  --fs-l: 20px;
+  --fs-xl: 24px;
+  --label: #56606b;
+}
+input,
+select,
+textarea,
+.fld-value {
+  font-size: var(--fs-m);
+  color: var(--text);
+  font-weight: 400;
+}
+.field-label,
+legend.field-label {
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  color: var(--label);
+}
+/* Kleine grijze toelichting achter een afkorting, bijv. "MAP Gem. bloeddruk". */
+.field-label .label-full {
+  color: #7b8591;
+  margin-left: 0;
+}
+/* Subscript als echte opmaak (FiO2, HCO3-), onafhankelijk van het lettertype. */
+sub,
+sup {
+  font-size: 0.72em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sub {
+  top: 0.28em;
+}
+sup {
+  top: -0.45em;
+}
+h1 {
+  font-size: var(--fs-xl);
+}
+h2 {
+  font-size: var(--fs-l);
+}
+h3,
+h4 {
+  font-size: var(--fs-m);
+}
+
+/* Datum en tijd als tekstvelden (dd-mm-jjjj en uu:mm) */
+.dt-row .dt-time {
+  flex: 0 0 6.5rem;
+  text-align: center;
+}
+
+.computed-value {
+  font-size: var(--fs-m);
+}
+/* Kopniveaus: sectie 20 > subkop 17 > groep 15 > veldlabel 13 */
+.subsection-title {
+  font-size: var(--fs-m);
+}
+fieldset.group > legend {
+  font-size: var(--fs-s);
+}
+/* Laatste voeding: zelfde invoer als de tijdstippen, maar zonder schildje en blauwe streep */
+.timepoint.plain .tf {
+  box-shadow: none;
+}
+.timepoint.plain .field-label {
+  font-size: var(--fs-xs);
+  color: var(--label);
 }

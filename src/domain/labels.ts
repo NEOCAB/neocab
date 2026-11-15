@@ -114,6 +114,8 @@ export function tubeDepthLabel(route: TubeRoute): string {
 export interface NumFieldDef {
   key: string;
   label: string;
+  /** Volledige naam achter een afkorting; in het formulier klein en grijs achter het label. */
+  full?: string;
   unit: string;
   optional?: boolean;
   /** Typevalidatie: alleen waarden >= 0 (geen klinische afkapwaarden). */
@@ -185,15 +187,15 @@ export function respFieldsFor(mode: RespMode | ''): NumFieldDef[] {
 // Monitor en bloedgas
 
 export const MONITOR_FIELDS: (NumFieldDef & { key: MonitorKey })[] = [
-  { key: 'heartRate', label: 'Hartfrequentie', unit: '/min', min: 0 },
-  { key: 'respRate', label: 'Ademfrequentie', unit: '/min', min: 0 },
+  { key: 'heartRate', label: 'HF', full: 'Hartfrequentie', unit: '/min', min: 0 },
+  { key: 'respRate', label: 'AF', full: 'Ademfrequentie', unit: '/min', min: 0 },
   { key: 'spo2Pre', label: 'SpO₂ preductaal', unit: '%', min: 0, max: 100 },
   { key: 'spo2Post', label: 'SpO₂ postductaal', unit: '%', min: 0, max: 100 },
-  { key: 'meanBp', label: 'Gemiddelde bloeddruk (MAP)', unit: 'mmHg', min: 0 },
+  { key: 'meanBp', label: 'MAP', full: 'Gem. bloeddruk', unit: 'mmHg', min: 0 },
   { key: 'temperature', label: 'Temperatuur', unit: '°C', min: 0 },
   { key: 'capRefill', label: 'Capillaire refill', unit: 'seconden', min: 0 },
-  { key: 'tcCo2', label: 'Transcutaan CO₂', unit: 'kPa', min: 0 },
-  { key: 'etCo2', label: 'Eind-expiratoir CO₂', unit: 'kPa', min: 0 },
+  { key: 'tcCo2', label: 'tcCO₂', full: 'Transcutaan', unit: 'kPa', min: 0 },
+  { key: 'etCo2', label: 'etCO₂', full: 'Eind-expiratoir', unit: 'kPa', min: 0 },
 ];
 
 export const GAS_FIELDS: (NumFieldDef & { key: GasKey })[] = [

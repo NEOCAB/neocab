@@ -87,7 +87,8 @@ async function basisLayout(page) {
   await page.getByLabel('Huidig gewicht', { exact: true }).fill('1890');
 
   // Amenorroeduur als weken+dagen in één veld, gecorrigeerde leeftijd
-  await page.getByLabel('Geboortedatum', { exact: true }).fill(referred.slice(0, 10));
+  const nlDate = (d) => `${d.slice(8, 10)}-${d.slice(5, 7)}-${d.slice(0, 4)}`;
+  await page.getByLabel('Geboortedatum', { exact: true }).fill(nlDate(referred.slice(0, 10)));
   const ga = page.getByLabel('Amenorroeduur', { exact: true });
   await ga.fill('33+9');
   await ga.blur();
@@ -133,18 +134,18 @@ async function basisLayout(page) {
   // Huisstijl: PT Sans, koppen donkerblauw, geen verwijzing naar de organisatie
   const style = await page.evaluate(() => ({
     font: getComputedStyle(document.body).fontFamily,
-    loaded: document.fonts.check('15px "PT Sans"'),
+    loaded: document.fonts.check('15px "IBM Plex Sans"'),
     h2: getComputedStyle(document.querySelector('#s1 h2')).color,
     primary: getComputedStyle(document.querySelector('#main button.primary')).backgroundColor,
   }));
-  check('Huisstijl: PT Sans geladen', style.font.includes('PT Sans') && style.loaded, JSON.stringify(style));
+  check('Huisstijl: IBM Plex Sans geladen', style.font.includes('IBM Plex Sans') && style.loaded, JSON.stringify(style));
   check('Huisstijl: koppen en primaire knop donkerblauw #003c7d', style.h2 === 'rgb(0, 60, 125)' && style.primary === 'rgb(0, 60, 125)', `${style.h2} / ${style.primary}`);
   check('Formulier: logo en naam Neo.Cab in de bovenbalk', (await page.locator('.topbar .topbar-brand img.brand-logo').isVisible()) && (await page.locator('.topbar .topbar-name').textContent()) === 'Neo.Cab');
   // Geen LUMC-huisstijl of -logo (LUMC staat wél als gewone keuze in de ziekenhuislijst).
   check('Geen LUMC-logo of -naam in titel, kop en bovenbalk', !(await page.title()).includes('LUMC') && !(await page.locator('.topbar').textContent()).includes('LUMC') && (await page.locator('img[alt*="LUMC" i]').count()) === 0);
 
   // Zes vaste tijdstippen, allemaal in dezelfde vormgeving en op hun plek
-  const tps = await page.locator('.timepoint').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(0, 60, 125)'), e.querySelectorAll('button').length]));
+  const tps = await page.locator('.timepoint:not(.plain)').evaluateAll((els) => els.map((e) => [e.closest('section').id, e.querySelector('.field-label').textContent, e.querySelector('.tp-desc'), getComputedStyle(e.querySelector('.tf')).boxShadow.includes('rgb(0, 60, 125)'), e.querySelectorAll('button').length]));
   const expected = [['s2', 'Tijdstip verwijzing'], ['sdispatch', 'Ambulance gebeld'], ['sdispatch', 'Vertrek team'], ['sdispatch', 'Aankomst bij kind'], ['s14', 'Vertrek met kind'], ['s14', 'Aankomst']];
   check('Zes tijdstippen op de juiste plek', JSON.stringify(tps.map((x) => [x[0], x[1]])) === JSON.stringify(expected), JSON.stringify(tps.map((x) => [x[0], x[1]])));
   check('Tijdstippen gelijk vormgegeven (gewoon veld met blauwe streep erin, kop erboven)', tps.every((x) => x[2] === null && x[3] === true && x[4] >= 1));
@@ -160,7 +161,7 @@ async function basisLayout(page) {
   check('Werkdiagnose is een gewoon invulveld van één regel', (await page.locator('#s5').getByLabel('Werkdiagnose', { exact: true }).evaluate((e) => e.tagName)) === 'INPUT');
   const feedAfterGi = await page.evaluate(() => {
     const gi = [...document.querySelectorAll('#s5 .abcd textarea')].find((t) => t.closest('.field').textContent.includes('Gastro'));
-    const feed = document.querySelector('#s5 .abcd .abcd-extra input[type=datetime-local]');
+    const feed = document.querySelector('#s5 .abcd .abcd-extra .timepoint[data-label="Laatste voeding"] input');
     return !!gi && !!feed && gi.closest('.field').nextElementSibling?.contains(feed);
   });
   check('Laatste voeding direct onder Gastro-intestinal (Stabilisatie)', feedAfterGi);
@@ -275,7 +276,7 @@ async function basisLayout(page) {
   await page.getByRole('button', { name: 'Ambulance gebeld op nu zetten' }).click();
   const calledVal = await tpVal('Ambulance gebeld');
   check('Ambulance gebeld: knop Nu vult tijd in', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(calledVal), calledVal);
-  check('Ingevuld tijdstip: tijd in het veld, dagknop "vandaag", geen potlood of Nu meer', (await calledInput.inputValue()) === calledVal.slice(11, 16) && (await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen \(vandaag\)/ }).count()) === 1 && (await calledBox.locator('.tf .nu').count()) === 0 && (await calledBox.getByRole('button', { name: /wijzigen$/ }).count()) === 0);
+  check('Ingevuld tijdstip: tijd in het veld, dagknop met datum, geen potlood of Nu meer', (await calledInput.inputValue()) === calledVal.slice(11, 16) && (await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen \(\d{2}-\d{2}-\d{4}\)/ }).count()) === 1 && (await calledBox.locator('.tf .nu').count()) === 0 && (await calledBox.getByRole('button', { name: /wijzigen$/ }).count()) === 0);
   // Tijd overtypen: vier cijfers volstaan; de datum blijft staan.
   await calledInput.fill('2220');
   await calledInput.press('Enter');
@@ -283,7 +284,7 @@ async function basisLayout(page) {
   check('Tijd overtypen (2220 → 22:20), datum blijft', (await tpVal('Ambulance gebeld')) === `${today}T22:20`, await tpVal('Ambulance gebeld'));
   // Datum aanpassen via de dagknop.
   await calledBox.getByRole('button', { name: /Datum van Ambulance gebeld wijzigen/ }).click();
-  await calledBox.getByLabel('Datum van Ambulance gebeld', { exact: true }).fill('2026-10-09');
+  await calledBox.getByLabel('Datum van Ambulance gebeld', { exact: true }).fill('09-10-2026');
   check('Dagknop: datum aanpasbaar zonder de tijd te verliezen', (await tpVal('Ambulance gebeld')) === '2026-10-09T22:20' && (await calledBox.locator('.tf .tp-date').textContent()) === '09-10-2026', await tpVal('Ambulance gebeld'));
   // Leegmaken wist de tijd, met Ongedaan maken.
   await calledInput.fill('');
@@ -337,8 +338,8 @@ async function basisLayout(page) {
   check('CPAP: geen VG', (await editor.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 0);
   check('CPAP: invoerveld heet PEEP, geen CPAP-druk', (await editor.getByLabel('CPAP-druk', { exact: true }).count()) === 0 && (await editor.getByLabel('PEEP', { exact: true }).count()) === 1);
   await editor.getByLabel('PEEP', { exact: true }).fill('7');
-  await editor.getByLabel('FiO₂', { exact: true }).fill('30,5');
-  await editor.getByLabel('Hartfrequentie', { exact: true }).fill('160');
+  await editor.getByLabel('FiO2', { exact: true }).fill('30,5');
+  await editor.getByLabel('HF Hartfrequentie', { exact: true }).fill('160');
   await editor.getByLabel('BE', { exact: true }).fill('-5,2');
   await page.screenshot({ path: `${OUT}/390-meetmoment-editor.png`, fullPage: false });
   await editor.getByRole('button', { name: 'Meetmoment opslaan' }).click();
@@ -351,7 +352,7 @@ async function basisLayout(page) {
   for (const name of ['Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas']) await ed2.getByRole('button', { name, exact: true }).click();
   await ed2.getByLabel('Beleidsaanpassingen', { exact: true }).fill('Surfactant gegeven');
   check('Voorstel: PEEP van CPAP overgenomen', (await ed2.getByLabel('PEEP', { exact: true }).inputValue()) === '7');
-  check('Geen oude hartfrequentie overgenomen', (await ed2.getByLabel('Hartfrequentie', { exact: true }).inputValue()) === '');
+  check('Geen oude hartfrequentie overgenomen', (await ed2.getByLabel('HF Hartfrequentie', { exact: true }).inputValue()) === '');
   check('Geen oude BE overgenomen', (await ed2.getByLabel('BE', { exact: true }).inputValue()) === '');
   await ed2.getByRole('radio', { name: 'PTV', exact: true }).check();
   check('PTV: VG zichtbaar', (await ed2.getByLabel('VG (ingesteld doelteugvolume)', { exact: true }).count()) === 1);
@@ -364,10 +365,12 @@ async function basisLayout(page) {
   check('Terug naar PTV: PIP bewaard', (await ed2.getByLabel('PIP', { exact: true }).inputValue()) === '20');
   // Tijdstip achteraf eerder zetten
   const at1 = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').first().textContent();
-  const dt = ed2.getByLabel('Datum en tijd', { exact: true });
-  const cur = await dt.inputValue();
-  const earlier = new Date(new Date(cur + ':00Z').getTime() - 3 * 3600_000).toISOString().slice(0, 16);
-  await dt.fill(earlier);
+  const dtDate = ed2.getByLabel('Datum en tijd', { exact: true });
+  const dtTime = ed2.getByLabel('Tijd van Datum en tijd', { exact: true });
+  const [cd, cm, cy] = (await dtDate.inputValue()).split('-');
+  const earlier = new Date(new Date(`${cy}-${cm}-${cd}T${await dtTime.inputValue()}:00Z`).getTime() - 3 * 3600_000).toISOString().slice(0, 16);
+  await dtDate.fill(nlDate(earlier.slice(0, 10)));
+  await dtTime.fill(earlier.slice(11, 16));
   await ed2.getByRole('button', { name: 'Meetmoment opslaan' }).click();
   const times = await page.locator('#s6 .data-table tbody tr:not(.note-row) th').allTextContents();
   const noteRows = await page.locator('#s6 .data-table tbody tr.note-row').allTextContents();
@@ -683,7 +686,7 @@ for (const [w, h] of [
   check(`${w}px: type bloedgas als C/A`, JSON.stringify(types) === JSON.stringify(['C', 'A', '', 'A']), JSON.stringify(types));
   await page.locator('#s6 .row-edit').nth(1).click();
   await page.locator('#s6 form').getByRole('button', { name: 'Ademhalingsondersteuning', exact: true }).click();
-  check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 8 cm'));
+  check(`${w}px: bewerken toont tube die gold (8 cm)`, (await page.locator('#s6 .tube-line').textContent())?.replace(/\u00a0/g, ' ').includes('tandenrij 8 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   const groups = await page.locator('#s6 .data-table thead tr.group-row th').allTextContents();
   const doubleLine = await page.evaluate(() => {
@@ -740,7 +743,7 @@ for (const [w, h] of [
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.locator('#s6 .row-edit').nth(2).click();
   await page.locator('#s6 form').getByRole('button', { name: 'Ademhalingsondersteuning', exact: true }).click();
-  check(`${w}px: bewerken toont tube na aanpassing (7,5 cm)`, (await page.locator('#s6 .tube-line').textContent())?.includes('tandenrij 7,5 cm'));
+  check(`${w}px: bewerken toont tube na aanpassing (7,5 cm)`, (await page.locator('#s6 .tube-line').textContent())?.replace(/\u00a0/g, ' ').includes('tandenrij 7,5 cm'));
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.getByRole('button', { name: 'Verslag & export', exact: true }).click();
   await page.waitForSelector('.report');

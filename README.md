@@ -127,7 +127,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 78 tests):
+Unit-tests (`npm test`, 81 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -200,3 +200,14 @@ Transporten worden automatisch van het apparaat verwijderd een week na het Aanko
 ## Geen beslisondersteuning
 
 Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: geen oranje OI-alert, geen Thompson-protocolregel of accent bij een hoge score, en geen hints die criteria afleiden uit andere velden. Berekeningen (OI, Thompson-totaal, leeftijden) blijven.
+
+## Typografie en notatie (stap 2)
+
+- **Lettertype IBM Plex Sans** (400, 600, 700), meegeleverd via `@fontsource/ibm-plex-sans`, dus ook offline. De pdf gebruikt nog PT Sans (zie Export); de brief blijft Calibri.
+- **Typeschaal 13 / 15 / 17 / 20 / 24 px** (`--fs-xs` … `--fs-xl`); alle `font-size`s in `styles.css` zijn daarop afgestemd. Labels 13 px grijs (gewicht 400), ingevulde waarden 17 px donker (ook tegen inzoomen op iOS). Kopniveaus: sectie 20 > subkop 17 > groep 15 > veldlabel 13. Cijfers hebben vaste breedte (`tabular-nums`).
+- **Notatie:** datum altijd dd-mm-jjjj en tijd 24-uurs, ook bij een Engelstalige browser: datum en tijd zijn tekstvelden (`DateTextInput`, `TimeTextInput`; typen als 15112026 of 2235 kan), geen browser-datumkiezers. Bij tijdstippen staat altijd de datum, nooit "vandaag" of "gisteren". Amenorroeduur als 31+4; gewicht als 1240 g; decimalen met komma (bij invoer komma of punt). Tussen getal en eenheid staat een spatie die niet afbreekt (`formatNum`); in e-mailtekst en rtf wordt die een gewone spatie.
+- **Subscripts** (FiO₂, HCO₃⁻, cmH₂O) worden op het scherm als echte opmaak getoond (`src/ui/chem.tsx`), niet als losse tekens.
+- **Afkortingen** in het meetmoment (HF, AF, MAP, tcCO₂, etCO₂) hebben de volledige naam klein en grijs erachter (`full` in `NumFieldDef`); het verslag gebruikt de volledige naam.
+- **Ongebruikelijke waarden** (bijv. SpO₂ 120, gewicht 12400 g) geven een rustige grijze melding onder het veld; de waarde wordt wel vastgelegd. Alleen iets dat geen getal is geeft een (rode) foutmelding. Tekstvakken groeien mee met de tekst.
+- **Laatste voeding** werkt als de tijdstippen, maar zonder schildje en streep.
+- Tussenkoppen (fasen in het menu, modaliteitsgroepen) staan in gewone schrijfwijze.

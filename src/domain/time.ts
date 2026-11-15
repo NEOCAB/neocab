@@ -154,3 +154,12 @@ export function parseClockTime(text: string): string | null {
   if (h > 23 || m > 59) return null;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
+
+/** Getypte datum: "15-11-2026", "15/11/2026", "15.11.26" of "15112026" → "2026-11-15"; `null` als dit geen geldige datum is. */
+export function parseDateText(text: string): LocalDate | null {
+  const m = /^(\d{1,2})[-/. ]?(\d{1,2})[-/. ]?(\d{4}|\d{2})$/.exec(text.trim());
+  if (!m) return null;
+  const year = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+  const d = `${String(year).padStart(4, '0')}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return isValidLocalDate(d) ? d : null;
+}

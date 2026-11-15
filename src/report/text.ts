@@ -40,6 +40,9 @@ function indent(text: string, prefix: string): string {
 }
 
 /** Volledige platte e-mailtekst van het verslag. */
+/** Voor e-mail en EPD: een spatie die niet afbreekt wordt een gewone spatie, zodat plakken overal goed gaat. */
+const plain = (s: string) => s.replace(/\u00a0/g, ' ');
+
 export function reportToText(report: Report): string {
   const out: string[] = [];
   out.push(report.title);
@@ -76,7 +79,7 @@ export function reportToText(report: Report): string {
     }
   }
   out.push('', '', '— Einde transportverslag —');
-  return out.join('\n');
+  return plain(out.join('\n'));
 }
 
 /** Opgemaakte tekst voor de RTF-uitvoer: alinea's met stukken vet/cursief/onderstreept. */
@@ -139,7 +142,7 @@ export function reportToParas(report: Report): Para[] {
 /** Tekst voor RTF: \, { en } escapen; niet-ASCII als \uN? (16-bits, met vervangteken). */
 function rtfEscape(s: string): string {
   let out = '';
-  for (const ch of s) {
+  for (const ch of plain(s)) {
     const c = ch.codePointAt(0)!;
     if (ch === '\\' || ch === '{' || ch === '}') out += `\\${ch}`;
     else if (ch === '\n') out += '\\line ';
