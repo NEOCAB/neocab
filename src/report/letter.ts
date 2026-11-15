@@ -176,7 +176,6 @@ const LANDSCAPE = { top: 1134, right: 1021, bottom: 1134, left: 1021, header: 56
 const CELL_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '9AA3AD' };
 const CELL_BORDERS = { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER };
 const HEAD_FILL = 'E6ECF3';
-const ALERT_FILL = 'FFD8A8';
 const small = (t: string, opts: { bold?: boolean; italics?: boolean; size?: number } = {}) =>
   t.split('\n').map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size ?? 14, bold: opts.bold, italics: opts.italics }));
 
@@ -227,7 +226,7 @@ export function timelineDocxTable(table: ReportTable, width: number): Table {
       new TableRow({
         cantSplit: true,
         children: row.map((v, i) =>
-          cell([para(small(v, { bold: table.columns[i].keyColumn }))], { w: widths[i], fill: table.alerts?.[r]?.[i] ? ALERT_FILL : undefined, rowSpan: note && table.columns[i].keyColumn ? 2 : undefined }),
+          cell([para(small(v, { bold: table.columns[i].keyColumn }))], { w: widths[i], rowSpan: note && table.columns[i].keyColumn ? 2 : undefined }),
         ),
       }),
     );

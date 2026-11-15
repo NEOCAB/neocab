@@ -2,8 +2,7 @@ import type { Num } from './types';
 
 /**
  * Thompsonscore voor encefalopathie na perinatale asfyxie (protocol "Therapeutische hypothermie na perinatale asfyxie").
- * Negen onderdelen, elk 0–2 of 0–3 punten; totaal 0–22. Protocol: indicatie bij een score ≥ 7 op 1 uur na de reanimatie
- * (of een afwijkend aEEG).
+ * Negen onderdelen, elk 0–2 of 0–3 punten; totaal 0–22. Alleen registratie van de ingevulde onderdelen en het totaal.
  */
 export const THOMPSON_ITEMS = [
   { key: 'tone', label: 'Tonus', options: ['normaal', 'hypertonie', 'hypotonie', 'slap'] },
@@ -20,8 +19,6 @@ export const THOMPSON_ITEMS = [
 export type ThompsonKey = (typeof THOMPSON_ITEMS)[number]['key'];
 export const THOMPSON_KEYS = THOMPSON_ITEMS.map((i) => i.key) as ThompsonKey[];
 export const THOMPSON_MAX = THOMPSON_ITEMS.reduce((s, i) => s + i.options.length - 1, 0);
-/** Drempel uit het protocol: Thompsonscore ≥ 7 op 1 uur na de reanimatie. */
-export const THOMPSON_THRESHOLD = 7;
 
 export type ThompsonScores = Record<ThompsonKey, Num>;
 

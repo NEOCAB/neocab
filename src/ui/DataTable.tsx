@@ -74,7 +74,6 @@ export function DataTable({
             <Fragment key={r}>
               <tr className={[rowClassName?.(r), r % 2 === 1 ? 'alt' : '', table.notes?.[r] ? 'has-note' : ''].filter(Boolean).join(' ') || undefined}>
                 {row.map((v, i) => {
-                  const alert = table.alerts?.[r]?.[i] ?? false;
                   if (i === 0)
                     return (
                       <th key={i} scope="row" className={cls(i, 'key')} rowSpan={table.notes?.[r] ? 2 : undefined}>
@@ -82,14 +81,8 @@ export function DataTable({
                       </th>
                     );
                   return (
-                    <td key={i} className={cls(i, [v === 'onbekend' ? 'unknown' : '', alert ? 'alert' : ''].filter(Boolean).join(' '))}>
-                      {alert ? (
-                        <>
-                          <span aria-hidden="true">▲ </span>
-                          {v}
-                          <span className="sr-only"> (alert: boven drempel)</span>
-                        </>
-                      ) : cols[i].historyLines && v.includes('\n') ? (
+                    <td key={i} className={cls(i, v === 'onbekend' ? 'unknown' : '')}>
+                      {cols[i].historyLines && v.includes('\n') ? (
                         // Actuele waarde bovenaan; eerdere waarden kleiner en grijs eronder.
                         <>
                           {v.split('\n')[0]}

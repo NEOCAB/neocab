@@ -11,7 +11,6 @@ import type { Report, ReportTable } from './buildReport';
 interface TableEntry {
   head: string;
   data: string[];
-  alert: boolean[];
   noteLabel: string;
   note?: string;
 }
@@ -21,21 +20,17 @@ function tableEntries(table: ReportTable): TableEntry[] {
   return table.rows.map((row, r) => {
     const key: string[] = [];
     const data: string[] = [];
-    const alert: boolean[] = [];
     table.columns.forEach((c, i) => {
       const raw = row[i] ?? '';
       if (!raw) return;
       if (c.keyColumn) key.push(raw.replace(/\n/g, ' '));
       else {
         data.push(table.simple ? `${c.fullLabel}${c.unit ? ` (${c.unit})` : ''}: ${raw.replace(/\n/g, '; ')}` : `${c.fullLabel}: ${raw.replace(/\n/g, ' ')}${c.unit ? ` ${c.unit}` : ''}`);
-        alert.push(!table.simple && !!table.alerts?.[r]?.[i]);
       }
     });
-    return { head: `${table.rowLabel ?? 'Meetmoment'} ${r + 1} · ${key.join(' · ')}`, data, alert, noteLabel: table.noteLabel ?? 'Toelichting', note: table.notes?.[r] || undefined };
+    return { head: `${table.rowLabel ?? 'Meetmoment'} ${r + 1} · ${key.join(' · ')}`, data, noteLabel: table.noteLabel ?? 'Toelichting', note: table.notes?.[r] || undefined };
   });
 }
-
-const ALERT_TEXT = ' (LET OP: > 25)';
 
 function indent(text: string, prefix: string): string {
   return text
@@ -56,7 +51,7 @@ export function reportToText(report: Report): string {
       if (block.title) out.push('', block.title);
       if (block.table) {
         for (const e of tableEntries(block.table)) {
-          out.push(e.head, `    ${e.data.map((d, i) => d + (e.alert[i] ? ALERT_TEXT : '')).join('; ') || 'geen waarden'}`);
+          out.push(e.head, `    ${e.data.join('; ') || 'geen waarden'}`);
           if (e.note) out.push(`    ${e.noteLabel}: ${e.note.replace(/\n/g, '\n      ')}`);
         }
       }
@@ -115,7 +110,7 @@ export function reportToParas(report: Report): Para[] {
         for (const e of tableEntries(block.table)) {
           p('rowhead', { text: e.head, b: true });
           if (!e.data.length) p('indent', { text: 'geen waarden', i: true });
-          else p('indent', ...e.data.flatMap((d, i): Span[] => [{ text: (i ? '; ' : '') + d }, ...(e.alert[i] ? [{ text: ALERT_TEXT, b: true }] : [])]));
+          else p('indent', { text: e.data.join('; ') });
           if (e.note) p('indent', { text: `${e.noteLabel}:`, i: true }, { text: ` ${e.note}` });
         }
       }

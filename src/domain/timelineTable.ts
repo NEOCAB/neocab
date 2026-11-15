@@ -3,7 +3,7 @@ import { RESP_MODE_LABELS, respFieldsFor } from './labels';
 import { formatNum } from './num';
 import { formatInstant, localDateOf } from './time';
 import { sortedMeasurements } from './timeline';
-import { formatOi, isOiAlert, oxygenationIndex } from './oi';
+import { formatOi, oxygenationIndex } from './oi';
 
 export type TimelineGroup = 'meetmoment' | 'ademhaling' | 'monitor' | 'bloedgas' | 'berekend';
 
@@ -28,8 +28,6 @@ export interface TimelineColumn {
   cell: (m: Measurement, index: number) => string;
   /** Kolom die altijd getoond wordt (identificatie van de rij). */
   key_column?: boolean;
-  /** Cel vraagt aandacht (oranje alert), bijv. OI > 25. */
-  alert?: (m: Measurement) => boolean;
 }
 
 const num = (v: Num | undefined) => formatNum(v ?? null) ?? '';
@@ -126,7 +124,6 @@ export function allTimelineColumns(timeZone: string, withDate = true): TimelineC
         const oi = oxygenationIndex(m);
         return oi === null ? '' : formatOi(oi);
       },
-      alert: (m) => isOiAlert(oxygenationIndex(m)),
     },
   ];
   return cols;

@@ -115,8 +115,6 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         policyChanges: 'Overgestapt op HFOV; FiO₂ verhoogd (fictief).',
       },
     ],
-    otherLabs: 'CRP 4 mg/L (fictief).',
-    imaging: 'Thoraxfoto: beeld passend bij surfactantdeficiëntie; tubetip ter hoogte van Th2.',
     medications: [
       { id: newId(), at: at('2026-10-09T23:30'), name: 'Surfactant (fictief voorbeeld)', dose: 200, doseUnit: 'mg/kg', route: 'Endotracheaal' },
       { id: newId(), at: at('2026-10-09T23:22'), name: 'Voorbeeldmedicament', dose: 0.5, doseUnit: 'mg', route: 'Intraveneus' },
@@ -147,7 +145,6 @@ export function sampleTransport(timeZone = DEFAULT_TIME_ZONE): Transport {
         ],
       },
     ],
-    proceduresAndEvents: 'Intubatie bij tweede poging. Surfactant toegediend zonder complicaties.',
     parentsAndFamily: 'Ouders aanwezig, geïnformeerd over overplaatsing. Vader reist mee met eigen vervoer.',
     checklist: { fixatie: 'gedaan', gas: 'gedaan', tempGlucose: 'gedaan', beeldvorming: 'nog_niet', ouders: 'gedaan', voeding: 'nvt', medischeBrief: 'gedaan', verpleegkundigeBrief: 'gedaan', routeOuders: 'gedaan', neuroDevelopment: 'gedaan', monitoring: 'gedaan' },
     motherPhone: '06 0000 0001',

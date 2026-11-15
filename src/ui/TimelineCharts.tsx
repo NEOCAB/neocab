@@ -38,7 +38,6 @@ const SMALL_H = 100;
 interface Series {
   column: TimelineColumn;
   values: (number | null)[];
-  alerts: boolean[];
 }
 interface Axis {
   times: number[];
@@ -157,7 +156,7 @@ function TimeTicks({ axis, y, width, timeZone }: { axis: Axis; y: number; width:
 
 const describe = (s: Series, axis: Axis, timeZone: string) =>
   `${s.column.fullLabel}${s.column.unit ? ` (${s.column.unit})` : ''}: ${present(s)
-    .map((p) => `${hhmm(axis.ats[p.i], timeZone)} ${fmt(p.v)}${s.alerts[p.i] ? ' (LET OP)' : ''}`)
+    .map((p) => `${hhmm(axis.ats[p.i], timeZone)} ${fmt(p.v)}`)
     .join(', ')}`;
 
 /** Waarde van een serie op het actieve meetmoment, anders de laatste waarde. */
@@ -325,7 +324,7 @@ function SmallChart({
   const W = useWidth(ref);
   const x = xScale(axis, W);
   const hover = useHover(axis, x, active, setActive, onPick);
-  const { column, alerts } = series;
+  const { column } = series;
   const pts = present(series);
   const ticks = niceTicks(pts.map((p) => p.v));
   const lo = ticks[0];
@@ -333,7 +332,6 @@ function SmallChart({
   const plotH = SMALL_H - PAD.top - PAD.bottom;
   const y = (v: number) => PAD.top + plotH - ((v - lo) / (hi - lo)) * plotH;
   const sv = shownValue(series, active);
-  const threshold = column.key === 'oi' ? 25 : null;
   const d = pts.map((p, k) => `${k ? 'L' : 'M'}${x(axis.times[p.i]).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
 
   return (
@@ -346,10 +344,9 @@ function SmallChart({
           </span>
         }
         right={
-          <span className={`chart-value ${sv && alerts[sv.i] ? 'alert' : ''}`} aria-hidden="true">
+          <span className="chart-value" aria-hidden="true">
             {sv && sv.v !== null ? (
               <>
-                {alerts[sv.i] && '▲ '}
                 <strong>{fmt(sv.v)}</strong>
                 <span className="chart-time"> · {hhmm(axis.ats[sv.i], timeZone)}</span>
               </>
@@ -369,13 +366,12 @@ function SmallChart({
               </text>
             </g>
           ))}
-          {threshold !== null && threshold > lo && threshold < hi && <line className="chart-threshold" x1={PAD.left} x2={W - PAD.right} y1={y(threshold)} y2={y(threshold)} />}
           <line className="chart-axis" x1={PAD.left} x2={PAD.left} y1={PAD.top} y2={PAD.top + plotH} />
           <TimeTicks axis={axis} y={SMALL_H - 4} width={W} timeZone={timeZone} />
           {active !== null && <line className="chart-crosshair" x1={x(axis.times[active])} x2={x(axis.times[active])} y1={PAD.top} y2={PAD.top + plotH} />}
           {pts.length > 1 && <path className="chart-line" d={d} />}
           {pts.map((p) => (
-            <circle key={p.i} className={`chart-dot ${alerts[p.i] ? 'alert' : ''}`} cx={x(axis.times[p.i])} cy={y(p.v)} r={active === p.i ? 5.5 : 4} />
+            <circle key={p.i} className="chart-dot" cx={x(axis.times[p.i])} cy={y(p.v)} r={active === p.i ? 5.5 : 4} />
           ))}
         </svg>
       </div>
@@ -430,7 +426,7 @@ export function TimelineCharts({ measurements, timeZone, onPick }: { measurement
   const series = new Map(
     columns
       .filter((c) => !c.key_column && !HIDDEN.has(c.key))
-      .map((c) => [c.key, { column: c, values: rows.map((m, i) => parse(c.cell(m, i))), alerts: rows.map((m) => c.alert?.(m) ?? false) }] as const)
+      .map((c) => [c.key, { column: c, values: rows.map((m, i) => parse(c.cell(m, i))) }] as const)
       .filter(([, s]) => s.values.some((v) => v !== null)),
   );
   const inCombined = new Set(COMBINED.flatMap((c) => [...c.overlay, ...c.lanes]));

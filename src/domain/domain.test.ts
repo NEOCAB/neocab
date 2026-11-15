@@ -1,4 +1,3 @@
-import { asphyxiaCriteriaFromBirth } from './asphyxia';
 import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, emptyThompson, thompsonTotal, thompsonTotalText } from './thompson';
 import { describe, expect, it } from 'vitest';
 import { ageInHoursIfYoung, correctedAge, parseGestation, transportDate } from './calc';
@@ -6,7 +5,7 @@ import { anonymize, isIdentifying, newMeasurement, newTransport, newTube, newTub
 import { sampleTransport } from './sample';
 import { INVASIVE_MODES, NON_INVASIVE_MODES, respFieldsFor } from './labels';
 import { parseNum } from './num';
-import { isOiAlert, oxygenationIndex } from './oi';
+import { oxygenationIndex } from './oi';
 import { instantToWall, localDateOf, nowInstant, wallToInstant, formatInstant } from './time';
 import { sortedMeasurements, tubeAt, upsertMeasurement } from './timeline';
 import type { Measurement, RespMode } from './types';
@@ -78,20 +77,14 @@ describe('oxygenatie-index', () => {
   it('rekent (MAP × FiO₂ × 100) / PaO₂ met PaO₂ in mmHg', () => {
     // 14 × 0,60 × 100 / (3,8 × 7,50062) = 29,47
     expect(oxygenationIndex(base())).toBeCloseTo(29.47, 2);
-    expect(isOiAlert(oxygenationIndex(base()))).toBe(true);
     const ptv = base({ resp: { mode: 'ptv', settingsByMode: { ptv: { map: 10, fio2: 40 } } }, gas: { ...base().gas, values: { ...base().gas.values, po2: 8 } } });
     expect(oxygenationIndex(ptv)).toBeCloseTo((10 * 40) / (8 * 7.50062), 5);
-    expect(isOiAlert(oxygenationIndex(ptv))).toBe(false);
   });
   it('alleen bij arterieel bloedgas, invasieve beademing en bekende MAP/FiO₂/PaO₂', () => {
     expect(oxygenationIndex(base({ gas: { ...base().gas, type: 'capillair' } }))).toBeNull();
     expect(oxygenationIndex(base({ resp: { mode: 'cpap', settingsByMode: { cpap: { peep: 7, fio2: 60 } } } }))).toBeNull();
     expect(oxygenationIndex(base({ resp: { mode: 'ptv', settingsByMode: { ptv: { fio2: 40 } } } }))).toBeNull();
     expect(oxygenationIndex(base({ gas: { ...base().gas, values: { ...base().gas.values, po2: null } } }))).toBeNull();
-  });
-  it('drempel: precies 25 geeft geen alert, daarboven wel', () => {
-    expect(isOiAlert(25)).toBe(false);
-    expect(isOiAlert(25.1)).toBe(true);
   });
 });
 
@@ -265,24 +258,11 @@ describe('Thompsonscore', () => {
   });
 });
 
-describe('Perinatale asfyxie', () => {
-  it('herkent criteria uit Apgar 5 minuten en navelstrengbloedgassen (grenswaarden volgens protocol)', () => {
-    const b = newTransport().birth;
-    expect(asphyxiaCriteriaFromBirth(b)).toEqual([]);
-    b.apgar5 = 6;
-    b.cordArterial = { ph: 7.0, be: -16, lactate: 10 };
-    expect(asphyxiaCriteriaFromBirth(b)).toEqual([]);
-    b.apgar5 = 5;
-    b.cordVenous = { ph: 6.95, be: -18.2, lactate: 12.5 };
-    expect(asphyxiaCriteriaFromBirth(b)).toEqual(['apgar5', 'ph', 'be', 'lactate']);
-  });
-});
-
 describe('Voortgang per sectie (stipje in het sectiemenu)', () => {
   it('telt alleen echt ingevulde gegevens, geen standaardwaarden', async () => {
     const { sectionFilled } = await import('./progress');
     const t = newTransport();
-    for (const id of ['s1', 's2', 's3', 'sdispatch', 's5', 's6', 's7', 's10', 's8', 's9', 's11', 's12', 's13', 's14']) expect(sectionFilled(t, id)).toBe(false);
+    for (const id of ['s1', 's2', 's3', 'sdispatch', 's5', 's6', 's10', 's8', 's9', 's12', 's13', 's14']) expect(sectionFilled(t, id)).toBe(false);
     t.child.name = 'Baby';
     t.checklist.gas = 'gedaan';
     t.birth.apgar5 = 0;

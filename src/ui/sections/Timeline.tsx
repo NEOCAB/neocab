@@ -6,7 +6,7 @@ import { formatInstant } from '../../domain/time';
 import { tubeAt, upsertMeasurement } from '../../domain/timeline';
 import { timelineReportTable, tubeSummary } from '../../report/buildReport';
 import { DataTable, TimeStamp } from '../DataTable';
-import { OI_ALERT_THRESHOLD, OI_FORMULA, formatOi, isOiAlert, oxygenationIndex } from '../../domain/oi';
+import { OI_FORMULA, formatOi, oxygenationIndex } from '../../domain/oi';
 import { AddButton, DateTimeField, NumberField, Section, Segmented, TextArea } from '../fields';
 import { ExpandIcon, ViewIcon } from '../icons';
 import { TimelineCharts } from '../TimelineCharts';
@@ -17,16 +17,13 @@ import type { SectionProps } from './BasicSections';
 
 const rulesOf = (d: NumFieldDef) => ({ min: d.min, max: d.max, integer: d.integer });
 
-/** Oxygenatie-index van het meetmoment in bewerking; oranje alert boven de drempel. */
+/** Oxygenatie-index van het meetmoment in bewerking (alleen berekend, zonder beoordeling). */
 function OiLine({ m }: { m: Measurement }) {
   const oi = oxygenationIndex(m);
   if (oi === null) return null;
-  const alert = isOiAlert(oi);
   return (
-    <p className={`oi-line ${alert ? 'alert' : ''}`} role={alert ? 'alert' : 'status'} title={OI_FORMULA}>
-      {alert && <span aria-hidden="true">▲ </span>}
+    <p className="oi-line" role="status" title={OI_FORMULA}>
       Oxygenatie-index (OI): {formatOi(oi)}
-      {alert && ` — boven ${OI_ALERT_THRESHOLD}`}
     </p>
   );
 }

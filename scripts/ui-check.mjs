@@ -178,16 +178,16 @@ async function basisLayout(page) {
   const comboArrow = await page.locator('#s2 .combo').first().evaluate((c) => { const i = c.querySelector('input').getBoundingClientRect(); const b = c.querySelector('.combo-toggle').getBoundingClientRect(); return b.left >= i.left && b.right <= i.right + 1; });
   check('Keuzelijst ziekenhuis: blauwe pijl in het veld zelf', comboArrow);
 
-  // Material Symbols bij alle 15 sectiekoppen
+  // Material Symbols bij alle 12 sectiekoppen
   const iconCount = await page.locator('main.form > section h2 .section-icon svg').count();
-  check('Icoon bij alle 14 sectiekoppen', iconCount === 14, String(iconCount));
+  check('Icoon bij alle 12 sectiekoppen', iconCount === 12, String(iconCount));
 
   const bl = await basisLayout(page);
   check('Basisgegevens op 390 px: 2 kolommen × 4 rijen', bl.n === 8 && bl.cols === 2 && bl.rows === 4, JSON.stringify(bl));
 
   // Box 5 Dispatch tussen box 4 en (nu) 6
   const order = await page.locator('main.form > section h2').allTextContents();
-  check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 14, order.join(' | '));
+  check('Herkomst en bestemming, dan Verwijzing (samengevoegd), Dispatch en Stabilisatie', JSON.stringify(order.slice(0, 5)) === JSON.stringify(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie']) && order.length === 12, order.join(' | '));
   check('Ingebrachte materialen staat vóór Medicatie', order.indexOf('Ingebrachte materialen') === order.indexOf('Medicatie') - 1, order.join(' | '));
   // Ingebrachte materialen: toevoegknop met menu
   const linesBefore = await page.locator('#s10 .card').count();
@@ -693,8 +693,7 @@ for (const [w, h] of [
   check(`${w}px: geen dubbele lijn tussen Meetmoment en Ademhalingsondersteuning`, doubleLine[0] === '3px' && doubleLine[1] === '0px', doubleLine.join(' / '));
   check(`${w}px: OI als laatste groep, achter Bloedgas`, JSON.stringify(groups) === JSON.stringify(['Meetmoment', 'Ademhalingsondersteuning', 'Monitorgegevens', 'Bloedgas', 'Berekend']), groups.join(' | '));
   check(`${w}px: OI-kolom is de laatste kolom`, headers[headers.length - 1]?.trim() === 'OI' && headers[1]?.trim() === 'Modaliteit', headers.slice(-2).join(' | '));
-  const alertCells = await page.locator('#s6 .data-table td.alert').allTextContents();
-  check(`${w}px: OI 29,5 oranje gemarkeerd in tabel`, alertCells.length === 1 && alertCells[0].includes('29,5'), JSON.stringify(alertCells));
+  check(`${w}px: OI 29,5 in tabel, zonder alert-markering`, (await page.locator('#s6 .data-table td.alert').count()) === 0 && (await page.locator('#s6 .data-table td', { hasText: '29,5' }).count()) === 1);
   // Tijdlijn als grafiek
   const sw = await page.evaluate(() => {
     const h = document.querySelector('#s6 .section-title').getBoundingClientRect();
@@ -731,13 +730,13 @@ for (const [w, h] of [
   const firstSvg = await charts.first().locator('svg.chart-svg').boundingBox();
   await page.mouse.move(firstSvg.x + firstSvg.width - 12, firstSvg.y + firstSvg.height / 2);
   check(`${w}px: aanwijzen toont in alle grafieken hetzelfde meetmoment`, (await page.locator('#s6 .chart-crosshair').count()) === nCharts);
-  check(`${w}px: OI > 25 oranje in de grafiek`, (await page.locator('#s6 .chart-dot.alert').count()) === 1);
+  check(`${w}px: geen alert-punt of drempellijn in de grafiek`, (await page.locator('#s6 .chart-dot.alert, #s6 .chart-threshold').count()) === 0);
   await page.mouse.click(firstSvg.x + firstSvg.width - 12, firstSvg.y + firstSvg.height / 2);
   check(`${w}px: klik in grafiek opent dat meetmoment`, (await page.getByRole('form', { name: 'Meetmoment bewerken' }).count()) === 1);
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.locator('#s6').getByRole('radio', { name: 'Tabel' }).check();
   await page.locator('#s6 .row-edit').nth(3).click();
-  check(`${w}px: bewerkformulier toont OI-alert`, (await page.locator('#s6 .oi-line.alert').textContent())?.includes('29,5'));
+  check(`${w}px: bewerkformulier toont OI zonder alert`, (await page.locator('#s6 .oi-line').textContent())?.includes('29,5') && (await page.locator('#s6 .oi-line.alert').count()) === 0);
   await page.locator('#s6').getByRole('button', { name: 'Annuleren' }).click();
   await page.locator('#s6 .row-edit').nth(2).click();
   await page.locator('#s6 form').getByRole('button', { name: 'Ademhalingsondersteuning', exact: true }).click();

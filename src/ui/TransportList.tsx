@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatInstant, formatLocalDate } from '../domain/time';
 import type { TransportSummary } from '../storage/repository';
+import { expiresAtMs, isExpiringSoon } from '../storage/retention';
 import { isValidTimeZone, LETTER_FIELDS, type AppSettings, type DeviceKind } from '../storage/settings';
 import { DEFAULT_MEDICATION_ROUTES } from '../domain/labels';
 import { DEFAULT_HOSPITAL_LINES } from '../domain/hospitals';
@@ -320,6 +321,7 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
         </div>
         {importing && <ImportPanel items={items} onImport={onImport} onClose={() => setImporting(false)} />}
         <h2>Opgeslagen concepten</h2>
+        <p className="muted small-print">Concepten worden een week na aankomst (of na de laatste wijziging) automatisch van dit apparaat verwijderd.</p>
         {items.length === 0 ? (
           <p className="muted">Er zijn nog geen concepten op dit apparaat.</p>
         ) : (
@@ -335,6 +337,7 @@ export function TransportList({ items, onOpen, onNew, onSample, onDelete, onImpo
                     {s.referringHospital ? ` · ${s.referringHospital}` : ''}
                   </div>
                   <div className="muted small-print">Laatst opgeslagen {new Date(s.updatedAt).toLocaleString('nl-NL', { timeZone: tz })}</div>
+                  {isExpiringSoon(s) && <div className="expiry-warning">Wordt verwijderd op {new Date(expiresAtMs(s)).toLocaleString('nl-NL', { timeZone: tz, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })} (een week na aankomst of laatste wijziging).</div>}
                 </div>
                 <div className="card-actions">
                   <button type="button" className="primary" onClick={() => onOpen(s.id)}>

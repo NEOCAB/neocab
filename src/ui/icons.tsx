@@ -4,11 +4,9 @@ import stethoscope from '@material-symbols/svg-700/outlined/stethoscope.svg?raw'
 import ambulance from '@material-symbols/svg-700/outlined/ambulance.svg?raw';
 import clinicalNotes from '@material-symbols/svg-700/outlined/clinical_notes.svg?raw';
 import timeline from '@material-symbols/svg-700/outlined/timeline.svg?raw';
-import labResearch from '@material-symbols/svg-700/outlined/lab_research.svg?raw';
 import medication from '@material-symbols/svg-700/outlined/medication.svg?raw';
 import vaccines from '@material-symbols/svg-700/outlined/vaccines.svg?raw';
 import ventilator from '@material-symbols/svg-700/outlined/ventilator.svg?raw';
-import surgical from '@material-symbols/svg-700/outlined/surgical.svg?raw';
 import familyHome from '@material-symbols/svg-700/outlined/family_home.svg?raw';
 import checklist from '@material-symbols/svg-700/outlined/checklist.svg?raw';
 import flag from '@material-symbols/svg-700/outlined/flag.svg?raw';
@@ -34,11 +32,9 @@ const BY_ID: Record<string, string> = {
   sdispatch: prep(ambulance),
   s5: prep(stethoscope),
   s6: prep(timeline),
-  s7: prep(labResearch),
   s8: prep(medication),
   s9: prep(vaccines),
   s10: prep(ventilator),
-  s11: prep(surgical),
   s12: prep(familyHome),
   s13: prep(checklist),
   s14: prep(flag),
@@ -52,11 +48,9 @@ const ID_BY_TITLE: Record<string, string> = {
   Dispatch: 'sdispatch',
   Stabilisatie: 's5',
   Tijdlijn: 's6',
-  'Overige diagnostiek': 's7',
   Medicatie: 's8',
   Infusen: 's9',
   'Ingebrachte materialen': 's10',
-  Notities: 's11',
   Gezin: 's12',
   'Checklist voor vertrek': 's13',
   Transport: 's14',

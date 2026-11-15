@@ -29,16 +29,12 @@ export function sectionFilled(t: Transport, id: string): boolean {
       return text(a.workingDiagnosis, a.stabilisationPlan, a.lastFeedAt, ...Object.values(a.notes));
     case 's6':
       return t.measurements.length > 0;
-    case 's7':
-      return text(t.otherLabs, t.imaging);
     case 's10':
       return t.lines.length > 0 || t.tubes.length > 0;
     case 's8':
       return t.medications.length > 0;
     case 's9':
       return t.infusions.length > 0;
-    case 's11':
-      return text(t.proceduresAndEvents);
     case 's12':
       return text(t.parentsAndFamily, t.motherPhone, t.partnerPhone);
     case 's13':

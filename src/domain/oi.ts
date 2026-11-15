@@ -4,8 +4,6 @@ import { isInvasive } from './labels';
 
 /** Omrekenfactor kPa → mmHg. */
 export const KPA_TO_MMHG = 7.50062;
-/** Boven deze waarde wordt de OI met een oranje alert aangegeven. */
-export const OI_ALERT_THRESHOLD = 25;
 export const OI_FORMULA = 'OI = (MAP × FiO₂ × 100) / PaO₂ (MAP luchtweg in cmH₂O, FiO₂ als fractie, PaO₂ in mmHg = kPa × 7,50062)';
 
 /**
@@ -22,10 +20,6 @@ export function oxygenationIndex(m: Measurement): number | null {
   if (m.gas.type !== 'arterieel' || !isKnown(map) || !isKnown(fio2) || !isKnown(po2Kpa) || po2Kpa <= 0) return null;
   // FiO₂ staat in %, dus (FiO₂ als fractie) × 100 = FiO₂ in %.
   return (map * fio2) / (po2Kpa * KPA_TO_MMHG);
-}
-
-export function isOiAlert(oi: number | null): boolean {
-  return oi !== null && oi > OI_ALERT_THRESHOLD;
 }
 
 export function formatOi(oi: number): string {

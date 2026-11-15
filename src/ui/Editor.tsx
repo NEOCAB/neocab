@@ -11,9 +11,7 @@ import {
   ChildSection,
   ClosureSection,
   DispatchSection,
-  OtherDiagnosticsSection,
   ParentsSection,
-  ProceduresSection,
   ReferralInfoSection,
   ReferralSection,
   TeamAssessmentSection,
@@ -27,9 +25,9 @@ import { LinesSection } from './sections/Lines';
 /** Secties in volgorde, gegroepeerd in vier fases (tussenkoppen in het sectiemenu). */
 export const PHASES = [
   { title: 'Verwijzing', sections: [{ id: 's1', label: 'Basisgegevens kind' }, { id: 's2', label: 'Herkomst en bestemming' }, { id: 's3', label: 'Verwijzing' }] },
-  { title: 'Transportteam', sections: [{ id: 'sdispatch', label: 'Dispatch' }, { id: 's5', label: 'Stabilisatie' }, { id: 's6', label: 'Tijdlijn' }, { id: 's7', label: 'Overige diagnostiek' }] },
+  { title: 'Transportteam', sections: [{ id: 'sdispatch', label: 'Dispatch' }, { id: 's5', label: 'Stabilisatie' }, { id: 's6', label: 'Tijdlijn' }] },
   { title: 'Behandeling', sections: [{ id: 's10', label: 'Ingebrachte materialen' }, { id: 's8', label: 'Medicatie' }, { id: 's9', label: 'Infusen' }] },
-  { title: 'Afronding', sections: [{ id: 's11', label: 'Notities' }, { id: 's12', label: 'Gezin' }, { id: 's13', label: 'Checklist voor vertrek' }, { id: 's14', label: 'Transport' }] },
+  { title: 'Afronding', sections: [{ id: 's12', label: 'Gezin' }, { id: 's13', label: 'Checklist voor vertrek' }, { id: 's14', label: 'Transport' }] },
 ];
 export const SECTIONS = PHASES.flatMap((p) => p.sections);
 
@@ -258,11 +256,9 @@ export function Editor({ initial, repo, onExit, onReport }: { initial: Transport
           <DispatchSection {...props} />
           <TeamAssessmentSection {...props} />
           <TimelineSection {...props} />
-          <OtherDiagnosticsSection {...props} />
           <LinesSection {...props} />
           <MedicationsSection {...props} />
           <InfusionsSection {...props} />
-          <ProceduresSection {...props} />
           <ParentsSection {...props} />
           <ChecklistSection {...props} />
           <ClosureSection {...props} />

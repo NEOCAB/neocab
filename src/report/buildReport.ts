@@ -15,7 +15,7 @@ import { compareInstants, DEFAULT_TIME_ZONE, formatInstant, formatLocalDate } fr
 import { correctedAge, formatGestation, transportDate } from '../domain/calc';
 import { sortedRates, sortedVersions } from '../domain/timeline';
 import { GAS_TYPE_LEGEND, TIMELINE_GROUP_LABELS, hasGas, timelineTable } from '../domain/timelineTable';
-import { OI_ALERT_THRESHOLD, OI_FORMULA, oxygenationIndex } from '../domain/oi';
+import { OI_FORMULA, oxygenationIndex } from '../domain/oi';
 import { ASPHYXIA_CRITERIA } from '../domain/asphyxia';
 import { THOMPSON_ITEMS, thompsonItemText, thompsonTotalText } from '../domain/thompson';
 
@@ -43,8 +43,6 @@ export interface ReportTableColumn {
 export interface ReportTable {
   columns: ReportTableColumn[];
   rows: string[][];
-  /** Cellen met een alert (oranje), zelfde vorm als `rows`. */
-  alerts?: boolean[][];
   /** Toelichtingsrij per rij (bijv. beleidsaanpassingen), getoond als aparte rij onder dezelfde tijd. */
   notes?: string[];
   /** Label van de toelichtingsrij. */
@@ -238,19 +236,12 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
             {
               rows: [
                 ...(rows.some(hasGas) ? [{ type: 'note' as const, text: GAS_TYPE_LEGEND }] : []),
-                ...(rows.some((m) => oxygenationIndex(m) !== null) ? [{ type: 'note' as const, text: `${OI_FORMULA}. Oranje gemarkeerd: OI > ${OI_ALERT_THRESHOLD}.` }] : []),
+                ...(rows.some((m) => oxygenationIndex(m) !== null) ? [{ type: 'note' as const, text: `${OI_FORMULA}.` }] : []),
               ],
             },
           ].filter((b) => b.table || b.rows.length)
         : [{ rows: [{ type: 'note', text: 'Geen meetmomenten geregistreerd.' }] }],
     });
-  }
-
-  // Overige diagnostiek
-  {
-    const b = new RowBuilder();
-    b.para('Overige laboratoriumuitslagen', t.otherLabs).para('Beeldvorming en overige onderzoeken', t.imaging);
-    sections.push({ title: 'Overige diagnostiek', blocks: [{ rows: b.orEmpty() }] });
   }
 
   // Ingebrachte materialen (lijnen, sondes, drains, endotracheale tube)
@@ -292,8 +283,7 @@ export function buildReport(t: Transport, timeZone: string = DEFAULT_TIME_ZONE, 
     sections.push({ title: 'Infusen', blocks: [table.rows.length ? { rows: [], table } : { rows: [{ type: 'note', text: 'Geen infusen geregistreerd.' }] }] });
   }
 
-  // Notities, Gezin
-  sections.push({ title: 'Notities', blocks: [{ rows: new RowBuilder().para(undefined, t.proceduresAndEvents).orEmpty() }] });
+  // Gezin
   {
     const b = new RowBuilder().para(undefined, t.parentsAndFamily);
     b.kv('Telefoonnummer moeder', t.motherPhone.trim()).kv('Telefoonnummer partner', t.partnerPhone.trim());
@@ -328,7 +318,6 @@ export function timelineReportTable(measurements: Measurement[], timeZone: strin
     table: {
       columns: columns.map((c) => ({ header: c.label, fullLabel: c.fullLabel, unit: c.unit, keyColumn: !!c.key_column, group: TIMELINE_GROUP_LABELS[c.group] })),
       rows: rows.map((m, i) => columns.map((c) => c.cell(m, i))),
-      alerts: rows.map((m) => columns.map((c) => c.alert?.(m) ?? false)),
       notes: rows.map((m) => (m.policyChanges ?? '').trim()),
       noteLabel: 'Beleidsaanpassingen',
     },

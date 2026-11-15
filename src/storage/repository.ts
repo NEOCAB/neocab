@@ -6,6 +6,7 @@ export interface TransportSummary {
   birthDate: string;
   patientNumber: string;
   referredAt: string | null;
+  arrivedAt: string | null;
   referringHospital: string;
   updatedAt: string;
 }
@@ -28,6 +29,7 @@ export function summarize(t: Transport): TransportSummary {
     birthDate: t.child.birthDate,
     patientNumber: t.child.patientNumber,
     referredAt: t.referral.referredAt,
+    arrivedAt: t.teamAssessment.arrivedAt || null,
     referringHospital: t.referral.referringHospital,
     updatedAt: t.updatedAt,
   };

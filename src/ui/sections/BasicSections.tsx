@@ -1,6 +1,6 @@
 import type { AbcdKey, AbcdNotes, Asphyxia, BloodGasCord, ChecklistStatus, ThompsonScore, Transport } from '../../domain/types';
-import { ASPHYXIA_CRITERIA, ASPHYXIA_GAS_NOTE, asphyxiaCriteriaFromBirth, type AsphyxiaCriterion } from '../../domain/asphyxia';
-import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, THOMPSON_THRESHOLD, thompsonTotal } from '../../domain/thompson';
+import { ASPHYXIA_CRITERIA, ASPHYXIA_GAS_NOTE, type AsphyxiaCriterion } from '../../domain/asphyxia';
+import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, thompsonTotal } from '../../domain/thompson';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
 import {
   ABCD_LABELS,
@@ -216,8 +216,7 @@ function AbcdFields({ notes, onChange, after }: { notes: AbcdNotes; onChange: (n
 }
 
 /** Perinatale asfyxie (bij reden van overplaatsing "Therapeutische hypothermie"): criteria uit het protocol om aan te vinken. */
-function AsphyxiaFields({ value, birth, onChange }: { value: Asphyxia; birth: Transport['birth']; onChange: (v: Asphyxia) => void }) {
-  const fromBirth = asphyxiaCriteriaFromBirth(birth);
+function AsphyxiaFields({ value, onChange }: { value: Asphyxia; onChange: (v: Asphyxia) => void }) {
   const toggle = (k: AsphyxiaCriterion, on: boolean) => onChange({ ...value, criteria: on ? [...value.criteria.filter((c) => c !== k), k] : value.criteria.filter((c) => c !== k) });
   return (
     <>
@@ -227,10 +226,7 @@ function AsphyxiaFields({ value, birth, onChange }: { value: Asphyxia; birth: Tr
         {ASPHYXIA_CRITERIA.map((c) => (
           <label key={c.key} className="check-setting">
             <input type="checkbox" checked={value.criteria.includes(c.key)} onChange={(e) => toggle(c.key, e.target.checked)} />
-            <span>
-              {c.label}
-              {fromBirth.includes(c.key) && <span className="muted"> (volgens ingevulde geboortegegevens)</span>}
-            </span>
+            <span>{c.label}</span>
           </label>
         ))}
         <p className="muted small-print">{ASPHYXIA_GAS_NOTE}</p>
@@ -307,12 +303,11 @@ function ThompsonFields({ value, onChange }: { value: ThompsonScore; onChange: (
           </tbody>
         </table>
       </div>
-      <div className={`thompson-total ${complete && total >= THOMPSON_THRESHOLD ? 'high' : ''}`} role="status" aria-live="polite">
+      <div className="thompson-total" role="status" aria-live="polite">
         <span>Totale score</span>
         <strong>{filled ? `${total} / ${THOMPSON_MAX}` : '—'}</strong>
         {filled > 0 && !complete && <span className="muted">{`${filled} van ${THOMPSON_KEYS.length} onderdelen ingevuld`}</span>}
       </div>
-      <p className="muted small-print">Protocol: therapeutische hypothermie bij een Thompsonscore ≥ {THOMPSON_THRESHOLD} op 1 uur na de reanimatie, of een afwijkend aEEG.</p>
     </>
   );
 }
@@ -332,7 +327,7 @@ export function ReferralInfoSection(props: SectionProps) {
           // Alleen bij reden van overplaatsing "Therapeutische hypothermie": asfyxie en Thompsonscore onder Disability.
           disability: t.referral.therapeuticHypothermia && (
             <section className="hypothermia-panel" aria-label="Therapeutische hypothermie">
-              <AsphyxiaFields value={rc.asphyxia} birth={t.birth} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, asphyxia: v } }))} />
+              <AsphyxiaFields value={rc.asphyxia} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, asphyxia: v } }))} />
               <ThompsonFields value={rc.thompson} onChange={(v) => update((x) => ({ ...x, referralCondition: { ...x.referralCondition, thompson: v } }))} />
             </section>
           ),
@@ -372,23 +367,6 @@ export function TeamAssessmentSection({ t, update }: SectionProps) {
       <hr className="subsection-rule" />
       <TextField label="Werkdiagnose" value={a.workingDiagnosis} onChange={(v) => set('workingDiagnosis', v)} />
       <TextArea label="Stabilisatieplan" value={a.stabilisationPlan} onChange={(v) => set('stabilisationPlan', v)} />
-    </Section>
-  );
-}
-
-export function OtherDiagnosticsSection({ t, update }: SectionProps) {
-  return (
-    <Section id="s7" title="Overige diagnostiek">
-      <TextArea label="Overige laboratoriumuitslagen" value={t.otherLabs} onChange={(v) => update((x) => ({ ...x, otherLabs: v }))} />
-      <TextArea label="Beeldvorming en overige onderzoeken" value={t.imaging} onChange={(v) => update((x) => ({ ...x, imaging: v }))} />
-    </Section>
-  );
-}
-
-export function ProceduresSection({ t, update }: SectionProps) {
-  return (
-    <Section id="s11" title="Notities">
-      <TextArea label="Notities" value={t.proceduresAndEvents} onChange={(v) => update((x) => ({ ...x, proceduresAndEvents: v }))} rows={5} />
     </Section>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { anonymize, isIdentifying, newTransport } from './domain/factory';
 import type { Transport } from './domain/types';
 import { sampleTransport } from './domain/sample';
+import { purgeExpired } from './storage/retention';
 import { LocalStorageTransportRepository } from './storage/localRepository';
 import { loadSettings, saveSettings, type AppSettings } from './storage/settings';
 import { SettingsContext } from './ui/context';
@@ -39,6 +40,16 @@ export function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // Automatisch verwijderen: een week na aankomst of na de laatste wijziging (zie storage/retention). Bij het openen en daarna elk uur.
+  useEffect(() => {
+    const purge = () => {
+      if (purgeExpired(repo).length) setListVersion((v) => v + 1);
+    };
+    purge();
+    const timer = window.setInterval(purge, 3_600_000);
+    return () => window.clearInterval(timer);
+  }, [repo]);
 
   const items = useMemo(() => repo.list(), [repo, listVersion, route]);
 

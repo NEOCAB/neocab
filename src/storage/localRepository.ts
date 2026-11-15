@@ -30,7 +30,10 @@ export function normalizeTransport(raw: unknown): Transport | null {
   const t = mergeDefaults({ ...defaults, id: raw.id }, raw);
   // Perinatale asfyxie had kort een ja/nee/onbekend-keuze; alleen de criteria blijven over.
   const asphyxia = { criteria: Array.isArray(t.referralCondition.asphyxia?.criteria) ? t.referralCondition.asphyxia.criteria : [] };
-  return migrateParentPhones({ ...t, birth: migrateVitaminK(t.birth), referralCondition: { ...t.referralCondition, asphyxia }, measurements: t.measurements.map((m) => ({ ...migrateCpapToPeep(m), policyChanges: typeof m.policyChanges === 'string' ? m.policyChanges : '' })) }, raw);
+  // Overige diagnostiek en Notities zijn vervallen: de oude tekst wordt niet meer bewaard.
+  const { otherLabs: _a, imaging: _b, proceduresAndEvents: _c, ...current } = t as Transport & { otherLabs?: unknown; imaging?: unknown; proceduresAndEvents?: unknown };
+  void [_a, _b, _c];
+  return migrateParentPhones({ ...current, birth: migrateVitaminK(t.birth), referralCondition: { ...t.referralCondition, asphyxia }, measurements: t.measurements.map((m) => ({ ...migrateCpapToPeep(m), policyChanges: typeof m.policyChanges === 'string' ? m.policyChanges : '' })) }, raw);
 }
 
 /** Vitamine K had eerder de keuze "Anders" met vrije tekst; nu ja (oraal, IM of IV) of nee. Afgeleid uit de tekst waar mogelijk. */

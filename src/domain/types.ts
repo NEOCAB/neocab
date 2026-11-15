@@ -252,13 +252,10 @@ export interface Transport {
   dispatch: Dispatch;
   teamAssessment: TeamAssessment;
   measurements: Measurement[];
-  otherLabs: string;
-  imaging: string;
   medications: MedicationAdministration[];
   infusions: Infusion[];
   lines: Line[];
   tubes: EndotrachealTube[];
-  proceduresAndEvents: string;
   parentsAndFamily: string;
   checklist: Record<ChecklistKey, ChecklistStatus>;
   /** Contactgegevens ouders (als tekst bewaard). */

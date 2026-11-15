@@ -69,7 +69,7 @@ describe('overplaatsingsbrief', () => {
     // Kopregels herhalen, verticale kolomkoppen, OI > 25 oranje gemarkeerd.
     expect(xml).toContain('<w:tblHeader/>');
     expect(xml).toContain('w:val="btLr"');
-    expect(xml).toContain('w:fill="FFD8A8"');
+    expect(xml).not.toContain('w:fill="FFD8A8"');
     expect(xml).toContain('Besluit tot intubatie en surfactant (fictief).');
     // Geen toelichting onder de tijdlijn; medicatie en infusen als tabel (staand); ingebrachte materialen compact.
     expect(xml).not.toContain('Type bloedgas');

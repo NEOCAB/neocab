@@ -18,7 +18,7 @@ const fonts = {
 function bigTransport(): Transport {
   const t = sampleTransport(TZ);
   const long = Array.from({ length: 120 }, (_, i) => `Zin ${i + 1} van een zeer lange vrije tekst met details.`).join(' ');
-  t.proceduresAndEvents = `${long}\nEINDE-PROCEDURES`;
+  t.parentsAndFamily = `${long}\nEINDE-PROCEDURES`;
   t.referralCondition.notes.breathing = `${long}\nEINDE-BREATHING`;
   const start = Date.parse('2026-10-09T20:00:00Z');
   for (let i = 0; i < 60; i++) {
@@ -41,7 +41,7 @@ describe('verslag', () => {
 
   it('rtf: geldig RTF met vette koppen, cursieve veldnamen en geëscapete tekst', () => {
     const t = sampleTransport(TZ);
-    t.proceduresAndEvents = 'Accolades {x} en \\ backslash\nPatiëntje ≥ 7';
+    t.parentsAndFamily = 'Accolades {x} en \\ backslash\nPatiëntje ≥ 7';
     const rtf = reportToRtf(buildReport(t, TZ));
     expect(rtf.startsWith('{\\rtf1\\ansi')).toBe(true);
     expect(rtf.endsWith('}')).toBe(true);
@@ -85,7 +85,7 @@ describe('verslag', () => {
     expect(text).not.toContain('Allergie');
     // Herkomst en bestemming; Verwijzing = zwangerschap en geboorte + toestand bij verwijzing.
     const titles = buildReport(sampleTransport(TZ), TZ).sections.map((sec) => sec.title);
-    expect(titles).toEqual(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie', 'Tijdlijn', 'Overige diagnostiek', 'Ingebrachte materialen', 'Medicatie', 'Infusen', 'Notities', 'Gezin', 'Transport']);
+    expect(titles).toEqual(['Basisgegevens kind', 'Herkomst en bestemming', 'Verwijzing', 'Dispatch', 'Stabilisatie', 'Tijdlijn', 'Ingebrachte materialen', 'Medicatie', 'Infusen', 'Gezin', 'Transport']);
     expect(buildReport(sampleTransport(TZ), TZ).sections[2].blocks.map((b) => b.title)).toEqual(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']);
     const noAdvice = sampleTransport(TZ);
     noAdvice.referralCondition.advice = '';
@@ -150,7 +150,7 @@ describe('verslag', () => {
     expect(tijd(sameDay)).toEqual(['23:10', '23:45']); // één dag: alleen tijd
   });
 
-  it('berekent de OI in de tabel en markeert OI > 25 als alert', () => {
+  it('berekent de OI in de tabel, zonder beoordeling', () => {
     const t = sampleTransport(TZ);
     const section = buildReport(t, TZ).sections.find((s) => s.title === 'Tijdlijn')!;
     const table = section.blocks.find((b) => b.table)!.table!;
@@ -159,10 +159,9 @@ describe('verslag', () => {
     expect(oi).toBe(table.columns.length - 1); // laatste kolom, achter Bloedgas
     // Meetmoment 2: PTV zonder gemeten MAP -> geen OI; meetmoment 4: HFOV MAP 14, FiO₂ 60 %, PaO₂ 3,8 kPa -> 29,5.
     expect(table.rows.map((r) => r[oi])).toEqual(['', '', '', '29,5']);
-    expect(table.alerts!.map((r) => r[oi])).toEqual([false, false, false, true]);
     const text = reportToText(buildReport(t, TZ));
-    expect(text).toContain('Oxygenatie-index (OI, berekend): 29,5 (LET OP: > 25)');
-    expect(text).toContain('Oranje gemarkeerd: OI > 25.');
+    expect(text).toContain('Oxygenatie-index (OI, berekend): 29,5');
+    expect(text).not.toMatch(/LET OP|Oranje gemarkeerd/);
   });
 
   it('medicatie en infusen zijn tabellen (één rij per toediening of infuus, chronologisch)', () => {

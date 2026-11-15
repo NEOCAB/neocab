@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { newMeasurement, newTransport } from '../domain/factory';
 import { sampleTransport } from '../domain/sample';
 import { LocalStorageTransportRepository, type KeyValueStorage } from './localRepository';
+import { expiresAtMs, isExpired, isExpiringSoon, purgeExpired } from './retention';
 import { loadSettings, saveSettings, EMPTY_LETTER } from './settings';
 
 function memoryStorage(): KeyValueStorage & { data: Map<string, string> } {
@@ -172,5 +173,48 @@ describe('lokale conceptopslag', () => {
     expect(loadSettings(storage).device).toBe('persoonlijk');
     storage.setItem('neonataal-transport:v1:instellingen', JSON.stringify({ device: 'iets anders' }));
     expect(loadSettings(storage).device).toBe('werk');
+  });
+});
+
+describe('vervallen velden', () => {
+  it('oude tekst uit Overige diagnostiek en Notities wordt bij het laden niet meer bewaard', () => {
+    const storage = memoryStorage();
+    const repo = new LocalStorageTransportRepository(storage);
+    const t = repo.save(sampleTransport('Europe/Amsterdam'));
+    const raw = JSON.parse(storage.data.get(`neonataal-transport:v1:${t.id}`)!);
+    storage.setItem(`neonataal-transport:v1:${t.id}`, JSON.stringify({ ...raw, otherLabs: 'CRP 4', imaging: 'Thoraxfoto', proceduresAndEvents: 'Intubatie' }));
+    const loaded = repo.load(t.id)! as unknown as Record<string, unknown>;
+    expect(loaded).not.toHaveProperty('otherLabs');
+    expect(loaded).not.toHaveProperty('imaging');
+    expect(loaded).not.toHaveProperty('proceduresAndEvents');
+  });
+});
+
+describe('bewaartermijn', () => {
+  const DAY = 86_400_000;
+  const now = Date.parse('2026-11-15T12:00:00Z');
+  const s = (arrivedAt: string | null, updatedAt: string) => ({ arrivedAt, updatedAt });
+  it('verloopt een week na aankomst; een latere wijziging verlengt', () => {
+    expect(expiresAtMs(s('2026-11-08T12:00:00Z', '2026-11-08T12:00:00Z'))).toBe(now);
+    expect(isExpired(s('2026-11-08T12:00:00Z', '2026-11-08T12:00:00Z'), now)).toBe(true);
+    expect(isExpired(s('2026-11-08T12:00:00Z', '2026-11-12T12:00:00Z'), now)).toBe(false);
+  });
+  it('zonder aankomst telt de laatste wijziging', () => {
+    expect(expiresAtMs(s(null, '2026-11-10T00:00:00Z'))).toBe(Date.parse('2026-11-10T00:00:00Z') + 7 * DAY);
+  });
+  it('waarschuwt binnen een dag voor het verwijderen, niet eerder', () => {
+    expect(isExpiringSoon(s(null, new Date(now - 6.5 * DAY).toISOString()), now)).toBe(true);
+    expect(isExpiringSoon(s(null, new Date(now - 5 * DAY).toISOString()), now)).toBe(false);
+    expect(isExpiringSoon(s(null, new Date(now - 8 * DAY).toISOString()), now)).toBe(false);
+  });
+  it('purgeExpired verwijdert alleen verlopen transporten', () => {
+    const repo = new LocalStorageTransportRepository(memoryStorage());
+    const old = repo.save(newTransport());
+    const fresh = repo.save(newTransport());
+    const gone = purgeExpired(repo, Date.now() + 8 * DAY - 1000 * 0);
+    expect(gone.sort()).toEqual([old.id, fresh.id].sort());
+    const keep = repo.save(newTransport());
+    expect(purgeExpired(repo)).toEqual([]);
+    expect(repo.load(keep.id)).not.toBeNull();
   });
 });
