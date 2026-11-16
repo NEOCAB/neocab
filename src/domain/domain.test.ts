@@ -312,3 +312,27 @@ describe('datum typen en getallen', () => {
     expect(formatNum(7.28, '')).toBe('7,28');
   });
 });
+
+describe('ABCD als één tekstvak', () => {
+  it('zet notities om naar tekst met de letters ingevuld en terug', async () => {
+    const { abcdToText, textToAbcd } = await import('./abcdText');
+    const { ABCD_KEYS } = await import('./types');
+    const empty = Object.fromEntries(ABCD_KEYS.map((k) => [k, ''])) as never;
+    const text = abcdToText(empty);
+    expect(text.split('\n')).toHaveLength(9);
+    expect(text.startsWith('A Airway: \nB Breathing: ')).toBe(true);
+    const n = textToAbcd('A Airway: Eigen luchtweg\nB Breathing: apneus\n  met desaturaties\nG Gastro-intestinal: nog niet gevoed');
+    expect(n.airway).toBe('Eigen luchtweg');
+    expect(n.breathing).toBe('apneus\n  met desaturaties');
+    expect(n.gastrointestinal).toBe('nog niet gevoed');
+    expect(n.circulation).toBe('');
+    // Rondreis: tekst → notities → tekst → notities
+    expect(textToAbcd(abcdToText(n))).toEqual(n);
+  });
+  it('herkent ook een regel zonder beginletter en hoofdletterverschillen', async () => {
+    const { textToAbcd } = await import('./abcdText');
+    const n = textToAbcd('airway: vrij\nInfection: koorts');
+    expect(n.airway).toBe('vrij');
+    expect(n.infection).toBe('koorts');
+  });
+});

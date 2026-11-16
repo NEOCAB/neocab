@@ -2,15 +2,15 @@ import type { AbcdKey, AbcdNotes, Asphyxia, BloodGasCord, ChecklistStatus, Thomp
 import { ASPHYXIA_CRITERIA, ASPHYXIA_GAS_NOTE, type AsphyxiaCriterion } from '../../domain/asphyxia';
 import { THOMPSON_ITEMS, THOMPSON_KEYS, THOMPSON_MAX, thompsonTotal } from '../../domain/thompson';
 import { ABCD_KEYS, CHECKLIST_KEYS } from '../../domain/types';
+import { abcdToText, textToAbcd } from '../../domain/abcdText';
 import {
-  ABCD_LABELS,
   CHECKLIST_LABELS,
   CORTICO_OPTIONS,
   VITAMIN_K_OPTIONS,
   YES_NO_UNKNOWN_OPTIONS,
 } from '../../domain/labels';
 import { ageInHoursIfYoung, correctedAge, transportDate } from '../../domain/calc';
-import { Fragment, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ComboField, DateField, DateTimeField, GestationField, NumberField, Section, Segmented, TextArea, TextField, TimeField, TimepointField } from '../fields';
 import { hospitalOptions, matchesHospital } from '../../domain/hospitals';
 import { CallIcon } from '../icons';
@@ -186,56 +186,27 @@ function BirthFields({ t, update }: SectionProps) {
 }
 
 /** Negen klinische kopjes (Airway … Infection); `after` voegt extra velden direct onder een kopje in (bijv. laatste voeding). */
-function AbcdFields({ notes, onChange, after }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void; after?: Partial<Record<AbcdKey, ReactNode>> }) {
-  // Instelling: alleen de letter (links van het veld) in plaats van letter + woord erboven.
-  const lettersOnly = useSettings().abcdLettersOnly;
-  // Alleen letters met inhoud (of met extra onderdeel, zoals laatste voeding) zijn een veld; de rest staat als knop om toe te voegen.
-  const [added, setAdded] = useState<AbcdKey[]>([]);
-  const [focusKey, setFocusKey] = useState<AbcdKey | null>(null);
-  const isShown = (k: AbcdKey) => notes[k].trim() !== '' || !!after?.[k] || added.includes(k);
-  const hidden = ABCD_KEYS.filter((k) => !isShown(k));
-  const label = (k: AbcdKey) => (
-    <>
-      {/* Beginletter in een rondje; alleen visueel, de naam van het veld blijft het woord zelf. */}
-      <span className="abcd-letter" aria-hidden="true" title={lettersOnly ? ABCD_LABELS[k] : undefined}>
-        {ABCD_LABELS[k][0]}
-      </span>
-      {lettersOnly ? <span className="sr-only">{ABCD_LABELS[k]}</span> : ABCD_LABELS[k]}
-    </>
-  );
+function AbcdFields({ notes, onChange, after, label = 'ABCD-beoordeling' }: { notes: AbcdNotes; onChange: (n: AbcdNotes) => void; after?: Partial<Record<AbcdKey, ReactNode>>; label?: string }) {
+  // Eén tekstvak met de letters al ingevuld; per letter wordt de tekst apart bewaard. Extra onderdelen (hypothermie, laatste voeding) staan eronder.
+  const [text, setText] = useState(() => abcdToText(notes));
+  useEffect(() => {
+    // Bij een wijziging van buitenaf (ander concept, import) het vak bijwerken; niet tijdens typen.
+    if (abcdToText(textToAbcd(text)) !== abcdToText(notes)) setText(abcdToText(notes));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes]);
   return (
-    <div className={`abcd ${lettersOnly ? 'letters-only' : ''}`}>
-      {ABCD_KEYS.filter(isShown).map((k) => (
-        <Fragment key={k}>
-          <TextArea
-            className={lettersOnly ? 'abcd-compact' : undefined}
-            label={label(k)}
-            autoFocus={focusKey === k}
-            value={notes[k]}
-            onChange={(v) => onChange({ ...notes, [k]: v })}
-            rows={1}
-          />
-          {after?.[k] && <div className="abcd-extra">{after[k]}</div>}
-        </Fragment>
-      ))}
-      {hidden.length > 0 && (
-        <div className="abcd-add" role="group" aria-label="Letters toevoegen">
-          {hidden.map((k) => (
-            <button
-              key={k}
-              type="button"
-              className="abcd-chip"
-              aria-label={`${ABCD_LABELS[k]} toevoegen`}
-              onClick={() => {
-                setAdded((a) => [...a, k]);
-                setFocusKey(k);
-              }}
-            >
-              <span aria-hidden="true">＋ {lettersOnly ? ABCD_LABELS[k][0] : `${ABCD_LABELS[k][0]} ${ABCD_LABELS[k]}`}</span>
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="abcd">
+      <TextArea
+        label={label}
+        className="abcd-single"
+        rows={9}
+        value={text}
+        onChange={(v) => {
+          setText(v);
+          onChange(textToAbcd(v));
+        }}
+      />
+      {ABCD_KEYS.map((k) => after?.[k] && <div key={k} className="abcd-extra">{after[k]}</div>)}
     </div>
   );
 }

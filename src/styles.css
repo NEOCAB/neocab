@@ -868,40 +868,6 @@ fieldset.group > legend {
   border: 2px solid var(--primary);
   scroll-margin-top: 9rem;
 }
-.abcd-letter {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5em;
-  height: 1.5em;
-  margin-right: 0.45em;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 0.85em;
-  font-weight: 700;
-  line-height: 1;
-  vertical-align: middle;
-}
-.field.abcd-compact {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  column-gap: 0.6rem;
-}
-.field.abcd-compact .field-label {
-  margin: 0;
-  padding-top: 0.4rem;
-}
-.field.abcd-compact .abcd-letter {
-  width: 2rem;
-  height: 2rem;
-  margin: 0;
-  font-size: var(--fs-s);
-}
-.field.abcd-compact > :not(.field-label) {
-  grid-column: 2;
-}
 .check-setting {
   display: flex;
   align-items: flex-start;
@@ -2049,13 +2015,7 @@ button.danger-button {
   background: var(--surface);
 }
 /* Extra velden onder een ABCD-kopje (bijv. laatste voeding); bij alleen letters uitgelijnd met de invulvelden. */
-.abcd.letters-only .abcd-extra {
-  margin-left: 2.6rem;
-}
 /* Subkop onder een ABCD-kopje (bijv. Laatste voeding onder Gastro-intestinal): ingesprongen en kleiner. */
-.abcd:not(.letters-only) .abcd-extra {
-  padding-left: 1.6rem;
-}
 .abcd-extra > .field > .field-label {
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -2247,7 +2207,7 @@ select {
   background-size: 1.1rem;
 }
 /* Laatste voeding in lijn met het veld erboven (subkop van Gastro-intestinal) */
-.abcd:not(.letters-only) .abcd-extra {
+.abcd-extra {
   padding-left: 0;
 }
 /* Minder ruimte boven de lijn bij Reden van overplaatsing */
@@ -2483,11 +2443,6 @@ select {
 }
 .hypothermia-panel .asphyxia-criteria {
   background: transparent;
-}
-/* ABCD-letters: lichtblauw rondje, donkerblauwe letter */
-.abcd-letter {
-  background: var(--primary-10);
-  color: var(--primary);
 }
 /* Keuzeknoppen: zachtere rand */
 .seg span {
@@ -4349,28 +4304,8 @@ article.card > .card-head strong,
   color: var(--heading);
 }
 
-/* ABCD: alleen gevulde letters als veld, de rest als knop om toe te voegen */
-.abcd-add {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 4px 0 16px;
-}
-.abcd-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap);
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px dashed var(--icon);
-  background: transparent;
-  color: var(--label);
-  font: inherit;
-  font-size: var(--fs-s);
-  cursor: pointer;
-}
-.abcd-chip:hover {
-  background: var(--primary-10);
-  color: var(--primary);
-  border-color: var(--primary);
+/* ABCD: één tekstvak met de letters vooringevuld */
+.abcd-single textarea {
+  font-family: inherit;
+  line-height: 1.6;
 }

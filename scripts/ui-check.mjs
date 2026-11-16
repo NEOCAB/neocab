@@ -24,9 +24,6 @@ async function openReport(pg) {
   } else await pg.getByRole('button', { name: 'Verslag & export', exact: true }).click();
 }
 
-async function showAllAbcd(pg, id) {
-  while ((await pg.locator(`#${id} .abcd-chip`).count()) > 0) await pg.locator(`#${id} .abcd-chip`).first().click();
-}
 async function noHorizontalScroll(page) {
   return page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 }
@@ -172,11 +169,11 @@ async function basisLayout(page) {
   check('Ingebrachte materialen: geen eenheid bij maat; tippositie en controle één regel', (await page.getByLabel('Eenheid maat').count()) === 0 && (await page.locator('#s10 textarea').count()) === 0);
   check('Werkdiagnose is een gewoon invulveld van één regel', (await page.locator('#s5').getByLabel('Werkdiagnose', { exact: true }).evaluate((e) => e.tagName)) === 'INPUT');
   const feedAfterGi = await page.evaluate(() => {
-    const gi = [...document.querySelectorAll('#s5 .abcd textarea')].find((t) => t.closest('.field').textContent.includes('Gastro'));
+    const box = document.querySelector('#s5 .abcd textarea');
     const feed = document.querySelector('#s5 .abcd .abcd-extra .timepoint[data-label="Laatste voeding"] input');
-    return !!gi && !!feed && gi.closest('.field').nextElementSibling?.contains(feed);
+    return !!box && !!feed && box.closest('.field').nextElementSibling?.contains(feed) && box.value.includes('G Gastro-intestinal:');
   });
-  check('Laatste voeding direct onder Gastro-intestinal (Stabilisatie)', feedAfterGi);
+  check('Laatste voeding direct onder het ABCD-vak (Stabilisatie)', feedAfterGi);
   // Antenatale corticosteroïden en magnesium: zonder knop Wissen; nogmaals tikken wist de keuze
   const cortico = page.locator('#s3 fieldset.segmented', { hasText: 'Antenatale corticosteroïden' });
   await cortico.getByRole('radio', { name: 'Volledig', exact: true }).click();
@@ -239,44 +236,26 @@ async function basisLayout(page) {
   check('Ingebrachte materialen: keuze uit het menu voegt dat type toe', (await page.locator('#s10 .card').count()) === linesBefore + 1 && (await page.locator('#s10').getByRole('menu').count()) === 0);
   await page.locator('#s10 .card').last().getByRole('button', { name: /verwijderen/i }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Verwijderen' }).click();
-  // Instelling: alleen ABCD-letters (links van het invulveld)
   await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
   await page.locator('details.settings summary').click();
-  await page.getByLabel(/alleen de letter tonen/).check();
   // Briefgegevens voor de overplaatsingsbrief
   check('Instellingen: afzendergegevens voor de overplaatsingsbrief', (await page.locator('.letter-settings input[type=text], .letter-settings input[type=email], .letter-settings input[type=tel]').count()) === 8 && (await page.getByLabel('Logo briefhoofd (PNG of JPEG)').count()) === 1);
   await page.locator('#letter-senderName').fill('drs. T. Test');
   await page.locator('#letter-senderRole').fill('Kinderarts');
   await page.getByRole('button', { name: 'Hervatten' }).first().click();
   await page.waitForSelector('#s3');
-  check('ABCD: een leeg blok toont alleen knoppen om letters toe te voegen', (await page.locator('#s3 .abcd textarea').count()) === 0 && (await page.locator('#s3 .abcd-chip').count()) === 9);
-  await page.getByRole('button', { name: 'Disability toevoegen' }).first().click();
-  check('ABCD: knop voegt het veld toe en zet de cursor erin', (await page.locator('#s3 .abcd textarea').count()) === 1 && (await page.locator('#s3 .abcd-chip').count()) === 8 && (await page.evaluate(() => document.activeElement?.tagName)) === 'TEXTAREA');
-  await showAllAbcd(page, 's3');
-  const compact = await page.evaluate(() => {
-    const f = document.querySelector('#s3 .abcd-compact');
-    const letter = f?.querySelector('.abcd-letter')?.getBoundingClientRect();
-    const box = f?.querySelector('textarea')?.getBoundingClientRect();
-    return { n: document.querySelectorAll('#s3 .abcd-compact').length, labelW: Math.round(f?.querySelector('.field-label')?.getBoundingClientRect().width ?? 0), word: f?.querySelector('.field-label .sr-only')?.textContent, left: !!letter && !!box && letter.right <= box.left && Math.abs(letter.top - box.top) < 12 };
-  });
-  check('Instelling alleen letters: letter links van het veld, woord niet zichtbaar, naam blijft Airway', compact.n === 9 && compact.labelW < 50 && compact.word === 'Airway' && compact.left && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, JSON.stringify(compact));
-  await page.screenshot({ path: `${OUT}/390-abcd-letters.png`, fullPage: false, clip: await page.locator('#s3 .abcd').boundingBox().then((b) => ({ x: 0, y: b.y, width: 390, height: 400 })) }).catch(() => {});
+  const abcdBox = page.locator('#s3 .abcd textarea');
+  const NAMES = ['Airway', 'Breathing', 'Circulation', 'Disability', 'Exposure', 'Fluids', 'Gastro-intestinal', 'Haematological', 'Infection'];
+  const initial = await abcdBox.inputValue();
+  check('ABCD: één tekstvak, vooringevuld met alle letters', (await abcdBox.count()) === 1 && (await page.locator('#s3 .abcd-chip, #s3 .abcd-letter').count()) === 0 && NAMES.every((n, i) => initial.split('\n')[i]?.startsWith(`${n[0]} ${n}:`)), initial.slice(0, 80));
+  await abcdBox.fill(initial.replace('A Airway:', 'A Airway: vrij, geen stridor').replace('B Breathing:', 'B Breathing: CPAP 5\nvolgende regel'));
+  check('ABCD: typen na de letters wordt per letter bewaard (meerdere regels ok)', await page.evaluate(() => !!document.querySelector('#s3 .abcd textarea')?.value.includes('CPAP 5\nvolgende regel')));
+  await page.screenshot({ path: `${OUT}/390-abcd-single.png`, fullPage: false, clip: await page.locator('#s3 .abcd').boundingBox().then((b) => ({ x: 0, y: b.y, width: 390, height: 400 })) }).catch(() => {});
   await page.getByRole('button', { name: 'Terug naar overzicht van concepten' }).click();
-  await page.locator('details.settings summary').click();
-  await page.getByLabel(/alleen de letter tonen/).uncheck();
   await page.getByRole('button', { name: 'Hervatten' }).first().click();
   await page.waitForSelector('#s3');
-  await showAllAbcd(page, 's3');
-  await showAllAbcd(page, 's5');
-  const airway = page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true });
-  const h1 = await airway.evaluate((e) => e.getBoundingClientRect().height);
-  await airway.fill('Regel 1\nRegel 2\nRegel 3');
-  const h3 = await airway.evaluate((e) => e.getBoundingClientRect().height);
-  check('ABCD-veld begint op één regel en groeit mee met de tekst', h1 <= 46 && h3 > h1 + 30, `${h1} → ${h3}`);
-  await airway.fill('');
+  check('ABCD: ingevulde tekst blijft na heropenen staan en de letters blijven erin', (await page.locator('#s3 .abcd textarea').inputValue()).includes('A Airway: vrij, geen stridor') && (await page.locator('#s5 .abcd textarea').inputValue()).includes('I Infection:'));
   const sub3 = await page.locator('#s3 h3.subsection-title').allTextContents();
-  const letters = await page.locator('#s3 .abcd-letter').allTextContents();
-  check('ABCD-kopjes met beginletter in een rondje (Verwijzing en Stabilisatie)', letters.join('') === 'ABCDEFGHI' && (await page.locator('#s5 .abcd-letter').count()) === 9 && (await page.locator('#s3').getByRole('textbox', { name: 'Airway', exact: true }).count()) === 1, letters.join(''));
   check('Verwijzing bevat Zwangerschap en geboorte, Toestand bij verwijzing en Advies (zonder "(optioneel)")', JSON.stringify(sub3) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3').getByLabel('Advies bij verwijzing', { exact: true }).count()) === 1 && (await page.locator('#s4').count()) === 0, sub3.join(' | '));
   // Therapeutische hypothermie als reden van overplaatsing: Thompson Score bij Verwijzing.
   const th = page.locator('#s2').getByRole('checkbox', { name: 'Therapeutische hypothermie' });
@@ -289,9 +268,9 @@ async function basisLayout(page) {
     const prev = panel?.closest('.abcd-extra')?.previousElementSibling;
     const sizes = [...(panel?.querySelectorAll('h4') ?? [])].map((h) => parseFloat(getComputedStyle(h).fontSize));
     const labelSize = parseFloat(getComputedStyle(prev.querySelector('.field-label')).fontSize);
-    return { underDisability: !!prev && prev.textContent.includes('Disability'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent), noTitle: !panel.querySelector('h3, .hypothermia-note'), notBigger: sizes.every((x) => x === 17) };
+    return { underDisability: !!prev && !!prev.querySelector('textarea'), subs: [...(panel?.querySelectorAll('h4') ?? [])].map((h) => h.textContent), noTitle: !panel.querySelector('h3, .hypothermia-note'), notBigger: sizes.every((x) => x === 17) };
   });
-  check('Na kiezen: blauw vlak onder Disability (zonder eigen kop of toelichting) met Perinatale asfyxie en Thompson Score (9 onderdelen), kopjes als kaartkop (K4, 17 px)', panelPlace.underDisability && panelPlace.noTitle && panelPlace.notBigger && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
+  check('Na kiezen: blauw vlak onder het ABCD-vak (zonder eigen kop of toelichting) met Perinatale asfyxie en Thompson Score (9 onderdelen), kopjes als kaartkop (K4, 17 px)', panelPlace.underDisability && panelPlace.noTitle && panelPlace.notBigger && JSON.stringify(panelPlace.subs) === JSON.stringify(['Perinatale asfyxie', 'Thompson Score']) && JSON.stringify(sub3th) === JSON.stringify(['Zwangerschap en geboorte', 'Toestand bij verwijzing', 'Advies']) && (await page.locator('#s3 .thompson-table tbody tr').count()) === 9, JSON.stringify({ panelPlace, sub3th }));
   await page.locator('#s3 .asphyxia-criteria').getByRole('checkbox', { name: /Apgarscore op 5 minuten/ }).check();
   check('Perinatale asfyxie: zes criteria direct zichtbaar (geen aparte ja/nee-keuze), aan te vinken', (await page.locator('#s3 fieldset.segmented', { hasText: /perinatale asfyxie/i }).count()) === 0 && (await page.locator('#s3 .asphyxia-criteria input[type=checkbox]').count()) === 6 && (await page.locator('#s3 .asphyxia-criteria input:checked').count()) === 1);
   check('Thompson Score als tabel met ronde keuzerondjes; Therapeutische hypothermie als vierkant vinkje', (await page.locator('#s3 .thompson-table input[type=radio]').count()) === 31 && (await page.locator('#s2 .reason-options .seg').count()) === 0);

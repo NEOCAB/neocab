@@ -127,7 +127,7 @@ De vormgeving volgt de aangeleverde huisstijlrichtlijn, zonder logo, monogram of
 
 ## Uitgevoerde controles
 
-Unit-tests (`npm test`, 82 tests):
+Unit-tests (`npm test`, 84 tests):
 
 - tijdlijn als één tabel: één rij per meetmoment, chronologisch, zonder #/fase/tube, bloedgastype A/V/C, lege kolommen weggelaten;
 - beleidsaanpassingen als aparte rij bij hetzelfde meetmoment (tabel en e-mailtekst), niet overgenomen in een nieuw meetmoment, aangevuld bij oude concepten;
@@ -144,7 +144,7 @@ Unit-tests (`npm test`, 82 tests):
 - conceptopslag, hervatten, verwijderen, aanvullen van ontbrekende velden;
 - volledige e-mailtekst en meerpagina-A4-pdf met 63 meetmomenten en lange vrije tekst; alleen instellingen van de actuele modaliteit in de export; “onbekend” en lege waarden correct.
 
-Interfacecontrole (`npm run ui-check`, 236 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
+Interfacecontrole (`npm run ui-check`, 234 controles in Chromium): invoerscenario op 390 px (verwijderde velden en onbekend-knoppen, amenorroeduur en gecorrigeerde leeftijd, volgorde sectie 2, contactgegevens ouders in sectie 12, validatieberichten, meetmomenten met modaliteitswissel, achteraf toegevoegd meetmoment, infuus starten/wijzigen, telefoonnummers ouders), herladen met behoud van gegevens en tijden, toetsenbordvolgorde, labels op alle invoervelden, geen horizontaal scrollen van het formulier op 390/768/1024 px, tijdlijn als één tabel met één rij per meetmoment, tubegegevens die op het tijdstip golden in het bewerkformulier, pdf-download en afdrukweergave. Screenshots en pdf's zijn handmatig bekeken.
 
 Niet getest op een fysieke iPhone/iPad of in Safari; de datum-/tijdkiezers zien er per browser en systeemtaal anders uit.
 
@@ -246,7 +246,7 @@ Neo.Cab registreert alleen. Er zijn geen drempels, waarschuwingen of adviezen: g
 
 ## Designreview (fase 1–3)
 
-Na een kritische designreview zijn doorgevoerd (het ABCD-blok blijft voorlopig zoals het was):
+Na een kritische designreview zijn doorgevoerd (het ABCD-blok is daarna omgebouwd tot één tekstvak, zie hieronder):
 - **Kleur:** één blauwfamilie (primair #24527f, zijbalk #1b3552, vlak #e6eef6); alleen de hoofdactie is gevuld, *Toevoegen* is tonaal; verwijderen is rood (#b42318) zonder onderstreping; checklist: klaar = zacht groen, niet van toepassing = rode omlijning, leeg = neutrale rand; plaatshouder- en volledige-naamgrijs donkerder (≥ 4,5 : 1).
 - **Raster en ritme:** getalvelden smal (Apgar en navelstrengbloedgas op één rij), keuzebalken en groepen op dezelfde linkerrand; vaste verticale maten 16 / 24 / 32 px; koppen: sectie 24 px, subkop 20 px met lijn, groeps- en veldlabels in één stijl.
 - **Tabel:** horizontale koppen op twee regels (naam, eenheid), één lijndikte, geen zebra.
@@ -268,9 +268,9 @@ Maat = niveau, in formulier én verslag:
 
 Metatekst (intro, hint, eenheid) is 13 px, 400, grijs. Drie tekstkleuren: waarden `#1a1a1a`, koppen `#2b3138`, labels en meta `#56606b`. Uitzondering: de sleutels in het verslag ("Naam kind") blijven 15 px, omdat het een document is.
 
-## ABCD-blok (compact)
+## ABCD-blok (één tekstvak)
 
-In *Toestand bij verwijzing* en in *Stabilisatie* staan alleen de letters met inhoud als veld (en letters met een extra onderdeel: Disability met het hypothermiepaneel bij verwijzing, Gastro-intestinal met *Laatste voeding* bij stabilisatie). De overige letters staan als gestippelde knoppen ("＋ D Disability"); een tik voegt het veld toe en zet de cursor erin. Een leeg blok toont dus alleen negen knoppen.
+In *Toestand bij verwijzing* en in *Stabilisatie* staat één tekstvak met de negen letters al ingevuld ("A Airway: ", "B Breathing: ", …). Je typt achter de letter; meerdere regels per letter mogen. Per letter wordt de tekst apart bewaard (`src/domain/abcdText.ts`), zodat verslag, pdf en brief ongewijzigd blijven. Het hypothermiepaneel (verwijzing) en *Laatste voeding* (stabilisatie) staan onder het tekstvak.
 
 ## Tijdstippen
 
